@@ -14,6 +14,7 @@ include { GFFREAD                             } from '../modules/nf-core/gffread
 include { ORTHOFINDER                         } from '../modules/nf-core/orthofinder/main'
 include { FASTQC                              } from '../modules/nf-core/fastqc/main'
 include { MULTIQC                             } from '../modules/nf-core/multiqc/main'
+include { TREE_SUMMARY                        } from '../modules/local/tree_summary'
 include { paramsSummaryMap                    } from 'plugin/nf-validation'
 include { paramsSummaryMultiqc                } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML              } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -121,26 +122,42 @@ workflow GENOMEQC {
     // Run GFFREAD
     //
 
-    GFFREAD ( 
-        LONGEST.out.longest_proteins,
-        ch_fasta.map { file(it[1]) }
-    )
+    //ch_fasta.view()
+    //LONGEST.out.longest_proteins.view()
 
+    ch_long_gff = LONGEST.out.longest_proteins
+    
+
+    // Step 1: View the content of each channel before joining
+    //ch_long_gff.view()
+    //ch_fasta.view()
+
+    inputChannel = ch_long_gff.combine(ch_fasta, by: 0)
+
+    // Split the input channel into two channels
+    gffChannel = inputChannel.map { tuple ->
+        // Extracting the GFF path and ID
+        [tuple[0], tuple[1]]
+    }
+
+    fnaChannel = inputChannel.map { tuple ->
+        // Extracting only the FNA path
+        tuple[2]
+    }
+
+    // Usage example: Print the outputs of both channels
+    gffChannel.view()
+    fnaChannel.view()
+
+    GFFREAD ( 
+        gffChannel , fnaChannel
+    )
 
     //
     // MODULE: Run Orthofinder
     //
 
-    //ortho_ch = [ 
-    //    [id:"orthofinder"],
-    //    [GFFREAD.out.longest.collect()]
-    //]
-
     ortho_ch = GFFREAD.out.gffread_fasta.map { it[1] }.collect().map { it-> [[id:"orthofinder"], it] }
-
-    ortho_ch.view()
-    
-    //ortho_ch.view()
 
     ORTHOFINDER (
         ortho_ch,
@@ -162,13 +179,10 @@ workflow GENOMEQC {
     ch_versions = ch_versions.mix(BUSCO_BUSCO.out.versions.first())
 
     //
-    // MODULE: Run FastQC
-    //
-//    FASTQC (
-//        ch_samplesheet
-//    )
-//    ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]})
-//    ch_versions = ch_versions.mix(FASTQC.out.versions.first())
+    // MODULE: Run TREE SUMMARY
+    //  
+
+    ORTHOFINDER.out.orthofinder.view()
 
     //
     // Collate and save software versions
