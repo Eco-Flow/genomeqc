@@ -374,6 +374,18 @@
     "tree_scale": {
       "type": "integer",
       "description": "Modifies scale of the tree plot in the tree summary, default value is '0.0005'. Useful if tree tips overlap with the concatenated plots. Very sensitive, increase/decrease by two-fold"
+    },
+    "text_size": {
+      "type": "integer",
+      "description": "Modifies text size of tree tips in the tree summary, default value is '3'"
+    },
+    "bar_width": {
+      "type": "integer",
+      "description": "Modifies bar width of the bar plots in the tree summary, default value is '0.7'"
+    },
+    "rad_size": {
+      "type": "integer",
+      "description": "Modifies radius size of the busco pies in the tree summary, default value is '0.4'"
     }
   }
 }
