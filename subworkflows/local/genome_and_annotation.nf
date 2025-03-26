@@ -140,7 +140,8 @@ workflow GENOME_AND_ANNOTATION {
         "proteins", // hardcoded
         params.busco_lineage,
         params.busco_lineages_path ?: [],
-        params.busco_config ?: []
+        params.busco_config ?: [],
+        params.busco_clean ?: []
     )
     ch_versions  = ch_versions.mix(BUSCO_BUSCO.out.versions.first())
 
