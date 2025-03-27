@@ -28,7 +28,11 @@ workflow GENOME_AND_ANNOTATION {
     //
 
     // Fix and standarize GXF
-    ch_gxf_agat  = AGAT_CONVERTSPGXF2GXF(ch_gxf).output_gff
+    AGAT_CONVERTSPGXF2GXF(
+        ch_gxf
+    )
+    ch_gxf_agat  = AGAT_CONVERTSPGXF2GXF.out.output_gff
+    ch_versions  = ch_versions.mix(AGAT_CONVERTSPGXF2GXF.out.versions.first())
 
     //
     // MODULE: Run AGAT longest isoform
@@ -74,6 +78,7 @@ workflow GENOME_AND_ANNOTATION {
     GENE_OVERLAPS {
         ch_input.gxf_filt
     }
+    ch_versions  = ch_versions.mix(GENE_OVERLAPS.out.versions.first())
     ch_tree_data = ch_tree_data.mix(GENE_OVERLAPS.out.overlap_counts.collect { meta, file -> file })
 
     //
@@ -109,6 +114,7 @@ workflow GENOME_AND_ANNOTATION {
     FASTAVALIDATOR(
         GFFREAD.out.gffread_fasta
     )
+    ch_versions  = ch_versions.mix(FASTAVALIDATOR.out.versions.first())
 
     //
     // MODULE: Run Orthofinder
@@ -182,6 +188,7 @@ workflow GENOME_AND_ANNOTATION {
                         }
 
     GENOME_ANNOTATION_BUSCO_IDEOGRAM ( ch_plot_input )
+    ch_versions         = ch_versions.mix(GENOME_ANNOTATION_BUSCO_IDEOGRAM.out.versions.first())
 
     ch_tree_data        = ch_tree_data.mix(BUSCO_BUSCO.out.batch_summary.collect { meta, file -> file })
 
@@ -191,5 +198,5 @@ workflow GENOME_AND_ANNOTATION {
     quast_results         = QUAST.out.results                   // channel: [ val(meta), [tsv] ]
     busco_short_summaries = BUSCO_BUSCO.out.short_summaries_txt // channel: [ val(meta), [txt] ]
 
-    versions              = ch_versions                         // channel: [ versions.yml ]
+    versions              = ch_versions                   // channel: [ versions.yml ]
 }
