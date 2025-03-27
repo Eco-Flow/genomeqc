@@ -74,7 +74,7 @@ tree <- read.tree(args$tree_file)
 
 # Clean tree tip labels
 tree$tip.label <- trimws(tree$tip.label)
-tree$tip.label <- tolower(tree$tip.label)
+#tree$tip.label <- tolower(tree$tip.label)
 
 # If radious of pie charts is to big, it can
 # mess the position of the pies, make them
@@ -85,7 +85,7 @@ if (length(tree$tip.label) < 7) {
 }
 
 # Capitalize first letter of tip labels
-tree$tip.label <- sub("^(\\w)(.*)", "\\U\\1\\L\\2", tree$tip.label, perl = TRUE)
+#tree$tip.label <- sub("^(\\w)(.*)", "\\U\\1\\L\\2", tree$tip.label, perl = TRUE)
 
 # Read the data table from the file, ensuring species column is read as character
 # Load BUSCO
