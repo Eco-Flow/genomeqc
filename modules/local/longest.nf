@@ -8,7 +8,7 @@ process LONGEST {
     tuple val (meta),  path(gff)
 
     output:
-    tuple val (meta), path( "${meta.id}.longest.gff3" ) , emit: longest_proteins
+    tuple val (meta), path( "*.longest.gff3" ) , emit: longest_proteins
     path "versions.yml"                                 , emit: versions
 
     when:
