@@ -1,6 +1,6 @@
 
 include { AGAT_CONVERTSPGXF2GXF               } from '../../modules/nf-core/agat/convertspgxf2gxf'
-include { LONGEST                             } from '../../modules/local/longest'
+include { AGAT_SPKEEPLONGESTISOFORM           } from '../../modules/nf-core/agat/spkeeplongestisoform'
 include { BUSCO_BUSCO                         } from '../../modules/nf-core/busco/busco/main'
 include { QUAST                               } from '../../modules/nf-core/quast/main'
 include { AGAT_SPSTATISTICS                   } from '../../modules/nf-core/agat/spstatistics/main'
@@ -38,19 +38,19 @@ workflow GENOME_AND_ANNOTATION {
     // MODULE: Run AGAT longest isoform
     //
 
-    LONGEST (
+    AGAT_SPKEEPLONGESTISOFORM (
         ch_gff_agat
     )
-    ch_versions  = ch_versions.mix(LONGEST.out.versions.first())
+    ch_versions  = ch_versions.mix(AGAT_SPKEEPLONGESTISOFORM.out.versions.first())
 
     // Get longest isoform from gff
-    ch_gff_long  = LONGEST.out.longest_proteins
+    ch_gff_long  = AGAT_SPKEEPLONGESTISOFORM.out.longest_proteins
 
     //
     // Prepare input multichannel
     //
 
-    // Combine inputs (fasta, gff from AGAT (unfiltered) and gff from LONGEST (fitlered)))
+    // Combine inputs (fasta, gff from AGAT (unfiltered) and gff from AGAT_SPKEEPLONGESTISOFORM (fitlered)))
     // into a single multichannel so that they are in sync
     ch_input     = ch_fasta
                  | combine(ch_gff_agat, by:0) // by:0 | Only combine when both channels share the same id
