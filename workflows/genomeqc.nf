@@ -42,8 +42,8 @@ workflow GENOMEQC {
                     validateInputSamplesheet(it) // Input validation (check local subworkflow)
                 }
                 | branch {
-                    ncbi  : it[1] != null
-                    local : it[1] == null
+                    ncbi  : it.size() == 3
+                    local : it.size() == 4
                 }
 
     // MODULE: Run create_path
