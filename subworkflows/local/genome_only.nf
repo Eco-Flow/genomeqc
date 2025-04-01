@@ -9,6 +9,7 @@ workflow GENOME_ONLY {
     ch_fasta // channel: [ val(meta), [ fasta ] ]
 
     main:
+    ch_fasta.view { "Running ${it[0]} on genome only mode"}
 
     ch_versions   = Channel.empty()
 

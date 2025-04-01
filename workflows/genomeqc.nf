@@ -42,8 +42,8 @@ workflow GENOMEQC {
                     validateInputSamplesheet(it) // Input validation (check local subworkflow)
                 }
                 | branch {
-                    ncbi  : it.size() == 3
-                    local : it.size() == 4
+                    ncbi  : it.size == 3
+                    local : it.size == 4
                 }
 
     // MODULE: Run create_path
@@ -79,15 +79,15 @@ workflow GENOMEQC {
     // Perpare input channels
     //
     
-    // gxf. We use mix() here becuase when local files are present,
-    // then RefSeq IDs should be missing, and viceversa
+    // fasta. We use mix() here becuase when local files are present, then RefSeq IDs should be missing, and viceversa
     fasta = ch_input.local
-            | map { meta, fasta, gxf, fq -> tuple( meta, file(fasta) ) }
+            | map { meta, fasta, gxf, fq -> tuple( meta, file(fasta) ) } // Use file() so that if fasta is not provided pipeline will break
             | mix ( NCBIGENOMEDOWNLOAD.out.fna )
  
-    // fasta. We use mix() here becuase when local files are present, then RefSeq IDs should be missing, and viceversa
+    // gxf. We use mix() here becuase when local files are present,
+    // then RefSeq IDs should be missing, and viceversa
     gxf   = ch_input.local
-            | map { meta, fasta, gxf, fq -> tuple( meta, file(gxf) ) }
+            | map { meta, fasta, gxf, fq ->  tuple ( meta,  gxf ) } // gxf can be empty
             | mix ( NCBIGENOMEDOWNLOAD.out.gff )
 
 
@@ -96,18 +96,15 @@ workflow GENOMEQC {
     non_gz_fasta = fasta.filter { !it[1].name.endsWith(".gz") }
 
     // Run module uncompress_fasta
-
-    UNCOMPRESS_FASTA (gz_fasta )
+    UNCOMPRESS_FASTA ( gz_fasta )
     ch_versions = ch_versions.mix(UNCOMPRESS_FASTA.out.versions.first())
 
     // Filter gxf files by extension and create channels for each file type
-
-    gz_gxf     = gxf.filter { it[1].name.endsWith(".gz") }
-    non_gz_gxf = gxf.filter { !it[1].name.endsWith(".gz") }
+    gz_gxf     = gxf.filter { it[1][0] != null && it[1].name.endsWith(".gz")  }
+    non_gz_gxf = gxf.filter { it[1][0] == null || !it[1].name.endsWith(".gz") }
 
     // Run module uncompress_GXF
-
-    UNCOMPRESS_GXF(gz_gxf)
+    UNCOMPRESS_GXF( gz_gxf )
     ch_versions = ch_versions.mix(UNCOMPRESS_GXF.out.versions.first())
 
     // Combine the channels back together so that all the uncompressed files are in channels 
@@ -141,15 +138,27 @@ workflow GENOMEQC {
 
     // Combine both fasta, gxf and fastq channels into a single multi-channel object using multiMap, so that they are in sync all the time
     // If element (fasta, gxf, fq) is empty, it will return an empty (null) channel
-    ch_input = ch_fasta
-                | combine(ch_gxf, by:0) // by:0 | Only combine when both channels share the same id
-                | combine(ch_fastq, by:0)
-                | multiMap {
-                    meta, fasta, gxf, fq ->
-                        fasta : fasta ? tuple( meta, file(fasta) ) : null
-                        gxf   : gxf   ? tuple( meta, file(gxf) )   : null
-                        fq    : fq    ? tuple( meta, file(fq) )    : null // Only this one is necessary
-                }
+    ch_input      = ch_fasta
+                  | combine(ch_gxf, by:0) // by:0 | Only combine when both channels share the same id
+                  | combine(ch_fastq, by:0)
+
+    // Split into two channels according to the presence/absence of an annotation
+    ch_input_anno = ch_input.filter { it[2][0] != null } // Will run genome and annotation
+                  | multimapChannel                      // Notice only fasta channel is necessary here
+    ch_input_geno = ch_input.filter { it[2] == null }    // Will run only genome
+                  | multimapChannel // Notice only fasta and gxf channels are necessary here
+    ch_input      = ch_input        // All channels
+                  | multimapChannel
+
+    //ch_input      = ch_fasta
+    //              | combine(ch_gxf, by:0) // by:0 | Only combine when both channels share the same id
+    //              | combine(ch_fastq, by:0)
+    //              | multiMap {
+    //                  meta, fasta, gxf, fq ->
+    //                      fasta : fasta ? tuple( meta, file(fasta) ) : null
+    //                      gxf   : gxf   ? tuple( meta, file(gxf) )   : null
+    //                      fq    : fq    ? tuple( meta, file(fq) )    : null // Only this one is necessary
+    //              }
 
     //
     // Run TIDK
@@ -198,7 +207,6 @@ workflow GENOMEQC {
         ch_versions                             = ch_versions.mix(MERQURY_MERQURY.out.versions.first())
     }
 
-
     // Run genome only or genome + gxf
     if (params.genome_only) {
         GENOME_ONLY (
@@ -209,9 +217,12 @@ workflow GENOMEQC {
                          | mix(GENOME_ONLY.out.busco_short_summaries.map { meta, txt -> txt })
         ch_versions      = ch_versions.mix(GENOME_ONLY.out.versions)
     } else {
+        GENOME_ONLY (
+            ch_input_geno.fasta
+        )
         GENOME_AND_ANNOTATION (
-            ch_input.fasta,
-            ch_input.gxf
+            ch_input_anno.fasta,
+            ch_input_anno.gxf
         )
         ch_multiqc_files = ch_multiqc_files
                          | mix(GENOME_AND_ANNOTATION.out.quast_results.map { meta, results -> results })
@@ -298,3 +309,21 @@ workflow GENOMEQC {
     THE END
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
+
+
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    FUNCTIONS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+
+def multimapChannel(input) {
+   multi_ch = input
+            | multiMap {
+                meta, fasta, gxf, fq ->
+                    fasta : fasta ? tuple( meta, file(fasta) ) : null
+                    gxf   : gxf   ? tuple( meta, file(gxf) )   : null
+                    fq    : fq    ? tuple( meta, file(fq) )    : null // Only this one is necessary
+            }
+    return multi_ch
+}
