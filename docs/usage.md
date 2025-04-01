@@ -18,19 +18,21 @@ Before running the pipeline, you will need to create a samplesheet with informat
 
 The content of the samplesheet will depend on the mode you are using to run the pipeline -**genome only** or **genome and annotation**-, the inclusion of FASTQ reads to run **Merqury**, and the origin of the genome assemblies and annotations (**local** or **RefSeq**). Refer to their sections for more information on [running modes](#modes) and [running with **Merqury**](#running-with-merqury). Nonetheless, you must always indicate the species name of each sample using the **species** field.
 
-If running the pipeline on **local** files, point to the location these files using the **fasta** and **gff** fields:
+In **genome and annotation** mode, genome assemblies should be given in FASTA format, whereas feature annotations can be given in GFF or GTF formats (GXF/gxf is used as notation when referring annotation in the documentation).
+
+If running the pipeline on **local** files, point to the location these files using the **fasta** and **gxf** fields:
 
 ```csv title="samplesheet.csv"
-species,refseq,fasta,gff,fastq
-Homo_sapiens,,/path/to/genome.fasta,/path/to/annotation.gff3,
-Gorilla_gorilla,,/path/to/genome.fasta,/path/to/annotation.gff3,
-Pan_paniscus,,/path/to/genome.fasta,/path/to/annotation.gff3,
+species,refseq,fasta,gxf,fastq
+Homo_sapiens,,/path/to/genome.fasta,/path/to/annotation.gxf,
+Gorilla_gorilla,,/path/to/genome.fasta,/path/to/annotation.gxf,
+Pan_paniscus,,/path/to/genome.fasta,/path/to/annotation.gxf,
 ```
 
 If running the pipeline using **RefSeq IDs**, indicate the corresponding ID using the **refseq** field:
 
 ```csv title="samplesheet.csv"
-species,refseq,fasta,gff,fastq
+species,refseq,fasta,gxf,fastq
 Homo_sapiens,GCF_000001405.40,,,
 Gorilla_gorilla,GCF_029281585.2,,,
 Pan_paniscus,GCF_029289425.2,,,
@@ -39,10 +41,10 @@ Pan_paniscus,GCF_029289425.2,,,
 If running with **Merqury**, you must point to the location of FASTQ files using the **fastq** field:
 
 ```csv title="samplesheet.csv"
-species,refseq,fasta,gff,fastq
-Homo_sapiens,,/path/to/genome.fasta,/path/to/annotation.gff3,/path/to/annotation.fastq
-Gorilla_gorilla,,/path/to/genome.fasta,/path/to/annotation.gff3,/path/to/annotation.fastq
-Pan_paniscus,,/path/to/genome.fasta,/path/to/annotation.gff3,/path/to/annotation.fastq
+species,refseq,fasta,gxf,fastq
+Homo_sapiens,,/path/to/genome.fasta,/path/to/annotation.gxf,/path/to/annotation.fastq
+Gorilla_gorilla,,/path/to/genome.fasta,/path/to/annotation.gxf,/path/to/annotation.fastq
+Pan_paniscus,,/path/to/genome.fasta,/path/to/annotation.gxf,/path/to/annotation.fastq
 ```
 
 As for now, the pipeline doesn't support SRA accession for **Merqury**. We will consider this option  the future.
@@ -52,7 +54,7 @@ As for now, the pipeline doesn't support SRA accession for **Merqury**. We will 
 | `species`  | Species name or custom sample name. Spaces in sample names are automatically converted to underscores (`_`) (not sure if this is an option right now). |
 | `refseq` | RefSeq ID. String has to start with "GCF".                                                             |
 | `fasta` | Full path to the genome fasta file. File has to be gzipped and have the extension ".fasta.gz", ".fna.gz" or ".fa.gz".                                                             |
-| `gff` | Full path to the genome annotation gff file. File has to be gzipped and have the extension ".gff.gz" or ".gff3.gz".                                                             |
+| `gxf` | Full path to the genome annotation gff/gtf file. File has to be gzipped and have the extension ".gtf.gz", ".gff.gz", or ".gff3.gz".                                                             |
 | `fastq` | Full path to FastQ file for long reads (e.g. PacBio or ONT). File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                             |
 
 An [example samplesheet](../assets/samplesheet.csv) has been provided with the pipeline.
@@ -103,7 +105,7 @@ You can also generate such `YAML`/`JSON` files via [nf-core/launch](https://nf-c
 ### Modes
 
 #### Genome and annotation (_default_)
-By the default, the pipeline will run on both **genome and annotation**, whether it be from **local files** or **RefSeq IDs**. If RefSeq IDs are not provided, or, alternatively, both local FASTA genome and GFF annotation files are not provided, the pipeline will fail.
+By the default, the pipeline will run on both **genome and annotation**, whether it be from **local files** or **RefSeq IDs**. If RefSeq IDs are not provided, or, alternatively, both local FASTA genome and GXF annotation files are not provided, the pipeline will fail.
 
 #### Genome only
 

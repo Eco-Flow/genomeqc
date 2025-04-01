@@ -19,10 +19,10 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 - Genome quality metrics:
   - [Quast](#quast) - Genome quality and contiguity metrics
   - [tidk](#tidk) - Identify telomeric repeats
-  - [Merqury](#merqury) - Genome completeness and accuracy basedon raw sequecing k-mer counts
+  - [Merqury](#merqury) - Genome completeness and accuracy based on raw sequecing k-mer counts
 - Annotation quality metrics:
-  - [AGAT sp_statistics](#agat-sp_statistics) - Report with gene statistics
-  - [AGAT sp_keep_longest_isoform](#agat-sp_keep_longest_isoform) - Filter longest isoform from GFF file
+  - [AGAT sp_statistics](#agat-sp_statistics) - Gene statistics
+  - [AGAT sp_keep_longest_isoform](#agat-sp_keep_longest_isoform) - Filter longest isoform from GXF file
   - [Gene overlaps](#gene-overlaps) - Find overlapping genes (sense and antisense)
 - [GffRead](#gffread) - Extract longest isoform from FASTA file
 - [BUSCO](#busco) - Genome completeness based on single copy markers
@@ -39,7 +39,7 @@ pigz is used to uncompress `.gz` input files, as some nf-core/genomeqc modules r
 
 [NCBI genome download](https://github.com/kblin/ncbi-genome-download) is a tool for downloading assemlbies from the NCBI FTP site.
 
-In nf-core/genomeqc, it inputs RefSeq IDs and donwloads the respective assembly and annotation in FASTA and GFF formats. If local files are provided, this step is skipped.
+It inputs RefSeq IDs and donwloads the respective assembly and annotation in FASTA and GFF formats. If local files are provided, this step is skipped.
 
 <details markdown="1">
 <summary>Output files</summary>
@@ -116,13 +116,13 @@ To run nf-core/genomeqc with merqury, the flag `--run_merqury` must be provided.
 
 ### AGAT sp_keep_longest_isoform
 
-[AGAT sp_keep_longest_isoform](https://agat.readthedocs.io/en/latest/tools/agat_sp_keep_longest_isoform.html) filters GFF file to keep the longest isoform per gene. Longest isoforms are recommended as input for both BUSCO and Orthofinder.
+[AGAT sp_keep_longest_isoform](https://agat.readthedocs.io/en/latest/tools/agat_sp_keep_longest_isoform.html) filters GXF file to keep the longest isoform per gene. Longest isoforms are recommended as input for both BUSCO and Orthofinder.
 
 <details markdown="1">
 <summary>Output files</summary>
 
 - `longest/`
-  - `<species_name>.longest.gff3`: Contig viewr in HTML format
+  - `<species_name>.longest.g*f`: Contig viewr in HTML format
 
 </details>
 
@@ -130,7 +130,7 @@ This directory will only be present if `--save_longest_isoform` flag is set.
 
 ### Gene overlaps
 
-**Gene overlaps** is a local module based on the R package [GenomicRanges](https://bioconductor.org/packages/release/bioc/html/GenomicRanges.html), used for manipulating genomic intervals. It finds the number of genes that are overlapping in the GFF file, which can be used as a metric to evaluate the quality of the annotation.
+**Gene overlaps** is a local module based on the R package [GenomicRanges](https://bioconductor.org/packages/release/bioc/html/GenomicRanges.html), used for manipulating genomic intervals. It finds the number of genes that are overlapping in the GXF file, which can be used as a metric to evaluate the quality of the annotation.
 
 It outputs a brief report with information about the number of reads, the number of genes fully contained in sense direction and in the antisense direction, and the total number of overlapping genes.
 

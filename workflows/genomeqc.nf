@@ -9,7 +9,7 @@ include { MERQURY_MERQURY                     } from '../modules/nf-core/merqury
 include { CREATE_PATH                         } from '../modules/local/create_path'
 include { NCBIGENOMEDOWNLOAD                  } from '../modules/nf-core/ncbigenomedownload/main'
 include { PIGZ_UNCOMPRESS as UNCOMPRESS_FASTA } from '../modules/nf-core/pigz/uncompress/main'
-include { PIGZ_UNCOMPRESS as UNCOMPRESS_GFF   } from '../modules/nf-core/pigz/uncompress/main'
+include { PIGZ_UNCOMPRESS as UNCOMPRESS_GXF   } from '../modules/nf-core/pigz/uncompress/main'
 include { GENOME_ONLY                         } from '../subworkflows/local/genome_only'
 include { GENOME_AND_ANNOTATION               } from '../subworkflows/local/genome_and_annotation'
 include { MULTIQC                             } from '../modules/nf-core/multiqc/main'
@@ -79,15 +79,15 @@ workflow GENOMEQC {
     // Perpare input channels
     //
     
-    // gff. We use mix() here becuase when local files are present,
+    // gxf. We use mix() here becuase when local files are present,
     // then RefSeq IDs should be missing, and viceversa
     fasta = ch_input.local
-            | map { meta, fasta, gff, fq -> tuple( meta, file(fasta) ) }
+            | map { meta, fasta, gxf, fq -> tuple( meta, file(fasta) ) }
             | mix ( NCBIGENOMEDOWNLOAD.out.fna )
  
     // fasta. We use mix() here becuase when local files are present, then RefSeq IDs should be missing, and viceversa
-    gff   = ch_input.local
-            | map { meta, fasta, gff, fq -> tuple( meta, file(gff) ) }
+    gxf   = ch_input.local
+            | map { meta, fasta, gxf, fq -> tuple( meta, file(gxf) ) }
             | mix ( NCBIGENOMEDOWNLOAD.out.gff )
 
 
@@ -100,31 +100,31 @@ workflow GENOMEQC {
     UNCOMPRESS_FASTA (gz_fasta )
     ch_versions = ch_versions.mix(UNCOMPRESS_FASTA.out.versions.first())
 
-    // Filter gff files by extension and create channels for each file type
+    // Filter gxf files by extension and create channels for each file type
 
-    gz_gff     = gff.filter { it[1].name.endsWith(".gz") }
-    non_gz_gff = gff.filter { !it[1].name.endsWith(".gz") }
+    gz_gxf     = gxf.filter { it[1].name.endsWith(".gz") }
+    non_gz_gxf = gxf.filter { !it[1].name.endsWith(".gz") }
 
-    // Run module uncompress_GFF
+    // Run module uncompress_GXF
 
-    UNCOMPRESS_GFF(gz_gff)
-    ch_versions = ch_versions.mix(UNCOMPRESS_GFF.out.versions.first())
+    UNCOMPRESS_GXF(gz_gxf)
+    ch_versions = ch_versions.mix(UNCOMPRESS_GXF.out.versions.first())
 
     // Combine the channels back together so that all the uncompressed files are in channels 
 
     ch_fasta  = UNCOMPRESS_FASTA.out.file.mix(non_gz_fasta)
-    ch_gff    = UNCOMPRESS_GFF.out.file.mix(non_gz_gff)
+    ch_gxf    = UNCOMPRESS_GXF.out.file.mix(non_gz_gxf)
 
     //
     // Define fastq input channel
     //
 
     // FASTQ file is optional in the samplesheet. 
-    // First, get it like you do for gff and fasta
+    // First, get it like you do for gxf and fasta
 
     ch_fastq = ch_input.ncbi
                 | map{ meta, refseq, fq -> tuple( meta, fq ) }
-                | mix( ch_input.local.map{ meta, fasta, gff, fq -> tuple( meta, fq ) } )
+                | mix( ch_input.local.map { meta, fasta, gxf, fq -> tuple( meta, fq ) } )
 
     // Then, check to see that element 1 is not empty, and if not, make it file()
     // You have to do this because if you pass in file() in the initial map, 
@@ -139,16 +139,16 @@ workflow GENOMEQC {
     // Define multi-channel object
     //
 
-    // Combine both fasta, gff and fastq channels into a single multi-channel object using multiMap, so that they are in sync all the time
-    // If element (fasta, gff, fq) is empty, it will return an empty (null) channel
+    // Combine both fasta, gxf and fastq channels into a single multi-channel object using multiMap, so that they are in sync all the time
+    // If element (fasta, gxf, fq) is empty, it will return an empty (null) channel
     ch_input = ch_fasta
-                | combine(ch_gff, by:0) // by:0 | Only combine when both channels share the same id
+                | combine(ch_gxf, by:0) // by:0 | Only combine when both channels share the same id
                 | combine(ch_fastq, by:0)
                 | multiMap {
-                    meta, fasta, gff, fq ->
-                        fasta : fasta ? tuple( meta, file(fasta) ) : null // Not sure if conditional is necessary anymore
-                        gff   : gff   ? tuple( meta, file(gff) )   : null
-                        fq    : fq    ? tuple( meta, file(fq) )    : null
+                    meta, fasta, gxf, fq ->
+                        fasta : fasta ? tuple( meta, file(fasta) ) : null
+                        gxf   : gxf   ? tuple( meta, file(gxf) )   : null
+                        fq    : fq    ? tuple( meta, file(fq) )    : null // Only this one is necessary
                 }
 
     //
@@ -199,7 +199,7 @@ workflow GENOMEQC {
     }
 
 
-    // Run genome only or genome + gff
+    // Run genome only or genome + gxf
     if (params.genome_only) {
         GENOME_ONLY (
             ch_input.fasta
@@ -211,7 +211,7 @@ workflow GENOMEQC {
     } else {
         GENOME_AND_ANNOTATION (
             ch_input.fasta,
-            ch_input.gff
+            ch_input.gxf
         )
         ch_multiqc_files = ch_multiqc_files
                          | mix(GENOME_AND_ANNOTATION.out.quast_results.map { meta, results -> results })
