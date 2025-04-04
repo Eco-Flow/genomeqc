@@ -23,6 +23,7 @@ process BUSCO_BUSCO {
     tuple val(meta), path("*-busco/*/run_*/single_copy_proteins.faa") , emit: single_copy_proteins  , optional: true
     tuple val(meta), path("*-busco/*/run_*/busco_sequences")          , emit: seq_dir
     tuple val(meta), path("*-busco/*/translated_proteins")            , emit: translated_dir        , optional: true
+    tuple val(meta), path("*-busco/*/prod*/pred*/predicted.faa")      , emit: prodigal_prots        , optional: true
     tuple val(meta), path("*-busco")                                  , emit: busco_dir
     path "versions.yml"                                               , emit: versions
 
