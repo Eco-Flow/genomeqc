@@ -148,6 +148,7 @@ def validateInputParameters() {
 //
 def validateInputSamplesheet(input) {
     def (meta, refseq, fasta, gff, fastq) = input
+    //println(input)
     if (params.run_merqury && !fastq) { // Perhaps this should be on validateInputParameters()
         error("You are runnning genomeqc using --run_merqury, but no fastq file was found")
     }
@@ -165,10 +166,13 @@ def validateInputSamplesheet(input) {
             error("You are running genomeqc in --genome_only mode, but no fasta file or RefSeq ID was found. Please check input samplesheet -> Incorrect samplesheet format")
         }
     } else {
+        //return [meta, refseq, fasta, gff, fastq]
         if (meta && refseq && !fasta && !gff) {
             return [ meta, refseq, fastq ]
-        } else if ( meta && !refseq && fasta && gff ) {
+        } else if ( meta && !refseq && fasta ) {
             return [ meta, fasta, gff, fastq ]
+        //} else if ( meta && !refseq && fasta && !gff[0] ) {
+        //    return [ meta, fasta, null, fastq ]
         } else {
             error("You are running genomeqc on default mode. Please check input samplesheet -> Incorrent samplesheet format")
         }

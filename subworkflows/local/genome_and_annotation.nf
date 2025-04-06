@@ -17,6 +17,7 @@ workflow GENOME_AND_ANNOTATION {
     ch_gxf   // channel: [ val(meta), [ gxf ] ]
 
     main:
+    ch_fasta.view { "Running ${it[0]} on genome and annotation mode"}
 
     ch_versions  = Channel.empty()
 

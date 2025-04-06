@@ -16,12 +16,9 @@
 
 The pipeline takes a list of genomes and annotations (from raw files or Refseq IDs), and runs commonly used tools to assess their quality.
 
-There are three different ways you can run this pipeline:
+There are two ways you can run this pipeline:
  1. Genome only
  2. Annotation only
- 3. Genome and Annotation.
-
-**Currently, only Genome plus Annotation is functional**
 
 <!-- TODO nf-core:
 For an example, see https://github.com/nf-core/rnaseq/blob/master/README.md#introduction
@@ -51,18 +48,13 @@ For an example, see https://github.com/nf-core/rnaseq/blob/master/README.md#intr
 7. Plots an orthology-based phylogenetic tree : **Tee Summary**, as well as other relevant stats from the above steps.
 8. Summary with [MultiQC](http://multiqc.info).
 
-**2. Genome Only (in development):**
+**2. Genome Only:**
 1. Downloads the genome files from NCBI: [NCBI genome download](https://github.com/kblin/ncbi-genome-download) - Or you provide your own genomes
 2. Describes genome assembly:
    1. [BUSCO](https://busco.ezlab.org/): Evaluates genome completeness based on **single copy markers**.
    2. **BUSCO Ideogram**: Plots the location of markers on the assembly.
    3. [tidk](https://github.com/tolkit/telomeric-identifier) (optional): Indetfies and visualises telomeric repeats.
    3. [QUAST](https://github.com/ablab/quast): Computes contiguity and integrity statistics: N50, N90, GC%, number of sequences.
-3. Summary with [MultiQC](http://multiqc.info).
-
-**3. Annnotation Only (in development):**
-1. Downloads the gene annotation files from NCBI: [NCBI genome download](https://github.com/kblin/ncbi-genome-download) - Or you provide your own annotations.
-2. Describes your annotation : [AGAT](https://agat.readthedocs.io/en/latest/): Gene, feature, length, averages, counts.
 3. Summary with [MultiQC](http://multiqc.info).
 
 > [!WARNING]
