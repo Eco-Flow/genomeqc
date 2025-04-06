@@ -168,7 +168,13 @@ def validateInputSamplesheet(input) {
     } else {
         //return [meta, refseq, fasta, gff, fastq]
         if (meta && refseq && !fasta && !gff) {
-            return [ meta, refseq, fastq ]
+            if (refseq.startsWith('GCF')) {
+                return [ [id:meta.id,ncbi:'refseq'], refseq, fastq ]
+            } else if (refseq.startsWith('GCA')) {
+                return [ [id:meta.id,ncbi:'genbank'], refseq, fastq ]
+            } else {
+                error('Incorrect ncbi ID. Please make sure ncbi IDs start with "GCA" for GenBank or "GCG" for RefSeq')
+            }
         } else if ( meta && !refseq && fasta ) {
             return [ meta, fasta, gff, fastq ]
         //} else if ( meta && !refseq && fasta && !gff[0] ) {
