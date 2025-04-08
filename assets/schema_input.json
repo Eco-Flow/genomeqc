@@ -14,17 +14,25 @@
             },
             "refseq": {
                 "type": "string",
+                "meta": ["refseq"],
                 "errorMessage": "RefSeq accession number"
             },
             "fasta": {
                 "type": "string",
                 "format": "file-path",
+                "meta": ["fasta"],
                 "errorMessage": "FASTA file with genome assembly"
             },
             "gff": {
                 "type": "string",
                 "format": "file-path",
-                "errorMessage": "GFF file with genome annotation"
+                "errorMessage": "GFF file with genome annotation",
+                "meta": ["gff"]
+            },
+            "taxid": {
+            "type": "string",
+            "meta": ["taxid"],
+            "errorMessage": "Species taxid"
             },
             "fastq": {
                 "type": "string",

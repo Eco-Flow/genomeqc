@@ -20,6 +20,7 @@ include { softwareVersionsToYAML              } from '../subworkflows/nf-core/ut
 include { methodsDescriptionText              } from '../subworkflows/local/utils_nfcore_genomeqc_pipeline'
 include { validateInputSamplesheet            } from '../subworkflows/local/utils_nfcore_genomeqc_pipeline'
 include { FASTA_EXPLORE_SEARCH_PLOT_TIDK      } from '../subworkflows/nf-core/fasta_explore_search_plot_tidk/main'
+include { DECONTAMINATION                     } from '../subworkflows/local/decontamination'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -36,7 +37,7 @@ workflow GENOMEQC {
 
     ch_versions = Channel.empty()
     ch_multiqc_files = Channel.empty()
-
+    
     ch_input = ch_samplesheet
                 | map {
                     validateInputSamplesheet(it) // Input validation (check local subworkflow)
@@ -151,6 +152,18 @@ workflow GENOMEQC {
                         fq    : fq    ? tuple( meta, file(fq) )    : null
                 }
 
+
+    ch_gff = UNCOMPRESS_GFF.out.file.mix(non_gz_gff).view()
+    ch_fasta  = UNCOMPRESS_FASTA.out.file.mix(non_gz_fasta).view()
+
+
+    //
+    // Run subworkflow DECONTAMINATION 
+    //
+    
+    DECONTAMINATION (ch_fasta)
+    ch_versions = ch_versions.mix(DECONTAMINATION.out.versions.first())
+    
     //
     // Run TIDK
     //
@@ -221,7 +234,7 @@ workflow GENOMEQC {
 
         //
         // MODULE: Run TREE SUMMARY
-        //  
+        // 
 
         TREE_SUMMARY (
             GENOME_AND_ANNOTATION.out.orthofinder,
@@ -240,7 +253,6 @@ workflow GENOMEQC {
             sort: true,
             newLine: true
         ).set { ch_collated_versions }
-
 
     //
     // MODULE: MultiQC

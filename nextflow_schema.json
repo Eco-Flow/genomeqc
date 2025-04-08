@@ -303,6 +303,10 @@
           "type": "string",
           "description": "A path to a BUSCO config file (optional)"
         },
+        "gxdb": {
+          "type": "string",
+          "description": "Path to FCS-GX database."
+        },
         "genome_only": {
           "type": "boolean",
           "description": "Run genomeqc on genomes only"

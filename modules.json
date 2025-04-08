@@ -85,6 +85,11 @@
             "git_sha": "666652151335353eef2fcd58880bcef5bc2928e1",
             "installed_by": ["fasta_explore_search_plot_tidk"]
           },
+          "tiara/tiara": {
+            "branch": "master",
+            "git_sha": "666652151335353eef2fcd58880bcef5bc2928e1",
+            "installed_by": ["modules"]
+          },
           "tidk/explore": {
             "branch": "master",
             "git_sha": "666652151335353eef2fcd58880bcef5bc2928e1",
