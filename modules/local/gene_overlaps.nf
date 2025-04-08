@@ -18,7 +18,7 @@ process GENE_OVERLAPS {
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
     #Run overlap R script
-    gene_overlaps.R $gff Summary.${prefix}.tsv Count.${prefix}.tsv
+    gene_overlaps.R $gff ${prefix}.summary.tsv ${prefix}.counts.tsv
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
