@@ -126,23 +126,14 @@ workflow GENOMEQC {
                 | map{ meta, refseq, fq -> tuple( meta, fq ) }
                 | mix( ch_input.local.map { meta, fasta, gxf, fq -> tuple( meta, fq ) } )
 
-    // Then, check to see that element 1 is not empty, and if not, make it file()
-    // You have to do this because if you pass in file() in the initial map, 
-    // it'll fail if you don't supply a fastq, because you can't pass an empty to file()
-
-    //ch_fastq
-    //    | map{meta, fq -> fq ? [meta, file(fq)] : [meta, fq]}
-    //    | filter { meta, fq -> fq && fq.name =~ /(\.fastq|\.fq|\.fastq\.gz|\.fq\.gz)$/ }
-    //    | set {ch_fastq}
-    
     //
-    // Define multi-channel objects
+    // Define multi-channel objects for every process/subworkflow
     //
 
     // Combine both fasta, gxf and fastq channels into a single multi-channel object
-    //  using multiMap, so that they are in sync all the time
+    // using multiMap, so that they are in sync
     // If element (fasta, gxf, fq) is empty, it will return an empty (null) channel
-    // Check multimapChannel function above
+    // Check multimapChannel function below
 
     ch_input      = ch_fasta // channel: [ val(meta), val(fasta), val(gxf), val(fastq) ]
                   | combine(ch_gxf, by:0) // by:0 | Only combine when both channels share the same id
