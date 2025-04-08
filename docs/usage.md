@@ -54,7 +54,7 @@ species_2,,/path/to/genome.fasta,/path/to/annotation.gxf,
 species_3,,/path/to/genome.fasta,/path/to/annotation.gxf,
 species_4,,/path/to/genome.fasta,,/path/to/reads.fastq
 species_5,,/path/to/genome.fasta,,
-species_6,,/path/to/genome.fasta,,
+species_6,,/path/to/genome.fassta,,
 species_7,GCF_000000007.1,,,/path/to/reads.fastq
 species_8,GCF_000000008.1,,,
 species_9,GCA_000000009.1,,,/path/to/reads.fastq

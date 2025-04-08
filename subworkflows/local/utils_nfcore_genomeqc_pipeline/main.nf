@@ -138,10 +138,10 @@ workflow PIPELINE_COMPLETION {
 //
 // Check and validate pipeline parameters
 //
-// def validateInputParameters() {
-//    genomeExistsError()
-//    // Add ways of validating input parameters, e.g. for groups in ncbigenomedownload
-//}
+def validateInputParameters() {
+    //genomeExistsError()
+    // Add ways of validating input parameters, e.g. for groups in ncbigenomedownload
+}
 
 //
 // Validate channels from input samplesheet
