@@ -6,7 +6,7 @@
 
 <!-- TODO nf-core: Add documentation about anything specific to running your pipeline. For general topics, please point to (and add to) the main nf-core website. -->
 
-**nf-core/genomeqc** is a pipeline build to aid in the diagnosis of the quality of genome assemblies. It inputs several genomes and/or their respective annotations, and generates metrics such as completness, contiguity, GC% or number of overlapping genes, which can be later used to assess their quality. It outputs a phylogenetic tree with the summary metrics, alongside the MultiQC report. The tree building method uses orthologous genes for a quick comparision of metrics among species/samples. Therefore, this pipeline should not be used for phylogenetic inference.
+**nf-core/genomeqc** is a pipeline build to aid in the diagnosis of the quality of genome assemblies. It inputs several genomes and/or their annotations, and generates metrics such as completness, contiguity, GC% or number of overlapping genes, which can be later used to assess their quality. Additionally, if both genome and annotation are provided, it will output a phylogenetic tree with the summary metrics. The tree building method uses orthologous genes for a quick comparision of metrics among species/samples. This pipeline should not be used for phylogenetic inference.
 
 ## Samplesheet input
 
@@ -16,35 +16,49 @@ Before running the pipeline, you will need to create a samplesheet with informat
 --input '[path to samplesheet file]'
 ```
 
-The content of the samplesheet will depend on the mode you are using to run the pipeline -**genome only** or **genome and annotation**-, the inclusion of FASTQ reads to run **Merqury**, and the origin of the genome assemblies and annotations (**local** or **RefSeq**). Refer to their sections for more information on [running modes](#modes) and [running with **Merqury**](#running-with-merqury). Nonetheless, you must always indicate the species name of each sample using the **species** field.
+The pipeline can be ran using ncbi accessions (RefSeq of GenBank) or local files. It needs at least a **fasta** (GenBank accession or local fasta) file per species to run. If annotations (RefSeq accession or local gtf/gff) are added, the pipeline will run on both **genomes and annotations**. Additionally, if a reads (local fastq) are provided, it will run Merqury.
 
-In **genome and annotation** mode, genome assemblies should be given in FASTA format, whereas feature annotations can be given in GFF or GTF formats (GXF/gxf is used as notation when referring annotation in the documentation).
-
-If running the pipeline on **local** files, point to the location these files using the **fasta** and **gxf** fields:
+If running the pipeline on **local** files, point to the location these files using the **fasta** and/or **gxf** fields:
 
 ```csv title="samplesheet.csv"
-species,refseq,fasta,gxf,fastq
-Homo_sapiens,,/path/to/genome.fasta,/path/to/annotation.gxf,
-Gorilla_gorilla,,/path/to/genome.fasta,/path/to/annotation.gxf,
-Pan_paniscus,,/path/to/genome.fasta,/path/to/annotation.gxf,
+species,ncbi,fasta,gxf,fastq
+species_1,,/path/to/genome.fasta,/path/to/annotation.gxf,
+species_2,,/path/to/genome.fasta,/path/to/annotation.gxf,
+species_3,,/path/to/genome.fasta,/path/to/annotation.gxf,
 ```
 
-If running the pipeline using **RefSeq IDs**, indicate the corresponding ID using the **refseq** field:
+If running the pipeline using **ncbi acessions (GenBank and/or RefSeq)**, indicate the corresponding ID using the **ncbi** field:
 
 ```csv title="samplesheet.csv"
-species,refseq,fasta,gxf,fastq
-Homo_sapiens,GCF_000001405.40,,,
-Gorilla_gorilla,GCF_029281585.2,,,
-Pan_paniscus,GCF_029289425.2,,,
+species,ncbi,fasta,gxf,fastq
+species_1,GCF_000000001.1,,,
+species_2,GCF_000000002.1,,,
+species_3,GCF_000000003.1,,,
 ```
 
-If running with **Merqury**, you must point to the location of FASTQ files using the **fastq** field:
+If running with **Merqury**, you must point to the location of fastq files using the **fastq** field:
 
 ```csv title="samplesheet.csv"
-species,refseq,fasta,gxf,fastq
-Homo_sapiens,,/path/to/genome.fasta,/path/to/annotation.gxf,/path/to/annotation.fastq
-Gorilla_gorilla,,/path/to/genome.fasta,/path/to/annotation.gxf,/path/to/annotation.fastq
-Pan_paniscus,,/path/to/genome.fasta,/path/to/annotation.gxf,/path/to/annotation.fastq
+species,ncbi,fasta,gxf,fastq
+species_1,,/path/to/genome.fasta,/path/to/annotation.gxf,/path/to/reads.fastq
+species_2,,/path/to/genome.fasta,/path/to/annotation.gxf,/path/to/reads.fastq
+species_3,,/path/to/genome.fasta,/path/to/annotation.gxf,/path/to/reads.fastq
+```
+
+You can mix different different input types in the same samplesheet. The pipeline will detect the input type for each species and run accordingly:
+
+```csv title="samplesheet.csv"
+species,ncbi,fasta,gxf,fastq
+species_1,,/path/to/genome.fasta,/path/to/annotation.gxf,/path/to/reads.fastq
+species_2,,/path/to/genome.fasta,/path/to/annotation.gxf,
+species_3,,/path/to/genome.fasta,/path/to/annotation.gxf,
+species_4,,/path/to/genome.fasta,,/path/to/reads.fastq
+species_5,,/path/to/genome.fasta,,
+species_6,,/path/to/genome.fassta,,
+species_7,GCF_000000007.1,,,/path/to/reads.fastq
+species_8,GCF_000000008.1,,,
+species_9,GCA_000000009.1,,,/path/to/reads.fastq
+species_10,GCA_000000010.1,,,
 ```
 
 As for now, the pipeline doesn't support SRA accession for **Merqury**. We will consider this option  the future.
@@ -52,9 +66,9 @@ As for now, the pipeline doesn't support SRA accession for **Merqury**. We will 
 | Column    | Description                                                                                                                                                                            |
 | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `species`  | Species name or custom sample name. Spaces in sample names are automatically converted to underscores (`_`) (not sure if this is an option right now). |
-| `refseq` | RefSeq ID. String has to start with "GCF".                                                             |
-| `fasta` | Full path to the genome fasta file. File has to be gzipped and have the extension ".fasta.gz", ".fna.gz" or ".fa.gz".                                                             |
-| `gxf` | Full path to the genome annotation gff/gtf file. File has to be gzipped and have the extension ".gtf.gz", ".gff.gz", or ".gff3.gz".                                                             |
+| `ncbi` | ncbi acession. Can be GenBank (starts with "GCA") or RefSeq (starts with "GCF").                                                             |
+| `fasta` | Full path to the genome fasta file. Can be compressed or uncompressed.                                                             |
+| `gxf` | Full path to the genome annotation gff/gtf file. Can be compressed or uncompressed.                                                             |
 | `fastq` | Full path to FastQ file for long reads (e.g. PacBio or ONT). File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                             |
 
 An [example samplesheet](../assets/samplesheet.csv) has been provided with the pipeline.
@@ -104,18 +118,39 @@ You can also generate such `YAML`/`JSON` files via [nf-core/launch](https://nf-c
 
 ### Modes
 
-#### Genome and annotation (_default_)
-By the default, the pipeline will run on both **genome and annotation**, whether it be from **local files** or **RefSeq IDs**. If RefSeq IDs are not provided, or, alternatively, both local FASTA genome and GXF annotation files are not provided, the pipeline will fail.
-
 #### Genome only
 
-If the flag ``--genome_only`` is provided, the pipeline will only run on **FASTA genome** files. In this mode, annotation files are not necessary and, if included in the samplesheet, will be ignored.
+This is the minimal run. The pipeline will run on genome only mode if these inputs are provided in the samplesheet:
 
-This mode is less developed than the **genome and annotation** mode.
+1. Path to **fasta** OR
+2. **ncbi** GenaBank accession.
+
+The pipeline will produce a MultiQC report.
+
+#### Genome and annotation
+
+The pipeline will run on genome and annotation mode if these inputs are provided in the samplesheet:
+
+1. Path to **fasta** AND
+2. Path to **gxf** OR
+3. **ncbi** RefSeq accession.
+
+The pipeline will produce a tree plot summary alonside a MultiQC report.
 
 ### Running with Merqury
 
-Optionally, users can also run the pipeline on **genome only** and **genome and annotation** modes by supplying sequencing reads in FASTQ format under the **fastq** field and using the ``--run_merqury`` flag. Refer the [GitHub page](https://github.com/marbl/merqury) for more information on Merqury.
+Users can also run the pipeline using Merqury by supplying the path to sequencing reads under the **fastq** field. Merqury needs both **fasta** and **fastq** to run. Refer the [GitHub page](https://github.com/marbl/merqury) for more information on Merqury.
+
+### Running tests
+
+The pipeline can be ran using different test profiles:
+
+1. `-profile test` Will run on genome and annotation and Merqury using **RefSeq accessions** and local **fastqs**.
+3. `-profile test_local` Will run on genome and annotation on local files (**fasta** and **gxf**).
+4. `-profile test_genomeonly` Will run genome only on local files (**fasta**).
+5. `-profile test_nofastq` Will run genome and annotation using **RefSeq accessions**.
+
+Test files are stored in the genomeqc branch of the [test-dataset repository](https://github.com/nf-core/test-datasets/tree/genomeqc).
 
 ### Updating the pipeline
 

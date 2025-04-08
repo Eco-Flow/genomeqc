@@ -19,7 +19,7 @@ include { GENOMEQC  } from './workflows/genomeqc'
 include { PIPELINE_INITIALISATION } from './subworkflows/local/utils_nfcore_genomeqc_pipeline'
 include { PIPELINE_COMPLETION     } from './subworkflows/local/utils_nfcore_genomeqc_pipeline'
 
-include { getGenomeAttribute      } from './subworkflows/local/utils_nfcore_genomeqc_pipeline'
+//include { getGenomeAttribute      } from './subworkflows/local/utils_nfcore_genomeqc_pipeline'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
