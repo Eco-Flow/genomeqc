@@ -25,7 +25,8 @@ workflow GENOME_ONLY {
         "genome", // hardcoded, other options ('proteins', 'transcriptome') make no sense
         params.busco_lineage,
         params.busco_lineages_path ?: [],
-        params.busco_config ?: []
+        params.busco_config ?: [],
+        params.busco_clean ?: []
     )
     ch_versions   = ch_versions.mix(BUSCO_BUSCO.out.versions.first())
     ch_full_table = BUSCO_BUSCO.out.full_table
