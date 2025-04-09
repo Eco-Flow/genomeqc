@@ -14,8 +14,7 @@
             },
             "refseq": {
                 "type": "string",
-                "meta": ["refseq"],
-                "errorMessage": "RefSeq accession number"
+                "errorMessage": "ncbi accession number"
             },
             "fasta": {
                 "type": "string",

@@ -20,5 +20,5 @@ process CREATE_PATH {
     def prefix         = task.ext.prefix ?: "${meta.id}"
     """
     echo $accession > ${prefix}.txt
-    """ 
+    """
 }

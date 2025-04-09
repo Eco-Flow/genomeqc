@@ -14,14 +14,11 @@
 
 **nf-core/genomeqc** is a bioinformatics pipeline that compares the quality of multiple genomes, along with their annotations.
 
-The pipeline takes a list of genomes and annotations (from raw files or Refseq IDs), and runs commonly used tools to assess their quality.
+The pipeline takes a list of genomes and annotations (from local files or ncbi accessions), and runs commonly used tools to assess their quality.
 
-There are three different ways you can run this pipeline:
- 1. Genome only
- 2. Annotation only
- 3. Genome and Annotation.
-
-**Currently, only Genome plus Annotation is functional**
+Depending on the provided inputs, there are two ways this pipeline can run:
+ 1. Genome only (minmal run, only fasta files are supplied)
+ 2. Genome and Annotation (both fasta and gtf/gff files are supplied)
 
 <!-- TODO nf-core:
 For an example, see https://github.com/nf-core/rnaseq/blob/master/README.md#introduction
@@ -32,6 +29,15 @@ For an example, see https://github.com/nf-core/rnaseq/blob/master/README.md#intr
 -->
 
 ![pipeline_diagram](docs/images/nf-core-genomeqc_metro_map_v2.png)
+
+**2. Genome Only:**
+1. Downloads the genome files from NCBI: [NCBI genome download](https://github.com/kblin/ncbi-genome-download) - Or you provide your own genomes
+2. Describes genome assembly:
+   1. [BUSCO](https://busco.ezlab.org/): Evaluates genome completeness based on **single copy markers**.
+   2. **BUSCO Ideogram**: Plots the location of markers on the assembly.
+   3. [tidk](https://github.com/tolkit/telomeric-identifier) (optional): Indetfies and visualises telomeric repeats.
+   3. [QUAST](https://github.com/ablab/quast): Computes contiguity and integrity statistics: N50, N90, GC%, number of sequences.
+3. Summary with [MultiQC](http://multiqc.info).
 
 **1. Genome and Annotation:**
 1. Downloads the genome and gene annotation files from NCBI: [NCBI genome download](https://github.com/kblin/ncbi-genome-download) - Or you provide your own genomes/annotations
@@ -51,25 +57,11 @@ For an example, see https://github.com/nf-core/rnaseq/blob/master/README.md#intr
 7. Plots an orthology-based phylogenetic tree : **Tee Summary**, as well as other relevant stats from the above steps.
 8. Summary with [MultiQC](http://multiqc.info).
 
-**2. Genome Only (in development):**
-1. Downloads the genome files from NCBI: [NCBI genome download](https://github.com/kblin/ncbi-genome-download) - Or you provide your own genomes
-2. Describes genome assembly:
-   1. [BUSCO](https://busco.ezlab.org/): Evaluates genome completeness based on **single copy markers**.
-   2. **BUSCO Ideogram**: Plots the location of markers on the assembly.
-   3. [tidk](https://github.com/tolkit/telomeric-identifier) (optional): Indetfies and visualises telomeric repeats.
-   3. [QUAST](https://github.com/ablab/quast): Computes contiguity and integrity statistics: N50, N90, GC%, number of sequences.
-3. Summary with [MultiQC](http://multiqc.info).
-
-**3. Annnotation Only (in development):**
-1. Downloads the gene annotation files from NCBI: [NCBI genome download](https://github.com/kblin/ncbi-genome-download) - Or you provide your own annotations.
-2. Describes your annotation : [AGAT](https://agat.readthedocs.io/en/latest/): Gene, feature, length, averages, counts.
-3. Summary with [MultiQC](http://multiqc.info).
-
 > [!WARNING]
 > We strongly suggest users to specify the lineage using the `--busco_lineage` parameter, as setting the lineage to `auto` (default value) might cause problems with `BUSCO` during the lineage determination step.
 
 > [!NOTE]
-> `BUSCO Ideogram` will only plot those chromosomes -or scaffolds- that contain single copy markers.
+> `BUSCO Ideogram` will only plot those chromosomes -or scaffolds- that contain at least one single copy marker.
 
 ## Usage
 
@@ -80,25 +72,24 @@ First, prepare an input **samplesheet** in **csv format** (e.g. `samplesheet.csv
 
 ###  1. Local files
 
-Simply point out to your local genome assembly and annotation (in FASTA and GFF format, respectively) using the `fasta` and `gff` fields, leaving the rest of the fields empty:
+Simply point out to your local genome assembly and annotation (in FASTA and GFF format, respectively) using the `fasta` and `gff` fields:
 
 ```csv
 species,refseq,fasta,gff,fastq
-Homo_sapiens,,/path/to/genome.fasta,/path/to/annotation.gff3,
-Gorilla_gorilla,,/path/to/genome.fasta,/path/to/annotation.gff3,
-Pan_paniscus,,/path/to/genome.fasta,/path/to/annotation.gff3,
+species_1,,/path/to/genome.fasta,/path/to/annotation.gff3,
+species_2,,/path/to/genome.fasta,/path/to/annotation.gff3,
+species_3,,/path/to/genome.fasta,/path/to/annotation.gff3,
 ```
 
-When running on ``--genome_only`` mode, you can leave the `gff` field empty. Otherwise, this field will be ignored.
+### 2. ncbi accessions
 
-### 2. Refseq IDs
-
-Additionally, you can run the pipeline using the Refseq IDs of the assemblies of interest in the `refseq` field, leaving the rest of the fields empty:
+Additionally, you can run the pipeline using providing ncbi accessions (RefSeq or GenBank, depeding on the mode you wish to run) in the `ncbi` field:
 
 ```csv
 species,refseq,fasta,gff,fastq
-Pongo_abelii,GCF_028885655.2,,,
-Macaca_mulatta,GCF_003339765.1,,,
+species_1,GCF_000000001.1,,,
+species_2,GCF_000000002.1,,,
+species_3,GCF_000000003.1,,,
 ```
 
 ### Run the pipeline
