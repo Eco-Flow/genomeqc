@@ -39,12 +39,13 @@ workflow GENOME_AND_ANNOTATION {
     //
 
     AGAT_SPKEEPLONGESTISOFORM (
-        ch_gff_agat
+        ch_gff_agat,
+        []
     )
     ch_versions  = ch_versions.mix(AGAT_SPKEEPLONGESTISOFORM.out.versions.first())
 
     // Get longest isoform from gff
-    ch_gff_long  = AGAT_SPKEEPLONGESTISOFORM.out.longest_proteins
+    ch_gff_long  = AGAT_SPKEEPLONGESTISOFORM.out.gff
 
     //
     // Prepare input multichannel
@@ -53,14 +54,14 @@ workflow GENOME_AND_ANNOTATION {
     // Combine inputs (fasta, gff from AGAT (unfiltered) and gff from AGAT_SPKEEPLONGESTISOFORM (fitlered)))
     // into a single multichannel so that they are in sync
     ch_input     = ch_fasta
-                 | combine(ch_gff_agat, by:0) // by:0 | Only combine when both channels share the same id
-                 | combine(ch_gff_long, by:0)
-                 | multiMap {
-                     meta, fasta, gff_unfilt, gff_filt -> // "null" probably not necessary
-                         fasta      : fasta      ? tuple( meta, file(fasta)      ) : null // channel: [ val(meta), [ fasta ] ]
-                         gff_unfilt : gff_unfilt ? tuple( meta, file(gff_unfilt) ) : null // channel: [ val(meta), [ gff ] ], unfiltered
-                         gff_filt   : gff_filt   ? tuple( meta, file(gff_filt)   ) : null // channel: [ val(meta), [ gff ] ], filtered for longest isoform
-                 }
+        | combine(ch_gff_agat, by:0) // by:0 | Only combine when both channels share the same id
+        | combine(ch_gff_long, by:0)
+        | multiMap {
+            meta, fasta, gff_unfilt, gff_filt -> // "null" probably not necessary
+                fasta      : fasta      ? tuple( meta, file(fasta)      ) : null // channel: [ val(meta), [ fasta ] ]
+                gff_unfilt : gff_unfilt ? tuple( meta, file(gff_unfilt) ) : null // channel: [ val(meta), [ gff ] ], unfiltered
+                gff_filt   : gff_filt   ? tuple( meta, file(gff_filt)   ) : null // channel: [ val(meta), [ gff ] ], filtered for longest isoform
+        }
 
     //
     // Run AGAT Spstatistics
@@ -122,13 +123,13 @@ workflow GENOME_AND_ANNOTATION {
 
     // Prepare orthofinder input channel
     ortho_ch     = GFFREAD.out.gffread_fasta
-                 | map { meta, fasta ->
-                     fasta // We only need the fastas
-                 }
-                 | collect // Collect all fasta in a single tuple
-                 | map { fastas ->
-                     [[id:"orthofinder"], fastas]
-                 }
+        | map { meta, fasta ->
+            fasta // We only need the fastas
+        }
+        | collect // Collect all fasta in a single tuple
+        | map { fastas ->
+            [[id:"orthofinder"], fastas]
+        }
 
     // Run orthofinder
     ORTHOFINDER (
