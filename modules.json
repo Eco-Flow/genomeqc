@@ -22,7 +22,7 @@
           },
           "busco/busco": {
             "branch": "master",
-            "git_sha": "666652151335353eef2fcd58880bcef5bc2928e1",
+            "git_sha": "4cb2f9ee119676880857d6620020ee370df829b4",
             "installed_by": ["modules"]
           },
           "fastavalidator": {

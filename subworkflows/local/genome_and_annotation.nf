@@ -14,9 +14,10 @@ workflow GENOME_AND_ANNOTATION {
 
     take:
     ch_fasta // channel: [ val(meta), [ fasta ] ]
-    ch_gff   // channel: [ val(meta), [ gff ] ]
+    ch_gxf   // channel: [ val(meta), [ gxf ] ]
 
     main:
+    ch_fasta.view { "Running ${it[0]} on genome and annotation mode"}
 
     ch_versions  = Channel.empty()
 
@@ -27,31 +28,34 @@ workflow GENOME_AND_ANNOTATION {
     // MODULE: run AGAT convertspgxf2gxf
     //
 
-    // Fix and standarize GFF
+    // Fix and standarize GXF
     AGAT_CONVERTSPGXF2GXF(
-        ch_gff
+        ch_gxf
     )
-    ch_gff_agat  = AGAT_CONVERTSPGXF2GXF.out.output_gff
+    ch_gxf_agat  = AGAT_CONVERTSPGXF2GXF.out.output_gff
     ch_versions  = ch_versions.mix(AGAT_CONVERTSPGXF2GXF.out.versions.first())
 
     //
     // MODULE: Run AGAT longest isoform
     //
 
+
     AGAT_SPKEEPLONGESTISOFORM (
         ch_gff_agat,
         []
+
     )
     ch_versions  = ch_versions.mix(AGAT_SPKEEPLONGESTISOFORM.out.versions.first())
 
     // Get longest isoform from gff
     ch_gff_long  = AGAT_SPKEEPLONGESTISOFORM.out.gff
 
+
     //
     // Prepare input multichannel
     //
 
-    // Combine inputs (fasta, gff from AGAT (unfiltered) and gff from AGAT_SPKEEPLONGESTISOFORM (fitlered)))
+    // Combine inputs (fasta, gff from AGAT (unfiltered) and gff from AGAT_SPKEEPLONGESTISOFORM (filtered)))
     // into a single multichannel so that they are in sync
     ch_input     = ch_fasta
         | combine(ch_gff_agat, by:0) // by:0 | Only combine when both channels share the same id
@@ -68,7 +72,7 @@ workflow GENOME_AND_ANNOTATION {
     //
 
     AGAT_SPSTATISTICS (
-        ch_input.gff_unfilt
+        ch_input.gxf_unfilt
     )
     ch_versions  = ch_versions.mix(AGAT_SPSTATISTICS.out.versions.first())
 
@@ -77,7 +81,7 @@ workflow GENOME_AND_ANNOTATION {
     //
 
     GENE_OVERLAPS {
-        ch_input.gff_filt
+        ch_input.gxf_filt
     }
     ch_versions  = ch_versions.mix(GENE_OVERLAPS.out.versions.first())
     ch_tree_data = ch_tree_data.mix(GENE_OVERLAPS.out.overlap_counts.collect { meta, file -> file })
@@ -89,7 +93,7 @@ workflow GENOME_AND_ANNOTATION {
     QUAST (
         ch_input.fasta,
         [[],[]],
-        ch_input.gff_unfilt
+        ch_input.gxf_unfilt
     )
     ch_versions  = ch_versions.mix(QUAST.out.versions.first())
 
@@ -102,7 +106,7 @@ workflow GENOME_AND_ANNOTATION {
     //
 
     GFFREAD (
-        ch_input.gff_filt,
+        ch_input.gxf_filt,
         ch_input.fasta.map { meta, fasta -> fasta}
     )
     ch_versions  = ch_versions.mix(GFFREAD.out.versions.first())
@@ -144,10 +148,11 @@ workflow GENOME_AND_ANNOTATION {
 
     BUSCO_BUSCO (
         GFFREAD.out.gffread_fasta,
-        "proteins", // hardcoded
+        params.busco_mode,
         params.busco_lineage,
         params.busco_lineages_path ?: [],
-        params.busco_config ?: []
+        params.busco_config ?: [],
+        params.busco_clean ?: []
     )
     ch_versions  = ch_versions.mix(BUSCO_BUSCO.out.versions.first())
 
@@ -172,19 +177,19 @@ workflow GENOME_AND_ANNOTATION {
                             [meta.id, fasta]
                         }
 
-    // Prepare GFF channel of ideogram
-    ch_gff_busco        = ch_input.gff_filt
-                        | map { meta, gff ->
-                            [meta.id, gff]
+    // Prepare GXF channel of ideogram
+    ch_gxf_busco        = ch_input.gxf_filt
+                        | map { meta, gxf ->
+                            [meta.id, gxf]
                         }
 
     // Combine BUSCO, AGAT, and genome outputs
     ch_plot_input       = ch_busco_full_table
                         | join(fnaChannel_busco)
-                        | join(ch_gff_busco)
-                        | flatMap { genusspeci, lineages, full_tables, fasta, gff ->
+                        | join(ch_gxf_busco)
+                        | flatMap { genusspeci, lineages, full_tables, fasta, gxf ->
                             lineages.withIndex().collect { lineage, index ->
-                                [genusspeci, lineage, full_tables[index], fasta, gff]
+                                [genusspeci, lineage, full_tables[index], fasta, gxf]
                             }
                         }
 
