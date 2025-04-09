@@ -67,19 +67,19 @@ workflow GENOMEQC {
     // MODULE: Run ncbigenomedownlaod for RefSeq IDs
     //
 
-    NCBIGENOMEDOWNLOAD ( 
+    NCBIGENOMEDOWNLOAD (
         ch_ncbi_input.meta,
         ch_ncbi_input.accession,
         [],
         params.groups
     )
     ch_versions = ch_versions.mix(NCBIGENOMEDOWNLOAD.out.versions.first())
-    
+
     //
     // Perpare fasta channels
     //
-    
-    // fasta. We use mix() here becuase when local files are present, 
+
+    // fasta. We use mix() here becuase when local files are present,
     // then RefSeq IDs should be missing, and viceversa
     fasta        = ch_input.local
                  | map { meta, fasta, gxf, fq -> tuple( meta, fasta) }
@@ -89,8 +89,8 @@ workflow GENOMEQC {
     gz_fasta     = fasta.filter { meta, fasta -> fasta.name.endsWith(".gz") }
     non_gz_fasta = fasta.filter { meta, fasta -> !fasta.name.endsWith(".gz") }
 
-    // Run module uncompress_fasta and combine channels back 
-    // together so that all the uncompressed files are in channels 
+    // Run module uncompress_fasta and combine channels back
+    // together so that all the uncompressed files are in channels
     UNCOMPRESS_FASTA ( gz_fasta )
     ch_fasta     = UNCOMPRESS_FASTA.out.file.mix(non_gz_fasta)
     ch_versions  = ch_versions.mix(UNCOMPRESS_FASTA.out.versions.first())
@@ -109,8 +109,8 @@ workflow GENOMEQC {
     gz_gxf      = gxf.filter { meta, gxf -> gxf  && gxf.name.endsWith(".gz")  } // Filter non empty and compressed gxf (channel to be uncompressed)
     non_gz_gxf  = gxf.filter { meta, gxf -> !gxf || !gxf.name.endsWith(".gz") } // Filter empty and uncompressed gxf (not uncompressed)
 
-    // Run module uncompress_GXF and combine channels back 
-    // together so that all the uncompressed files are in channels 
+    // Run module uncompress_GXF and combine channels back
+    // together so that all the uncompressed files are in channels
     UNCOMPRESS_GXF( gz_gxf )
     ch_gxf      = UNCOMPRESS_GXF.out.file.mix(non_gz_gxf)
     ch_versions = ch_versions.mix(UNCOMPRESS_GXF.out.versions.first())
@@ -119,7 +119,7 @@ workflow GENOMEQC {
     // Perpare gxf channels
     //
 
-    // FASTQ file is optional in the samplesheet. 
+    // FASTQ file is optional in the samplesheet.
     // First, get it like you do for gxf and fasta
 
     ch_fastq = ch_input.ncbi
@@ -157,7 +157,7 @@ workflow GENOMEQC {
     //
     // Run TIDK
     //
-    
+
     if (!params.skip_tidk) {
         FASTA_EXPLORE_SEARCH_PLOT_TIDK (
             ch_input_tidk.fasta,
@@ -171,7 +171,7 @@ workflow GENOMEQC {
         // MODULE: MERYL_COUNT
     MERYL_COUNT(
         ch_input_merq.fq,
-        params.kvalue 
+        params.kvalue
     )
     ch_meryl_db = MERYL_COUNT.out.meryl_db
     ch_versions = ch_versions.mix(MERYL_COUNT.out.versions.first())
@@ -184,7 +184,7 @@ workflow GENOMEQC {
     ch_versions    = ch_versions.mix(MERYL_UNIONSUM.out.versions.first())
     // MODULE: MERQURY_MERQURY
     ch_merqury_inputs = ch_meryl_union.join(ch_input_merq.fasta)
-    
+
     MERQURY_MERQURY ( ch_merqury_inputs )
     ch_merqury_qv                           = MERQURY_MERQURY.out.assembly_qv
     ch_merqury_stats                        = MERQURY_MERQURY.out.stats
@@ -223,7 +223,7 @@ workflow GENOMEQC {
 
         //
         // MODULE: Run TREE SUMMARY
-        //  
+        //
 
         TREE_SUMMARY (
             GENOME_AND_ANNOTATION.out.orthofinder,
@@ -260,7 +260,7 @@ workflow GENOMEQC {
 
     summary_params      = paramsSummaryMap(
         workflow, parameters_schema: "nextflow_schema.json")
-        
+
     ch_workflow_summary = Channel.value(paramsSummaryMultiqc(summary_params))
 
     ch_multiqc_custom_methods_description = params.multiqc_methods_description ?
@@ -270,10 +270,10 @@ workflow GENOMEQC {
 
     ch_methods_description                = Channel.value(
         methodsDescriptionText(ch_multiqc_custom_methods_description))
-    
+
     ch_multiqc_files = ch_multiqc_files.mix(
         ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
-        
+
     ch_multiqc_files = ch_multiqc_files.mix(ch_collated_versions)
 
     ch_multiqc_files = ch_multiqc_files.mix(
