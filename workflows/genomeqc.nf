@@ -21,6 +21,7 @@ include { methodsDescriptionText              } from '../subworkflows/local/util
 include { validateInputSamplesheet            } from '../subworkflows/local/utils_nfcore_genomeqc_pipeline'
 include { FASTA_EXPLORE_SEARCH_PLOT_TIDK      } from '../subworkflows/nf-core/fasta_explore_search_plot_tidk/main'
 include { DECONTAMINATION                     } from '../subworkflows/local/decontamination'
+include { FCSGX_FETCHDB                       } from '../modules/nf-core/fcsgx/fetchdb/main'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -136,35 +137,46 @@ workflow GENOMEQC {
     // If element (fasta, gxf, fq) is empty, it will return an empty (null) channel
     // Check multimapChannel function below
 
-    ch_input      = ch_fasta // channel: [ val(meta), val(fasta), val(gxf), val(fastq) ]
-                  | combine(ch_gxf, by:0) // by:0 | Only combine when both channels share the same id
-                  | combine(ch_fastq, by:0)
+    ch_input       = ch_fasta // channel: [ val(meta), val(fasta), val(gxf), val(fastq) ]
+                   | combine(ch_gxf, by:0) // by:0 | Only combine when both channels share the same id
+                   | combine(ch_fastq, by:0)
 
     // Split into two channels according to the presence/absence of an annotation
-    ch_input_anno = ch_input.filter { meta, fasta, gxf, fastq ->  gxf } // gxf is present. Channel will run on genome and annotation
-                  | multimapChannel // Notice only fasta channel and gxf are necessary here
-    ch_input_geno = ch_input.filter { meta, fasta, gxf, fastq ->  !gxf }// gxf is missing. Channel will run on genome only
-                  | multimapChannel // Notice only fasta channel is necessary here
-
-    // For processes not part of genome only or genome and annotation modes
-    // TIDK
-    ch_input_tidk = ch_input
-                  | multimapChannel // Notice only fasta channels are necessary here
+    ch_input_anno  = ch_input.filter { meta, fasta, gxf, fastq ->  gxf } // gxf is present. Channel will run on genome and annotation
+                   | multimapChannel // Notice only fasta channel and gxf are necessary here
+    ch_input_geno  = ch_input.filter { meta, fasta, gxf, fastq ->  !gxf }// gxf is missing. Channel will run on genome only
+                   | multimapChannel // Notice only fasta channel is necessary here
 
     // Merqury
-    ch_input_merq = ch_input.filter { meta, fasta, gxf, fastq -> fastq } // filter rows where fastq is present
-                  | multimapChannel // Notice only fasta and fastq channels are necessary here
+    ch_input_merq  = ch_input.filter { meta, fasta, gxf, fastq -> fastq } // filter rows where fastq is present
+                   | multimapChannel // Notice only fasta and fastq channels are necessary here
 
+    // Decontamination subworkflow
+    ch_input_decon = ch_fasta.filter { meta, fasta -> meta.taxid } // filter rows where taxid is present. Run decon on those
 
-    ch_gff = UNCOMPRESS_GFF.out.file.mix(non_gz_gff).view()
-    ch_fasta  = UNCOMPRESS_FASTA.out.file.mix(non_gz_fasta).view()
-
+    // For TIDK the ch_fasta channel will work
 
     //
-    // Run subworkflow DECONTAMINATION 
+    // Run DECONTAMINATION 
     //
-    
-    DECONTAMINATION (ch_fasta)
+
+    // If database URL is given
+    FCSGX_FETCHDB (
+        params.gxdb_manifiest
+    )
+    if (params.gxdb_manifiest) {
+        DECONTAMINATION (
+            ch_input_decon,
+            FCSGX_FETCHDB.out.database
+        )
+
+    // If local database is given
+    } else {
+        DECONTAMINATION(
+            ch_input_decon,
+            params.gxdb
+        )
+    }
     ch_versions = ch_versions.mix(DECONTAMINATION.out.versions.first())
     
     //
@@ -173,7 +185,7 @@ workflow GENOMEQC {
 
     if (!params.skip_tidk) {
         FASTA_EXPLORE_SEARCH_PLOT_TIDK (
-            ch_input_tidk.fasta,
+            ch_fasta,
             []
         )
     }
@@ -237,7 +249,6 @@ workflow GENOMEQC {
         //
         // MODULE: Run TREE SUMMARY
         // 
-
 
         TREE_SUMMARY (
             GENOME_AND_ANNOTATION.out.orthofinder,
