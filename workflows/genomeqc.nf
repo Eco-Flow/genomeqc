@@ -154,30 +154,26 @@ workflow GENOMEQC {
     // Decontamination subworkflow
     ch_input_decon = ch_fasta.filter { meta, fasta -> meta.taxid } // filter rows where taxid is present. Run decon on those
 
+    ch_input_decon.view()
+
     // For TIDK the ch_fasta channel will work
 
     //
     // Run DECONTAMINATION 
     //
 
-    // If database URL is given
-    FCSGX_FETCHDB (
-        params.gxdb_manifiest
-    )
-    if (params.gxdb_manifiest) {
+    // If statement in case people give taxids but no database.
+    // This way subworkflow won't try to run (otherwise it'll just fail)
+    // Add warning in parameter/input validation plugin
+    if ( params.gxdb || params.gxdb_manifiest ) {
         DECONTAMINATION (
             ch_input_decon,
-            FCSGX_FETCHDB.out.database
+            // If params.gxdb is given in nextflow.config, the run it using 
+            // params.gxdb_manifiest. If both are given, use params.gxdb.
+            params.gxdb ?: params.gxdb_manifiest
         )
-
-    // If local database is given
-    } else {
-        DECONTAMINATION(
-            ch_input_decon,
-            params.gxdb
-        )
+        ch_versions = ch_versions.mix(DECONTAMINATION.out.versions.first())
     }
-    ch_versions = ch_versions.mix(DECONTAMINATION.out.versions.first())
     
     //
     // Run TIDK

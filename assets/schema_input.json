@@ -28,15 +28,15 @@
                 "errorMessage": "GFF file with genome annotation",
                 "meta": ["gff"]
             },
-            "taxid": {
-            "type": "string",
-            "meta": ["taxid"],
-            "errorMessage": "Species taxid"
-            },
             "fastq": {
                 "type": "string",
                 "format": "file-path",
                 "errorMessage": "Single compressed FASTQ file, must have extension '.fq.gz' or '.fastq.gz'"
+            },
+            "taxid": {
+                "type": "string",
+                "meta": ["taxid"],
+                "errorMessage": "Species taxid"
             }
         },
         "required": ["species"]
