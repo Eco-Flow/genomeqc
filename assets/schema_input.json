@@ -19,14 +19,12 @@
             "fasta": {
                 "type": "string",
                 "format": "file-path",
-                "meta": ["fasta"],
                 "errorMessage": "FASTA file with genome assembly"
             },
             "gff": {
                 "type": "string",
                 "format": "file-path",
-                "errorMessage": "GFF file with genome annotation",
-                "meta": ["gff"]
+                "errorMessage": "GFF file with genome annotation"
             },
             "fastq": {
                 "type": "string",
