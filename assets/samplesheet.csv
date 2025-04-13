@@ -1,2 +1,5 @@
-species,refseq,fasta,gff,taxid
-Saccharomyces_cerevisiae,,/workspace/FCS_combo_test.fa,/workspace/GCF_000146045.2_R64_genomic.gff.gz,4932
+species,refseq,fasta,gff,fastq,taxid
+species1,GCA_000412675.1,,,,1245
+species2,GCA_036689615.1,,,,1245
+species3,GCA_900560965.1,,,,1245
+species4,GCA_000007805.1,,,,1245

@@ -151,9 +151,9 @@ def validateInputSamplesheet(input) {
     // If input are ncbi accessions
     if ( meta && ncbi ) {
         if ( ncbi.startsWith('GCF') ) { // For refseq IDs
-            return [ [id:meta.id,ncbi:'refseq',taxid:meta.taxid], ncbi, fastq ]
+            return [ [id:meta.id, ncbi:'refseq',taxid:meta.taxid], ncbi, fastq ]
         } else if ( ncbi.startsWith('GCA') ) { // For genbank IDs
-            return [ [id:meta.id,ncbi:'genbank',taxid:meta.taxid], ncbi, fastq ]
+            return [ [id:meta.id, ncbi:'genbank',taxid:meta.taxid], ncbi, fastq ]
         } else {
             error('Incorrect ncbi ID. Please make sure ncbi IDs start with "GCA" for GenBank or "GCG" for RefSeq')
         }

@@ -38,7 +38,7 @@ workflow GENOMEQC {
 
     ch_versions = Channel.empty()
     ch_multiqc_files = Channel.empty()
-    
+
     ch_input = ch_samplesheet
                 | map {
                     validateInputSamplesheet(it) // Input validation (check local subworkflow for how function works)
@@ -137,15 +137,21 @@ workflow GENOMEQC {
     // If element (fasta, gxf, fq) is empty, it will return an empty (null) channel
     // Check multimapChannel function below
 
+    //ch_fasta.view()
+
     ch_input       = ch_fasta // channel: [ val(meta), val(fasta), val(gxf), val(fastq) ]
-                   | combine(ch_gxf, by:0) // by:0 | Only combine when both channels share the same id
-                   | combine(ch_fastq, by:0)
+                   | join(ch_gxf, remainder: true) // reminder: if gxf is null (only necessary for ncbi genomes)
+                   | join(ch_fastq, remainder: true)
+
+    ch_input.view()
 
     // Split into two channels according to the presence/absence of an annotation
     ch_input_anno  = ch_input.filter { meta, fasta, gxf, fastq ->  gxf } // gxf is present. Channel will run on genome and annotation
                    | multimapChannel // Notice only fasta channel and gxf are necessary here
     ch_input_geno  = ch_input.filter { meta, fasta, gxf, fastq ->  !gxf }// gxf is missing. Channel will run on genome only
                    | multimapChannel // Notice only fasta channel is necessary here
+
+    //ch_input_geno.view()
 
     // Merqury
     ch_input_merq  = ch_input.filter { meta, fasta, gxf, fastq -> fastq } // filter rows where fastq is present
@@ -154,12 +160,12 @@ workflow GENOMEQC {
     // Decontamination subworkflow
     ch_input_decon = ch_fasta.filter { meta, fasta -> meta.taxid } // filter rows where taxid is present. Run decon on those
 
-    ch_input_decon.view()
+    //ch_input_decon.view()
 
     // For TIDK the ch_fasta channel will work
 
     //
-    // Run DECONTAMINATION 
+    // Run DECONTAMINATION
     //
 
     // If statement in case people give taxids but no database.
@@ -168,13 +174,13 @@ workflow GENOMEQC {
     if ( params.gxdb || params.gxdb_manifiest ) {
         DECONTAMINATION (
             ch_input_decon,
-            // If params.gxdb is given in nextflow.config, the run it using 
+            // If params.gxdb is given in nextflow.config, the run it using
             // params.gxdb_manifiest. If both are given, use params.gxdb.
             params.gxdb ?: params.gxdb_manifiest
         )
         ch_versions = ch_versions.mix(DECONTAMINATION.out.versions.first())
     }
-    
+
     //
     // Run TIDK
     //
@@ -244,7 +250,7 @@ workflow GENOMEQC {
 
         //
         // MODULE: Run TREE SUMMARY
-        // 
+        //
 
         TREE_SUMMARY (
             GENOME_AND_ANNOTATION.out.orthofinder,
