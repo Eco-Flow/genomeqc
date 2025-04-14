@@ -1,5 +1,2 @@
 species,refseq,fasta,gff,fastq,taxid
-species1,GCA_000412675.1,,,,1245
-species2,GCA_036689615.1,,,,1245
-species3,GCA_900560965.1,,,,1245
-species4,GCA_000007805.1,,,,1245
+test_combo,,/Users/fernando/work/repositories/pipelines/fcx_test/FCS_combo_test.fa,,,4932

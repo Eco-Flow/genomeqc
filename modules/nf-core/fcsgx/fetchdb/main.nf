@@ -1,5 +1,5 @@
 process FCSGX_FETCHDB {
-    tag "$manifest.baseName"
+    tag "$manifest"
     label 'process_single'
 
     conda "${moduleDir}/environment.yml"
@@ -8,7 +8,7 @@ process FCSGX_FETCHDB {
         'biocontainers/ncbi-fcs-gx:0.5.4--h4ac6f70_1' }"
 
     input:
-    path manifest // URL of manifest. Should not stage locally.
+    val manifest // URL of manifest. Should not stage locally.
 
     output:
     path "$prefix"      , emit: database
@@ -19,12 +19,13 @@ process FCSGX_FETCHDB {
 
     script:
     // def args = task.ext.args ?: ''
-    prefix = task.ext.prefix ?: "gxdb_$manifest.baseName"
+    def basename = manifest.toString().tokenize('/')[-1].tokenize('?')[0]
+    prefix = task.ext.prefix ?: "gxdb_${basename}"
     """
     sync_files.py \\
         get \\
-        --mft "${manifest.toUriString()}" \\
-        --dir "$prefix"
+        --mft $manifest \\
+        --dir $prefix
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
@@ -34,7 +35,7 @@ process FCSGX_FETCHDB {
 
     stub:
     // def args = task.ext.args ?: ''
-    prefix = task.ext.prefix ?: "gxdb_$manifest.baseName"
+    prefix = task.ext.prefix ?: "gxdb_${basename}"
     """
     touch ${prefix}
 
