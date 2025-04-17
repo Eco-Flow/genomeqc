@@ -7,8 +7,8 @@ process GENE_OVERLAPS {
     tuple val(meta), path(gff)
 
     output:
-    tuple val(meta), path("Summary.*.tsv"), emit: overlap_detailed_summary
-    tuple val(meta), path("Count.*.tsv")  , emit: overlap_counts
+    tuple val(meta), path("*.summary.tsv"), emit: overlap_detailed_summary
+    tuple val(meta), path("*.counts.tsv")  , emit: overlap_counts
     path "versions.yml", emit: versions
 
     when:

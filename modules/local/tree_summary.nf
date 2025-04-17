@@ -25,7 +25,7 @@ process TREE_SUMMARY {
     sed \'s/\\.prot\\.fa\\.largestIsoform//g\' ${tree}/Species_Tree/SpeciesTree_rooted_node_labels.txt > tree.nw
 
     # Combine GENE OVERLAPS outputs
-    gene_overlaps_table.py Count.*.tsv gene_stats.tsv --include-sense --include-antisense
+    gene_overlaps_table.py *.counts.tsv gene_stats.tsv --include-sense --include-antisense
 
     # Combine the BUSCO outputs and remove empty tabs
     head -qn 1 *.txt | head -n 1                                > Busco_combined
