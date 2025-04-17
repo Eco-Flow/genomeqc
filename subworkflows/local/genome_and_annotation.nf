@@ -41,14 +41,14 @@ workflow GENOME_AND_ANNOTATION {
 
 
     AGAT_SPKEEPLONGESTISOFORM (
-        ch_gff_agat,
+        ch_gxf_agat,
         []
 
     )
     ch_versions  = ch_versions.mix(AGAT_SPKEEPLONGESTISOFORM.out.versions.first())
 
     // Get longest isoform from gff
-    ch_gff_long  = AGAT_SPKEEPLONGESTISOFORM.out.gff
+    ch_gxf_long  = AGAT_SPKEEPLONGESTISOFORM.out.gff
 
 
     //
@@ -58,13 +58,13 @@ workflow GENOME_AND_ANNOTATION {
     // Combine inputs (fasta, gff from AGAT (unfiltered) and gff from AGAT_SPKEEPLONGESTISOFORM (filtered)))
     // into a single multichannel so that they are in sync
     ch_input     = ch_fasta
-        | combine(ch_gff_agat, by:0) // by:0 | Only combine when both channels share the same id
-        | combine(ch_gff_long, by:0)
+        | combine(ch_gxf_agat, by:0) // by:0 | Only combine when both channels share the same id
+        | combine(ch_gxf_long, by:0)
         | multiMap {
             meta, fasta, gff_unfilt, gff_filt -> // "null" probably not necessary
                 fasta      : fasta      ? tuple( meta, file(fasta)      ) : null // channel: [ val(meta), [ fasta ] ]
-                gff_unfilt : gff_unfilt ? tuple( meta, file(gff_unfilt) ) : null // channel: [ val(meta), [ gff ] ], unfiltered
-                gff_filt   : gff_filt   ? tuple( meta, file(gff_filt)   ) : null // channel: [ val(meta), [ gff ] ], filtered for longest isoform
+                gxf_unfilt : gxf_unfilt ? tuple( meta, file(gff_unfilt) ) : null // channel: [ val(meta), [ gxf ] ], unfiltered
+                gxf_filt   : gxf_filt   ? tuple( meta, file(gff_filt)   ) : null // channel: [ val(meta), [ gxf ] ], filtered for longest isoform
         }
 
     //
