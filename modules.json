@@ -10,6 +10,11 @@
             "git_sha": "666652151335353eef2fcd58880bcef5bc2928e1",
             "installed_by": ["modules"]
           },
+          "agat/spkeeplongestisoform": {
+            "branch": "master",
+            "git_sha": "4b3afb5158d43e646c5ad040f445a8ca5b704e30",
+            "installed_by": ["modules"]
+          },
           "agat/spstatistics": {
             "branch": "master",
             "git_sha": "666652151335353eef2fcd58880bcef5bc2928e1",
