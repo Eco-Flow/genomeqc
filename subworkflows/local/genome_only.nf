@@ -42,27 +42,39 @@ workflow GENOME_ONLY {
     )
     ch_versions   = ch_versions.mix(GENOME_ONLY_BUSCO_IDEOGRAM.out.versions.first())
 
+    ch_busco_proteins = BUSCO_BUSCO.out.single_copy_faa
+                      | flatMap { meta, faas ->
+                                     faas.collect { faa -> [meta, file(faa)]  }
+                      }
+                      | collectFile { meta, faas ->
+                                        [ "${meta.id}.fasta", faas ]
+                      }
+                      | view
+                      | collect
+                      | map { file_paths ->
+                                [[ id: 'orthofinder_run' ], file_paths]
+                      }
 
-    ch_busco_proteins = BUSCO_BUSCO.out.prodigal_prots
+    //ch_busco_proteins = BUSCO_BUSCO.out.prodigal_prots
 
     // Create a new channel with the "predicted.faa" files renamed based on their meta.id, then combine all files into one folder, ready for orthofinder.
-    ch_busco_renamed = ch_busco_proteins
-    .map { meta, file ->
-        def new_name = "${meta.id}.predicted.faa"
-        def original_path = file.toString()
-        def parent_dir = file.getParent()
-        def new_file = "${parent_dir}/${new_name}"
-        file.renameTo(new_file)
-        return new_file
-    }
-    .collect()
-    .map { file_paths ->
-        return [[ id: 'orthofinder_run' ], file_paths]
-    }
+    //ch_busco_renamed = ch_busco_proteins
+    //.map { meta, file ->
+    //    def new_name = "${meta.id}.predicted.faa"
+    //    def original_path = file.toString()
+    //    def parent_dir = file.getParent()
+    //    def new_file = "${parent_dir}/${new_name}"
+    //    file.renameTo(new_file)
+    //    return new_file
+    //}
+    //.collect()
+    //.map { file_paths ->
+    //    return [[ id: 'orthofinder_run' ], file_paths]
+    //}
 
     //Run orthofinder
     ORTHOFINDER (
-        ch_busco_renamed,
+        ch_busco_proteins,
         [[],[]]
     )
     ch_versions  = ch_versions.mix(ORTHOFINDER.out.versions)
