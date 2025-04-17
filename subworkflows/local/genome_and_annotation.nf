@@ -63,8 +63,8 @@ workflow GENOME_AND_ANNOTATION {
         | multiMap {
             meta, fasta, gxf_unfilt, gxf_filt -> // "null" probably not necessary
                 fasta      : fasta      ? tuple( meta, file(fasta)      ) : null // channel: [ val(meta), [ fasta ] ]
-                gxf_unfilt : gxf_unfilt ? tuple( meta, file(gff_unfilt) ) : null // channel: [ val(meta), [ gxf ] ], unfiltered
-                gxf_filt   : gxf_filt   ? tuple( meta, file(gff_filt)   ) : null // channel: [ val(meta), [ gxf ] ], filtered for longest isoform
+                gxf_unfilt : gxf_unfilt ? tuple( meta, file(gxf_unfilt) ) : null // channel: [ val(meta), [ gxf ] ], unfiltered
+                gxf_filt   : gxf_filt   ? tuple( meta, file(gxf_filt)   ) : null // channel: [ val(meta), [ gxf ] ], filtered for longest isoform
         }
 
     //
