@@ -61,7 +61,7 @@ workflow GENOME_AND_ANNOTATION {
         | combine(ch_gxf_agat, by:0) // by:0 | Only combine when both channels share the same id
         | combine(ch_gxf_long, by:0)
         | multiMap {
-            meta, fasta, gff_unfilt, gff_filt -> // "null" probably not necessary
+            meta, fasta, gxf_unfilt, gxf_filt -> // "null" probably not necessary
                 fasta      : fasta      ? tuple( meta, file(fasta)      ) : null // channel: [ val(meta), [ fasta ] ]
                 gxf_unfilt : gxf_unfilt ? tuple( meta, file(gff_unfilt) ) : null // channel: [ val(meta), [ gxf ] ], unfiltered
                 gxf_filt   : gxf_filt   ? tuple( meta, file(gff_filt)   ) : null // channel: [ val(meta), [ gxf ] ], filtered for longest isoform
