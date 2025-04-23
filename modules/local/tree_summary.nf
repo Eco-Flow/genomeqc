@@ -19,13 +19,14 @@ process TREE_SUMMARY {
     script:
     def args = task.ext.args     ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
+    def counts_command = meta.mode == 'genome_anno' ? "gene_overlaps_table.py ${counts_files} gene_stats.tsv --include-sense --include-antisense" : "touch gene_stats.tsv"
 
     """
     #Remove unwanted extensions in the tree file
     sed \'s/\\.prot\\.fa\\.largestIsoform//g\' ${tree}/Species_Tree/SpeciesTree_rooted_node_labels.txt > tree.nw
 
     # Combine GENE OVERLAPS outputs
-    gene_overlaps_table.py *.counts.tsv gene_stats.tsv --include-sense --include-antisense
+    ${counts_command}
 
     # Combine the BUSCO outputs and remove empty tabs
     head -qn 1 *.txt | head -n 1                                > Busco_combined

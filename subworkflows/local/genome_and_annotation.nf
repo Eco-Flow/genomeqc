@@ -132,7 +132,7 @@ workflow GENOME_AND_ANNOTATION {
         }
         | collect // Collect all fasta in a single tuple
         | map { fastas ->
-            [[id:"orthofinder"], fastas]
+            [[id:'orthofinder', mode:'genome_anno'], fastas]
         }
 
     // Run orthofinder
@@ -141,6 +141,7 @@ workflow GENOME_AND_ANNOTATION {
         [[],[]]
     )
     ch_versions  = ch_versions.mix(ORTHOFINDER.out.versions)
+    ORTHOFINDER.out.orthofinder.view()
 
     //
     // MODULE: Run BUSCO

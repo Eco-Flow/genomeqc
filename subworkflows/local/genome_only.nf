@@ -14,12 +14,20 @@ workflow GENOME_ONLY {
 
     ch_versions   = Channel.empty()
 
+    // For tree plot
+    ch_tree_data = Channel.empty()
+
+    //
+    // MODULE: Run Quast
+    //
+
     QUAST (
         ch_fasta,
         [[],[]],
         [[],[]]
     )
     ch_versions   = ch_versions.mix(QUAST.out.versions.first())
+    ch_tree_data = ch_tree_data.mix(QUAST.out.tsv.map { tuple -> tuple[1] })
 
     BUSCO_BUSCO (
         ch_fasta,
@@ -30,8 +38,14 @@ workflow GENOME_ONLY {
         params.busco_clean ?: []
     )
     ch_versions   = ch_versions.mix(BUSCO_BUSCO.out.versions.first())
-    ch_full_table = BUSCO_BUSCO.out.full_table
+    ch_tree_data  = ch_tree_data.mix(BUSCO_BUSCO.out.batch_summary.collect { meta, file -> file })
+    
+    //
+    // BUSCO Ideogram
+    //
 
+    ch_full_table = BUSCO_BUSCO.out.full_table
+    
     // Combined ch_fasta and BUSCO output channel into a single channel for ideogram
     ch_input_ideo = ch_fasta
         | combine(ch_full_table, by:0)
@@ -42,6 +56,11 @@ workflow GENOME_ONLY {
     )
     ch_versions   = ch_versions.mix(GENOME_ONLY_BUSCO_IDEOGRAM.out.versions.first())
 
+    //
+    // Orthofinder
+    //
+
+    // Prepare data
     ch_busco_proteins = BUSCO_BUSCO.out.single_copy_faa
                       | flatMap { meta, faas ->
                                      faas.collect { faa -> [meta, file(faa)]  }
@@ -49,28 +68,10 @@ workflow GENOME_ONLY {
                       | collectFile { meta, faas ->
                                         [ "${meta.id}.fasta", faas ]
                       }
-                      | view
                       | collect
                       | map { file_paths ->
-                                [[ id: 'orthofinder_run' ], file_paths]
+                                [[ id: 'orthofinder_run', mode: 'genome' ], file_paths]
                       }
-
-    //ch_busco_proteins = BUSCO_BUSCO.out.prodigal_prots
-
-    // Create a new channel with the "predicted.faa" files renamed based on their meta.id, then combine all files into one folder, ready for orthofinder.
-    //ch_busco_renamed = ch_busco_proteins
-    //.map { meta, file ->
-    //    def new_name = "${meta.id}.predicted.faa"
-    //    def original_path = file.toString()
-    //    def parent_dir = file.getParent()
-    //    def new_file = "${parent_dir}/${new_name}"
-    //    file.renameTo(new_file)
-    //    return new_file
-    //}
-    //.collect()
-    //.map { file_paths ->
-    //    return [[ id: 'orthofinder_run' ], file_paths]
-    //}
 
     //Run orthofinder
     ORTHOFINDER (
@@ -81,6 +82,7 @@ workflow GENOME_ONLY {
 
     emit:
     orthofinder           = ORTHOFINDER.out.orthofinder         // channel: [ val(meta), [folder] ]
+    tree_data             = ch_tree_data.flatten().collect()
     quast_results         = QUAST.out.results                   // channel: [ val(meta), [tsv] ]
     busco_short_summaries = BUSCO_BUSCO.out.short_summaries_txt // channel: [ val(meta), [txt] ]
 
