@@ -11,6 +11,7 @@ process TREE_SUMMARY {
 
     output:
     path( "*.pdf"          ),                 emit: figure
+    path( "*.svg"          ),                 emit: figure_svg
     path( "versions.yml"    ),                emit: versions
 
     when:

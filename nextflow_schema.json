@@ -285,14 +285,9 @@
           "default": 21,
           "description": "k size for meryl (merqury)"
         },
-        "run_merqury": {
-          "type": "boolean",
-          "description": "Run meryl/merqury step?"
-        },
         "skip_tidk": {
           "type": "boolean",
           "description": "Do not run TIDK",
-          "hidden": true,
           "help_text": "You may wish to turn off the tidk subworkflow"
         }
       }
@@ -331,7 +326,8 @@
     },
     "save_orthofinder_results": {
       "type": "boolean",
-      "description": "Publish orthofinder results"
+      "description": "Publish orthofinder results",
+      "default": true
     },
     "save_longest_isoform": {
       "type": "boolean",
@@ -344,6 +340,27 @@
     "tree_scale": {
       "type": "integer",
       "description": "Modifies scale of the tree plot in the tree summary, default value is '0.0005'. Useful if tree tips overlap with the concatenated plots. Very sensitive, increase/decrease by two-fold"
+    },
+    "busco_clean": {
+      "type": "boolean",
+      "description": "Remove intermediate files",
+      "default": true
+    },
+    "skip_plots_genome_anno": {
+      "type": "string",
+      "description": "Skip these stat plots in the genome and annotation tree plot",
+      "pattern": "^(ch_plot|len_plot|gene_plot|n50_plot|pies_plot)(,(ch_plot|len_plot|gene_plot|n50_plot|pies_plot))*$",
+      "help_text": "Comma-separated list of plot types to skip. Valid values: ch_plot, len_plot, gene_plot, n50_plot, pies_plot\nch_plot: Number of sequences\nlen_plot: Genome size and GC cotent\ngene_plot: Numeber of genes and overlapping genes\nn50_plot: N50\npies_plot: BUSCO stats"
+    },
+    "skip_plots_genome_only": {
+      "type": "string",
+      "description": "Skip these stat plots in the genome only tree plot",
+      "pattern": "^(ch_plot|len_plot|n50_plot|pies_plot)(,(ch_plot|len_plot|n50_plot|pies_plot))*$",
+      "help_text": "Comma-separated list of plot types to skip. Valid values: ch_plot, len_plot, n50_plot, pies_plot\nch_plot: Number of sequences\nlen_plot: Genome size and GC content\nn50_plot: N50\npies_plot: BUSCO stats"
+    },
+    "gxdb_manifiest": {
+      "type": "string",
+      "description": "Path to FCS GX contamination screening database"
     }
   }
 }

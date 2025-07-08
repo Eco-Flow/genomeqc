@@ -64,13 +64,18 @@ parser$add_argument('--text_size', type = 'double', default = 3, help = 'Text si
 parser$add_argument('--tree_scale', type = 'double', default = 0.0005, help = 'x axis limits scaling for tree plot (useful when tree labels appear truncated)')
 parser$add_argument('--bar_width', type = 'double', default = 0.7, help = 'Width of bar plots')
 parser$add_argument('--rad_width', type = 'double', default = 0.4, help = 'Radius of pie charts')
-#parser$add_argument('--input_stats', type = 'charater', default = 0.4, help = 'Radius of pie charts')
+parser$add_argument('--skip_stats', type = 'character', default = NULL, help = "Don't plot these stats (comma separated list)")
 parser$add_argument('--type', type = 'character', choices = c('genome_only', 'genome_anno'), default = 'genome_anno', help = 'Select stats for genome only or for both genome and annotation')
 
 args <- parser$parse_args()
 
 # Avoid scientific notation in all plots
 options(scipen = 999)
+
+# Skipt these plots (parse skip arguments, thanks chat gpt)
+skip <- if (!is.null(args$skip_stats)) strsplit(args$skip_stats, ",")[[1]] else character(0)
+
+print(skip)
 
 # Read the Newick tree from the file
 tree <- read.tree(args$tree_file)
@@ -297,6 +302,7 @@ n50_plot <- n50_plot + guides(fill="none")
 }  else {
   n50_plot <- NULL
   len_plot <- NULL
+  legend_len <- NULL
 }
 
 if (!is.null(data_busco)) {
@@ -333,6 +339,7 @@ if (!is.null(data_busco)) {
   pies_plot <- pies_plot + guides(fill="none")
 } else {
   pies_plot <- NULL
+  legend_busco <- NULL
 }
 
 # Display the legend alone
@@ -372,6 +379,7 @@ if (!is.null(data_genes)) {
   gene_plot <- gene_plot + guides(fill="none")
 } else {
   gene_plot <- NULL
+  legend_gene <- NULL
 }
 
 # Display the legend alone
@@ -445,13 +453,39 @@ tree_plot <- tree_plot + new_ylim
 # per character in the x axis scale. Script should allow to change this value
 m = max(tree_plot$data$x) + max(nchar(tree_plot$data$label))^2*args$tree_scale
 
+# Define named plot and legend lists (thanks to chat gpt)
+all_plots <- list(
+  ch_plot   = ch_plot,
+  len_plot  = len_plot,
+  gene_plot = gene_plot,
+  n50_plot  = n50_plot,
+  pies_plot = pies_plot
+)
+
+all_legends <- list(
+  ch_plot   = NULL,
+  len_plot  = legend_len,
+  gene_plot = legend_gene,
+  n50_plot  = NULL,
+  pies_plot = legend_busco
+)
+
+# Keep only plots and legends not in the skip list (thanks to chat gpt)
+plots <- all_plots[!names(all_plots) %in% skip]
+legends <- all_legends[names(plots)]  # Re-align legends to plots
+
+print('debug line')
+
+plots
+legends
+
 # Call the function
 if (args$type == 'genome_anno') {
   final_plot <- build_tree_plot(
     tree = tree_plot,
     n = m, # Only affects tree_plot
-    plots = list(ch_plot, len_plot, gene_plot, n50_plot, pies_plot),
-    legends = list(NULL, legend_len, legend_gene, NULL, legend_busco),
+    plots = plots,
+    legends = legends,
     new_xlim,
     15,
     60
@@ -460,8 +494,8 @@ if (args$type == 'genome_anno') {
   final_plot <- build_tree_plot(
     tree = tree_plot,
     n = m, # Only affects tree_plot
-    plots = list(ch_plot, len_plot, n50_plot, pies_plot),
-    legends = list(NULL, legend_len, NULL, legend_busco),
+    plots = plots,
+    legends = legends,
     new_xlim,
     15,
     60
@@ -469,5 +503,9 @@ if (args$type == 'genome_anno') {
 }
 
 pdf("tree_plot.pdf")
+final_plot
+dev.off()
+
+svg("tree_plot.svg")
 final_plot
 dev.off()
