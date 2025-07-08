@@ -20,7 +20,7 @@ process TREE_SUMMARY {
     script:
     def args = task.ext.args     ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
-    def counts_command = meta.mode == 'genome_anno' ? "gene_overlaps_table.py ${counts_files} gene_stats.tsv --include-sense --include-antisense" : "touch gene_stats.tsv"
+    def counts_command = meta.mode == 'genome_anno' ? "gene_overlaps_table.py *.counts.tsv gene_stats.tsv --include-sense --include-antisense" : "touch gene_stats.tsv" // Genome only option needs a gene_stats file, even if it's empty. Should check for a more elegant solution
 
     """
     #Remove unwanted extensions in the tree file
