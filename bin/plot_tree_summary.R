@@ -129,7 +129,8 @@ data_genes <- data_genes %>%
   rename(species = File) %>%
   rename(Total = Total_genes) %>%
   rename(Overlapping = Overlapping_genes) %>%
-  # Remove prefix and suffix
+
+  # Remove ".counts.tsv"
   mutate(species = gsub("\\.counts\\.tsv", "", species))
 
 # Extract names for debugging

@@ -20,6 +20,8 @@ include { softwareVersionsToYAML              } from '../subworkflows/nf-core/ut
 include { methodsDescriptionText              } from '../subworkflows/local/utils_nfcore_genomeqc_pipeline'
 include { validateInputSamplesheet            } from '../subworkflows/local/utils_nfcore_genomeqc_pipeline'
 include { FASTA_EXPLORE_SEARCH_PLOT_TIDK      } from '../subworkflows/nf-core/fasta_explore_search_plot_tidk/main'
+include { DECONTAMINATION                     } from '../subworkflows/local/decontamination'
+include { FCSGX_FETCHDB                       } from '../modules/nf-core/fcsgx/fetchdb/main'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -135,24 +137,40 @@ workflow GENOMEQC {
     // If element (fasta, gxf, fq) is empty, it will return an empty (null) channel
     // Check multimapChannel function below
 
-    ch_input      = ch_fasta // channel: [ val(meta), val(fasta), val(gxf), val(fastq) ]
-                  | combine(ch_gxf, by:0) // by:0 | Only combine when both channels share the same id
-                  | combine(ch_fastq, by:0)
+    ch_input       = ch_fasta // channel: [ val(meta), val(fasta), val(gxf), val(fastq) ]
+                   | join(ch_gxf, remainder: true) // reminder: if gxf is null (only necessary for ncbi genomes)
+                   | join(ch_fastq, remainder: true)
 
     // Split into two channels according to the presence/absence of an annotation
-    ch_input_anno = ch_input.filter { meta, fasta, gxf, fastq ->  gxf } // gxf is present. Channel will run on genome and annotation
-                  | multimapChannel // Notice only fasta channel and gxf are necessary here
-    ch_input_geno = ch_input.filter { meta, fasta, gxf, fastq ->  !gxf }// gxf is missing. Channel will run on genome only
-                  | multimapChannel // Notice only fasta channel is necessary here
-
-    // For processes not part of genome only or genome and annotation modes
-    // TIDK
-    ch_input_tidk = ch_input
-                  | multimapChannel // Notice only fasta channels are necessary here
+    ch_input_anno  = ch_input.filter { meta, fasta, gxf, fastq ->  gxf } // gxf is present. Channel will run on genome and annotation
+                   | multimapChannel // Notice only fasta channel and gxf are necessary here
+    ch_input_geno  = ch_input.filter { meta, fasta, gxf, fastq ->  !gxf }// gxf is missing. Channel will run on genome only
+                   | multimapChannel // Notice only fasta channel is necessary here
 
     // Merqury
-    ch_input_merq = ch_input.filter { meta, fasta, gxf, fastq -> fastq } // filter rows where fastq is present
-                  | multimapChannel // Notice only fasta and fastq channels are necessary here
+    ch_input_merq  = ch_input.filter { meta, fasta, gxf, fastq -> fastq } // filter rows where fastq is present
+                   | multimapChannel // Notice only fasta and fastq channels are necessary here
+
+    // Decontamination subworkflow
+    ch_input_decon = ch_fasta.filter { meta, fasta -> meta.taxid } // filter rows where taxid is present. Run decon on those
+
+    // For TIDK the ch_fasta channel will work
+
+    //
+    // Run DECONTAMINATION
+    //
+
+    // If statement in case people give taxids but no database.
+    // This way subworkflow won't try to run (otherwise it'll just fail)
+    // Add warning in parameter/input validation plugin
+    if ( params.gxdb || params.gxdb_manifiest ) {
+        DECONTAMINATION (
+            ch_input_decon,
+            params.gxdb ?: [],
+            params.gxdb_manifiest ?: []
+        )
+        ch_versions = ch_versions.mix(DECONTAMINATION.out.versions.first())
+    }
 
     //
     // Run TIDK
@@ -160,7 +178,7 @@ workflow GENOMEQC {
 
     if (!params.skip_tidk) {
         FASTA_EXPLORE_SEARCH_PLOT_TIDK (
-            ch_input_tidk.fasta,
+            ch_fasta,
             []
         )
     }
@@ -242,7 +260,6 @@ workflow GENOMEQC {
             sort: true,
             newLine: true
         ).set { ch_collated_versions }
-
 
     //
     // MODULE: MultiQC

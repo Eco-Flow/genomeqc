@@ -35,6 +35,26 @@
             "git_sha": "285a50500f9e02578d90b3ce6382ea3c30216acd",
             "installed_by": ["modules"]
           },
+          "fcs/fcsadaptor": {
+            "branch": "master",
+            "git_sha": "05954dab2ff481bcb999f24455da29a5828af08d",
+            "installed_by": ["modules"]
+          },
+          "fcs/fcsgx": {
+            "branch": "master",
+            "git_sha": "a4d916a39231897a49c903089a548704c09b8ef3",
+            "installed_by": ["modules"]
+          },
+          "fcsgx/cleangenome": {
+            "branch": "master",
+            "git_sha": "81880787133db07d9b4c1febd152c090eb8325dc",
+            "installed_by": ["modules"]
+          },
+          "fcsgx/fetchdb": {
+            "branch": "master",
+            "git_sha": "81880787133db07d9b4c1febd152c090eb8325dc",
+            "installed_by": ["modules"]
+          },
           "gffread": {
             "branch": "master",
             "git_sha": "666652151335353eef2fcd58880bcef5bc2928e1",
@@ -89,6 +109,11 @@
             "branch": "master",
             "git_sha": "666652151335353eef2fcd58880bcef5bc2928e1",
             "installed_by": ["fasta_explore_search_plot_tidk"]
+          },
+          "tiara/tiara": {
+            "branch": "master",
+            "git_sha": "666652151335353eef2fcd58880bcef5bc2928e1",
+            "installed_by": ["modules"]
           },
           "tidk/explore": {
             "branch": "master",
