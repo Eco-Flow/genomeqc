@@ -69,6 +69,9 @@ workflow GENOME_ONLY {
                                         [ "${meta.id}.fasta", faas ]
                       }
                       | collect
+                      | filter { file_paths ->
+                            file_paths.size() >= 4 // Ensure there are enough BUSCO proteins, otherwise skip orthofinder
+                      }
                       | map { file_paths ->
                                 [[ id: 'orthofinder_run', mode: 'genome' ], file_paths]
                       }
