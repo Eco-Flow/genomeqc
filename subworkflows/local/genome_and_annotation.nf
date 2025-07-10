@@ -132,7 +132,7 @@ workflow GENOME_AND_ANNOTATION {
         }
         | collect // Collect all fasta in a single tuple
         | filter { fastas ->
-            fastas.size() >= 4 // Ensure we have at least 4 genomes for orthofinder, otherwise it won't run
+            fastas.size() >= 3 // Ensure we have at least 4 genomes for orthofinder, otherwise it won't run
         }
         | map { fastas ->
             [[id:'orthofinder', mode:'genome_anno'], fastas]
