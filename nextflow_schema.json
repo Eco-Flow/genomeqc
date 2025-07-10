@@ -252,17 +252,18 @@
         "groups": {
           "type": "string",
           "default": "all",
-          "description": "A string with NCBI taxonomic groups to download. Can be a comma-separated list. Options are 'all', 'archaea', 'bacteria', 'fungi', 'invertebrate', 'metagenomes', 'plant', 'protozoa', 'vertebrate_mammalian', 'vertebrate_other', 'viral'"
+          "description": "A string with NCBI taxonomic groups to download. Can be a comma-separated list. Options are 'all', 'archaea', 'bacteria', 'fungi', 'invertebrate', 'metagenomes', 'plant', 'protozoa', 'vertebrate_mammalian', 'vertebrate_other', 'viral'."
         },
         "busco_mode": {
           "type": "string",
           "default": "proteins",
-          "description": "A flag to set the busco mode. Either genome, proteins, transcriptome. Default: proteins"
+          "description": "A flag to set the busco mode for genome and annotation mode ('genome' is hardcoded in genome only mode).",
+          "enum": ["proteins", "genome"]
         },
         "busco_lineage": {
           "type": "string",
           "default": "hymenoptera_odb10",
-          "description": "A flag to set the busco lineage. Default: auto"
+          "description": "A flag to set the busco lineage."
         },
         "busco_lineages_path": {
           "type": "string",
@@ -343,8 +344,7 @@
     },
     "busco_clean": {
       "type": "boolean",
-      "description": "Remove intermediate files",
-      "default": true
+      "description": "Remove intermediate files"
     },
     "skip_plots_genome_anno": {
       "type": "string",
