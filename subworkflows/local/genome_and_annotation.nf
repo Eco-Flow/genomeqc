@@ -9,6 +9,7 @@ include { GFFREAD                             } from '../../modules/nf-core/gffr
 include { ORTHOFINDER                         } from '../../modules/nf-core/orthofinder/main'
 include { FASTAVALIDATOR                      } from '../../modules/nf-core/fastavalidator/main'
 include { GENE_OVERLAPS                       } from '../../modules/local/gene_overlaps'
+include { ORTHOLOGOUS_CHROMOSOMES             } from '../../modules/local/orthologous_chromosomes'
 
 workflow GENOME_AND_ANNOTATION {
 
@@ -143,6 +144,18 @@ workflow GENOME_AND_ANNOTATION {
     ch_versions  = ch_versions.mix(ORTHOFINDER.out.versions)
 
     //
+    // MODULE: Run ORTHOLOGOUS_CHROMOSOMES
+    //
+
+    ORTHOLOGOUS_CHROMOSOMES (
+        ORTHOFINDER.out.orthofinder.map { meta, folder -> 
+            file("${folder}/Orthogroups/Orthogroups.tsv") 
+        },
+        AGAT_SPKEEPLONGESTISOFORM.out.gff.map { meta, gff -> gff }.collect()
+    )
+    ch_versions  = ch_versions.mix(ORTHOLOGOUS_CHROMOSOMES.out.versions)
+
+    //
     // MODULE: Run BUSCO
     //
 
@@ -203,6 +216,7 @@ workflow GENOME_AND_ANNOTATION {
     tree_data             = ch_tree_data.flatten().collect()
     quast_results         = QUAST.out.results                   // channel: [ val(meta), [tsv] ]
     busco_short_summaries = BUSCO_BUSCO.out.short_summaries_txt // channel: [ val(meta), [txt] ]
+    orthologous_chromosomes = ORTHOLOGOUS_CHROMOSOMES.out.species_summary // channel: [ path(tsv) ]
 
     versions              = ch_versions                   // channel: [ versions.yml ]
 }
