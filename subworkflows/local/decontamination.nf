@@ -3,7 +3,8 @@ include { FCSGX_CLEANGENOME as FCSGX_CLEANADAPTOR } from '../../modules/nf-core/
 include { FCSGX_FETCHDB                           } from '../../modules/nf-core/fcsgx/fetchdb/main'
 include { FCS_FCSGX                               } from '../../modules/nf-core/fcs/fcsgx/main'
 include { FCSGX_CLEANGENOME                       } from '../../modules/nf-core/fcsgx/cleangenome/main'
-include { TIARA_TIARA                             } from '../../modules/nf-core/tiara/tiara/main'
+include { TIARA_TIARA as TIARA_RAW                } from '../../modules/nf-core/tiara/tiara/main'
+include { TIARA_TIARA as TIARA_CLEANED            } from '../../modules/nf-core/tiara/tiara/main'
 
 
 
@@ -39,7 +40,7 @@ workflow DECONTAMINATION {
 
     // Run Module fetch database
     FCSGX_FETCHDB(
-        ch_gxdb_manifest ?: []
+        ch_gxdb_manifest ?: [] // If there no manifest, use empty channel (won't run)
     )
     ch_gxdb            = ch_gxdb_local ?: FCSGX_FETCHDB.out.database
 
@@ -62,7 +63,13 @@ workflow DECONTAMINATION {
     )
     //ch_versions = ch_versions.mix(FCSGX_CLEANGENOME.out.versions.first())
 
-    TIARA_TIARA(
+    // Not cleaned
+    TIARA_RAW(
+        ch_fasta
+    )
+
+    // Cleaned genome
+    TIARA_CLEANED(
         FCSGX_CLEANGENOME.out.cleaned
     )
     //ch_versions = ch_versions.mix(TIARA_TIARA.out.versions.first())

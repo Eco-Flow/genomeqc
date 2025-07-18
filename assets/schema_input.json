@@ -10,31 +10,37 @@
             "species": {
                 "type": "string",
                 "errorMessage": "Species name must be provided and cannot contain spaces",
+                "pattern": "^\\S+$",
                 "meta": ["id"]
             },
             "refseq": {
                 "type": "string",
-                "errorMessage": "ncbi accession number"
+                "pattern": "^GC[AF]_[0-9]{9}\\.[0-9]+$",
+                "errorMessage": "NCBI assembly accession number. Should start with GCA_ (RefSeq) or GFC_ (GenBank), followed by 9 digits and the version number, and cannot contain spaces"
             },
             "fasta": {
                 "type": "string",
                 "format": "file-path",
-                "errorMessage": "FASTA file with genome assembly"
+                "pattern": "^\\S+\\.f(ast)?a(\\.gz)?$",
+                "errorMessage": "FASTA file with genome assembly, GZIP-compressed or uncompressed, cannot contain spaces and must have extension '.fa', '.fa.gz', '.fasta' or '.fasta.gz'"
             },
             "gff": {
                 "type": "string",
                 "format": "file-path",
-                "errorMessage": "GFF file with genome annotation"
+                "pattern": "^\\S+\\.(gff3?|gtf)(\\.gz)?$",
+                "errorMessage": "GFF/GTF file with genome annotation, GZIP-compressed or uncompressed, cannot contain spaces and must have extension '.gtf', '.gtf.gz', '.gff', '.gff.gz', '.gff3', '.gff3.gz'"
             },
             "fastq": {
                 "type": "string",
                 "format": "file-path",
-                "errorMessage": "Single compressed FASTQ file, must have extension '.fq.gz' or '.fastq.gz'"
+                "pattern": "^\\S+\\.f(ast)?q(\\.gz)?$",
+                "errorMessage": "FastQ file to run Merqury, GZIP-compressed or uncompressed,  contain spaces and must have extension '.fq', '.fq.gz', '.fastq' or '.fastq.gz'"
             },
             "taxid": {
                 "type": "string",
+                "pattern": "^\\d+$",
                 "meta": ["taxid"],
-                "errorMessage": "Species taxid"
+                "errorMessage": "Species taxid for decontamination screening, must be a valid NCBI taxid (numeric string without spaces)"
             }
         },
         "required": ["species"]

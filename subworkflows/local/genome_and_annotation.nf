@@ -132,8 +132,11 @@ workflow GENOME_AND_ANNOTATION {
             fasta // We only need the fastas
         }
         | collect // Collect all fasta in a single tuple
+        | filter { fastas ->
+            fastas.size() >= 3 // Ensure we have at least 4 genomes for orthofinder, otherwise it won't run
+        }
         | map { fastas ->
-            [[id:"orthofinder"], fastas]
+            [[id:'orthofinder', mode:'genome_anno'], fastas]
         }
 
     // Run orthofinder
@@ -142,6 +145,7 @@ workflow GENOME_AND_ANNOTATION {
         [[],[]]
     )
     ch_versions  = ch_versions.mix(ORTHOFINDER.out.versions)
+    ORTHOFINDER.out.orthofinder.view()
 
     //
     // MODULE: Run ORTHOLOGOUS_CHROMOSOMES

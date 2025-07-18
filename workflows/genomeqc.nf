@@ -13,7 +13,8 @@ include { PIGZ_UNCOMPRESS as UNCOMPRESS_GXF   } from '../modules/nf-core/pigz/un
 include { GENOME_ONLY                         } from '../subworkflows/local/genome_only'
 include { GENOME_AND_ANNOTATION               } from '../subworkflows/local/genome_and_annotation'
 include { MULTIQC                             } from '../modules/nf-core/multiqc/main'
-include { TREE_SUMMARY                        } from '../modules/local/tree_summary'
+include { TREE_SUMMARY as TREE_SUMMARY_GENO_ANNO } from '../modules/local/tree_summary'
+include { TREE_SUMMARY as TREE_SUMMARY_GENO      } from '../modules/local/tree_summary'
 include { paramsSummaryMap                    } from 'plugin/nf-validation'
 include { paramsSummaryMultiqc                } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML              } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -243,11 +244,17 @@ workflow GENOMEQC {
         // MODULE: Run TREE SUMMARY
         //
 
-        TREE_SUMMARY (
+        TREE_SUMMARY_GENO_ANNO (
             GENOME_AND_ANNOTATION.out.orthofinder,
             GENOME_AND_ANNOTATION.out.tree_data
         )
-        ch_versions      = ch_versions.mix(TREE_SUMMARY.out.versions)
+        ch_versions      = ch_versions.mix(TREE_SUMMARY_GENO_ANNO.out.versions)
+        
+        TREE_SUMMARY_GENO (
+            GENOME_ONLY.out.orthofinder,
+            GENOME_ONLY.out.tree_data
+        )
+        ch_versions      = ch_versions.mix(TREE_SUMMARY_GENO.out.versions)
     }
 
     //
