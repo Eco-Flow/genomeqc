@@ -23,6 +23,8 @@ include { validateInputSamplesheet            } from '../subworkflows/local/util
 include { FASTA_EXPLORE_SEARCH_PLOT_TIDK      } from '../subworkflows/nf-core/fasta_explore_search_plot_tidk/main'
 include { DECONTAMINATION                     } from '../subworkflows/local/decontamination'
 include { FCSGX_FETCHDB                       } from '../modules/nf-core/fcsgx/fetchdb/main'
+include { BUSCO_SEQS_GENOME_ANNO              } from '../modules/local/busco_seqs/main'
+include { BUSCO_SEQS_GENOME                   } from '../modules/local/busco_seqs/main'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -249,13 +251,24 @@ workflow GENOMEQC {
             GENOME_AND_ANNOTATION.out.tree_data
         )
         ch_versions      = ch_versions.mix(TREE_SUMMARY_GENO_ANNO.out.versions)
-        
+
         TREE_SUMMARY_GENO (
             GENOME_ONLY.out.orthofinder,
             GENOME_ONLY.out.tree_data
         )
         ch_versions      = ch_versions.mix(TREE_SUMMARY_GENO.out.versions)
     }
+
+    // Numeber of sequences with more than x complete single copy buscos
+    // this should depend on whether protein mode was used or not, not
+
+    BUSCO_SEQS_GENOME_ANNO(
+        GENOME_AND_ANNOTATION.out.busco_mappings
+    )
+
+    BUSCO_SEQS_GENOME(
+        GENOME_ONLY.out.busco_mappings
+    )
 
     //
     // Collate and save software versions

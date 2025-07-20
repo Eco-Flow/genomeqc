@@ -152,8 +152,8 @@ workflow GENOME_AND_ANNOTATION {
     //
 
     ORTHOLOGOUS_CHROMOSOMES (
-        ORTHOFINDER.out.orthofinder.map { meta, folder -> 
-            file("${folder}/Orthogroups/Orthogroups.tsv") 
+        ORTHOFINDER.out.orthofinder.map { meta, folder ->
+            file("${folder}/Orthogroups/Orthogroups.tsv")
         },
         AGAT_SPKEEPLONGESTISOFORM.out.gff.map { meta, gff -> gff }.collect()
     )
@@ -221,6 +221,7 @@ workflow GENOME_AND_ANNOTATION {
     quast_results         = QUAST.out.results                   // channel: [ val(meta), [tsv] ]
     busco_short_summaries = BUSCO_BUSCO.out.short_summaries_txt // channel: [ val(meta), [txt] ]
     orthologous_chromosomes = ORTHOLOGOUS_CHROMOSOMES.out.species_summary // channel: [ path(tsv) ]
+    buscos_per_seqs       = GENOME_ANNOTATION_BUSCO_IDEOGRAM.out.busco_mappings // channel: [ val(meta), [csv] ]
 
     versions              = ch_versions                   // channel: [ versions.yml ]
 }
