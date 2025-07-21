@@ -17,7 +17,7 @@ process BUSCO_SEQS {
     def prefix         = task.ext.prefix ?: "${meta.id}"
     """
     # Get chromosome lengths:
-    ortho_seqs \\
+    ortho_seqs.py \\
     -i $table \\
     $args
 
