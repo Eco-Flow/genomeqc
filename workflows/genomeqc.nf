@@ -263,11 +263,11 @@ workflow GENOMEQC {
     // this should depend on whether protein mode was used or not, not
 
     BUSCO_SEQS_GENOME_ANNO(
-        GENOME_AND_ANNOTATION.out.buscos_per_seqs
+        GENOME_AND_ANNOTATION.out.buscos_per_seqs.map { tables -> [[id:"tables"], tables] }
     )
 
     BUSCO_SEQS_GENOME(
-        GENOME_ONLY.out.buscos_per_seqs
+        GENOME_ONLY.out.buscos_per_seqs.map { tables -> [[id:"tables"], tables] }
     )
 
     //

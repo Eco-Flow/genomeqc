@@ -6,10 +6,10 @@ process BUSCO_SEQS {
     container "community.wave.seqera.io/library/python_pip_pandas:2fd05a70c67560f2"
 
     input:
-    tuple val(meta), path(table)
+    tuple val(meta), path(tables)
 
     output:
-    tuple val(meta), path("*.csv"), emit: table
+    tuple val(meta), path("*.tsv"), emit: table
     path "versions.yml"           , emit: versions
 
     script:
@@ -18,7 +18,7 @@ process BUSCO_SEQS {
     """
     # Get chromosome lengths:
     ortho_seqs.py \\
-    -i $table \\
+    -i $tables \\
     $args
 
     cat <<-END_VERSIONS > versions.yml

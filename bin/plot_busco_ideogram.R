@@ -41,7 +41,7 @@ busco_per_chr_table <- table(busco_mappings$Chr[busco_mappings$Type == "Complete
 busco_per_chr <- as.data.frame(busco_per_chr_table)
 colnames(busco_per_chr) <- c("Chr", "Complete_BUSCOs")
 
-write.csv(busco_per_chr, paste0(opt$prefix, "_buscos_per_seq.csv"), row.names = FALSE)
+write.csv(busco_per_chr, paste0(opt$prefix, ".csv"), row.names = FALSE)
 
 head(busco_mappings)
 

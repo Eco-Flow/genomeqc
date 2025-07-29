@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 # This script takes the output n buscos per sequence
 # table from plot_busco_ideogram.R and concatenates
@@ -41,7 +41,7 @@ def main():
         count = count_sequences_above_threshold(file, args.threshold)
         results.append([base_name, count])
 
-    output_df = pd.DataFrame(results, columns=["File", f"Num_Seqs_Above_{args.threshold}"])
+    output_df = pd.DataFrame(results, columns=["Id", f"Num_Seqs_Above_{args.threshold}"])
     output_df.to_csv(args.output, sep="\t", index=False)
     print(f"Results written to {args.output}")
 
