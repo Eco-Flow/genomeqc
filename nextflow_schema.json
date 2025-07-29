@@ -361,6 +361,10 @@
     "gxdb_manifiest": {
       "type": "string",
       "description": "Path to FCS GX contamination screening database"
+    },
+    "min_buscos": {
+      "type": "string",
+      "help_text": "Threshold: for each species, the number of sequences with Complete BUSCOs greater than this number will be included"
     }
   }
 }

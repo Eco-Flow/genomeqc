@@ -29,7 +29,7 @@ def main():
         help="Threshold for Complete_BUSCOs."
     )
     parser.add_argument(
-        "-o", "--output", default="output.tsv",
+        "-o", "--output", default="n_seqs_above_x_buscos.tsv",
         help="Output file name (default: output.tsv)."
     )
 
