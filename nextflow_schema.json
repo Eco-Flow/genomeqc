@@ -363,7 +363,7 @@
       "description": "Path to FCS GX contamination screening database"
     },
     "min_buscos": {
-      "type": "string",
+      "type": "integer",
       "help_text": "Threshold for BUSCO count table: counts how many sequences in each assembly have at least this many Complete BUSCOs.\n",
       "description": "Minimum number of Complete BUSCOs a sequence must have to be counted"
     }

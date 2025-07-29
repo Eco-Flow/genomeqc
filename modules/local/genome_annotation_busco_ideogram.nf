@@ -30,7 +30,7 @@ process GENOME_ANNOTATION_BUSCO_IDEOGRAM {
     plot_busco_ideogram.R \\
         --busco_output busco_data_to_plot.tsv \\
         --karyotype ${prefix}_karyotype.txt \\
-        --prefix ${prefix} \\
+        --prefix ${genusspeci} \\
         $args
 
 
