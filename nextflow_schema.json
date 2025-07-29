@@ -364,7 +364,8 @@
     },
     "min_buscos": {
       "type": "string",
-      "help_text": "Threshold: for each species, the number of sequences with Complete BUSCOs greater than this number will be included"
+      "help_text": "Threshold for BUSCO count table: counts how many sequences in each assembly have at least this many Complete BUSCOs.\n",
+      "description": "Minimum number of Complete BUSCOs a sequence must have to be counted"
     }
   }
 }
