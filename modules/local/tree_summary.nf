@@ -42,6 +42,7 @@ process TREE_SUMMARY {
     Busco_combined \\
     Quast_to_plot.tsv \\
     gene_stats.tsv \\
+    n_seqs_above_x_buscos.tsv \\
     $args
 
     cat <<-END_VERSIONS > versions.yml

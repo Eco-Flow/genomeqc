@@ -221,7 +221,7 @@ workflow GENOMEQC {
     ch_versions                             = ch_versions.mix(MERQURY_MERQURY.out.versions.first())
 
     // Run genome only or genome + gxf
-    if (params.genome_only) {
+    if (params.genome_only) { // Does this work or should I remove it?
         GENOME_ONLY (
             ch_input.fasta
         )
@@ -242,33 +242,41 @@ workflow GENOMEQC {
                          | mix(GENOME_AND_ANNOTATION.out.busco_short_summaries.map { meta, txt -> txt })
         ch_versions      = ch_versions.mix(GENOME_AND_ANNOTATION.out.versions)
 
+        // Numeber of sequences with more than x complete single copy buscos
+        // this should depend on whether protein mode was used or not, not
+
+        BUSCO_SEQS_GENOME_ANNO(
+            GENOME_AND_ANNOTATION.out.buscos_per_seqs.map { tables -> [[id:"tables"], tables] }
+        )
+
+        BUSCO_SEQS_GENOME(
+            GENOME_ONLY.out.buscos_per_seqs.map { tables -> [[id:"tables"], tables] }
+        )
+
+        // Prepare channels for tree plot
+        ch_tree_genome_anno = GENOME_AND_ANNOTATION.out.tree_data
+                            | concat(BUSCO_SEQS_GENOME_ANNO.out.table.map { meta, table -> table})
+                            | collect
+        ch_tree_genome      = GENOME_ONLY.out.tree_data
+                            | concat(BUSCO_SEQS_GENOME.out.table.map { meta, table -> table})
+                            | collect
+
         //
         // MODULE: Run TREE SUMMARY
         //
 
         TREE_SUMMARY_GENO_ANNO (
             GENOME_AND_ANNOTATION.out.orthofinder,
-            GENOME_AND_ANNOTATION.out.tree_data
+            ch_tree_genome_anno
         )
         ch_versions      = ch_versions.mix(TREE_SUMMARY_GENO_ANNO.out.versions)
 
         TREE_SUMMARY_GENO (
             GENOME_ONLY.out.orthofinder,
-            GENOME_ONLY.out.tree_data
+            ch_tree_genome
         )
         ch_versions      = ch_versions.mix(TREE_SUMMARY_GENO.out.versions)
     }
-
-    // Numeber of sequences with more than x complete single copy buscos
-    // this should depend on whether protein mode was used or not, not
-
-    BUSCO_SEQS_GENOME_ANNO(
-        GENOME_AND_ANNOTATION.out.buscos_per_seqs.map { tables -> [[id:"tables"], tables] }
-    )
-
-    BUSCO_SEQS_GENOME(
-        GENOME_ONLY.out.buscos_per_seqs.map { tables -> [[id:"tables"], tables] }
-    )
 
     //
     // Collate and save software versions
