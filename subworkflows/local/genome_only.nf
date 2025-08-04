@@ -1,8 +1,9 @@
-
 include { QUAST                               } from '../../modules/nf-core/quast/main'
 include { BUSCO_BUSCO                         } from '../../modules/nf-core/busco/busco/main'
 include { GENOME_ONLY_BUSCO_IDEOGRAM          } from '../../modules/local/genome_only_busco_ideogram'
 include { ORTHOFINDER                         } from '../../modules/nf-core/orthofinder/main'
+include { BUSCO_TSV_TO_GFF                    } from '../../modules/local/busco_tsv_to_gff/main'
+include { ORTHOLOGOUS_CHROMOSOMES             } from '../../modules/local/orthologous_chromosomes'
 
 workflow GENOME_ONLY {
 
@@ -48,7 +49,7 @@ workflow GENOME_ONLY {
 
     // Combined ch_fasta and BUSCO output channel into a single channel for ideogram
     ch_input_ideo = ch_fasta
-        | combine(ch_full_table, by:0)
+                  | combine(ch_full_table, by:0)
 
 
     GENOME_ONLY_BUSCO_IDEOGRAM (
@@ -70,11 +71,13 @@ workflow GENOME_ONLY {
                       }
                       | collect
                       | filter { file_paths ->
-                            file_paths.size() >= 3 // Ensure there are enough BUSCO proteins, otherwise skip orthofinder
+                                    file_paths.size() >= 3 // Ensure there are enough BUSCO proteins, otherwise skip orthofinder
                       }
                       | map { file_paths ->
                                 [[ id: 'orthofinder_run', mode: 'genome' ], file_paths]
                       }
+
+    //CONCATENATE_BUSCO_GFFS.out.combined_gff.view()
 
     //Run orthofinder
     ORTHOFINDER (
@@ -82,6 +85,24 @@ workflow GENOME_ONLY {
         [[],[]]
     )
     ch_versions  = ch_versions.mix(ORTHOFINDER.out.versions)
+
+    // Transform tsv to gff for orthologous chromosomes module
+    BUSCO_TSV_TO_GFF (
+        BUSCO_BUSCO.out.busco_dir
+    )
+    //ch_versions  = ch_versions.mix(ORTHOFINDER.out.versions)
+
+    //
+    // MODULE: Run ORTHOLOGOUS_CHROMOSOMES
+    //
+
+    ORTHOLOGOUS_CHROMOSOMES (
+        ORTHOFINDER.out.orthofinder.map { meta, folder ->
+            file("${folder}/Orthogroups/Orthogroups.tsv")
+        },
+        BUSCO_TSV_TO_GFF.out.gff.map { meta, gff -> gff }.collect()
+    )
+    ch_versions  = ch_versions.mix(ORTHOLOGOUS_CHROMOSOMES.out.versions)
 
     emit:
     orthofinder           = ORTHOFINDER.out.orthofinder         // channel: [ val(meta), [folder] ]
