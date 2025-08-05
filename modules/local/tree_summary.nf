@@ -21,6 +21,7 @@ process TREE_SUMMARY {
     def args = task.ext.args     ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     def counts_command = meta.mode == 'genome_anno' ? "gene_overlaps_table.py *.counts.tsv gene_stats.tsv --include-sense --include-antisense" : "touch gene_stats.tsv" // Genome only option needs a gene_stats file, even if it's empty. Should check for a more elegant solution
+    //def seqs_file = file("n_seqs_above_x_buscos.tsv").exists() ? "n_seqs_above_x_buscos.tsv" : "alternative_file.tsv"
 
     """
     #Remove unwanted extensions in the tree file
@@ -43,6 +44,7 @@ process TREE_SUMMARY {
     Quast_to_plot.tsv \\
     gene_stats.tsv \\
     n_seqs_above_x_buscos.tsv \\
+    species_orthologous_chromosomes.tsv \\
     $args
 
     cat <<-END_VERSIONS > versions.yml

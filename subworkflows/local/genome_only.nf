@@ -77,8 +77,6 @@ workflow GENOME_ONLY {
                                 [[ id: 'orthofinder_run', mode: 'genome' ], file_paths]
                       }
 
-    //CONCATENATE_BUSCO_GFFS.out.combined_gff.view()
-
     //Run orthofinder
     ORTHOFINDER (
         ch_busco_proteins,
@@ -90,7 +88,7 @@ workflow GENOME_ONLY {
     BUSCO_TSV_TO_GFF (
         BUSCO_BUSCO.out.busco_dir
     )
-    //ch_versions  = ch_versions.mix(ORTHOFINDER.out.versions)
+    //ch_versions  = ch_versions.mix(BUSCO_TSV_TO_GFF.out.versions)
 
     //
     // MODULE: Run ORTHOLOGOUS_CHROMOSOMES
@@ -103,13 +101,14 @@ workflow GENOME_ONLY {
         BUSCO_TSV_TO_GFF.out.gff.map { meta, gff -> gff }.collect()
     )
     ch_versions  = ch_versions.mix(ORTHOLOGOUS_CHROMOSOMES.out.versions)
+    ch_tree_data = ch_tree_data.mix(ORTHOLOGOUS_CHROMOSOMES.out.species_summary)
 
     emit:
-    orthofinder           = ORTHOFINDER.out.orthofinder         // channel: [ val(meta), [folder] ]
-    tree_data             = ch_tree_data.flatten().collect()
-    quast_results         = QUAST.out.results                   // channel: [ val(meta), [tsv] ]
-    busco_short_summaries = BUSCO_BUSCO.out.short_summaries_txt // channel: [ val(meta), [txt] ]
-    buscos_per_seqs       = GENOME_ONLY_BUSCO_IDEOGRAM.out.busco_mappings.collect { meta, table -> table} // channel: [ val(meta), [csv] ]
+    orthofinder             = ORTHOFINDER.out.orthofinder         // channel: [ val(meta), [folder] ]
+    tree_data               = ch_tree_data.flatten().collect()
+    quast_results           = QUAST.out.results                   // channel: [ val(meta), [tsv] ]
+    busco_short_summaries   = BUSCO_BUSCO.out.short_summaries_txt // channel: [ val(meta), [txt] ]
+    buscos_per_seqs         = GENOME_ONLY_BUSCO_IDEOGRAM.out.busco_mappings.collect { meta, table -> table} // channel: [ csv ]
 
     versions = ch_versions                                      // channel: [ versions.yml ]
 }

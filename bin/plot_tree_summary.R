@@ -88,11 +88,12 @@ parser$add_argument('tree_file', type = 'character', help = 'Path to the Newick 
 parser$add_argument('busco_file', type = 'character', help = 'Path to processed BUSCO output file')
 parser$add_argument('quast_file', type = 'character', help = 'Path to processed Quast output file')
 parser$add_argument('genes_file', type = 'character', help = 'Path to gene stats output file')
-parser$add_argument('nseqs_file', type = 'character', help = 'Path to number of orthologous sequences or number sequences with. at least x number of complete BUSCOs')
+parser$add_argument('nseqs_file', type = 'character', help = 'Path to number sequences with at least x number of complete BUSCOs file')
+parser$add_argument('ortho_file', type = 'character', help = 'Path to number of orthologous sequences file')
 parser$add_argument('--text_size', type = 'double', default = 3, help = 'Text size for the tree plot')
 parser$add_argument('--tree_scale', type = 'double', default = 0.0005, help = 'x axis limits scaling for tree plot (useful when tree labels appear truncated)')
 parser$add_argument('--bar_width', type = 'double', default = 0.7, help = 'Width of bar plots')
-parser$add_argument('--rad_width', type = 'double', default = 0.4, help = 'Radius of pie charts')
+parser$add_argument('--rad_width', type = 'double', default = 0.3, help = 'Radius of pie charts')
 parser$add_argument('--skip_stats', type = 'character', default = NULL, help = "Don't plot these stats (comma separated list)")
 parser$add_argument('--type', type = 'character', choices = c('genome_only', 'genome_anno'), default = 'genome_anno', help = 'Select stats for genome only or for both genome and annotation')
 
@@ -117,8 +118,8 @@ tree$tip.label <- trimws(tree$tip.label)
 # mess the position of the pies, make them
 # smaller
 if (length(tree$tip.label) < 7) {
-  args$bar_width <- args$bar_width/1.5
-  args$rad_width <- args$rad_width/2
+  args$bar_width <- args$bar_width/2
+  args$rad_width <- args$rad_width/3
 }
 
 # Get order of tips (useful for data transformation of stats)
@@ -248,6 +249,7 @@ data_busco <- load_busco(args$busco_file, tips_order)
 data_quast <- load_quast(args$quast_file, tips_order)
 data_genes <- load_genes(args$genes_file, tips_order)
 data_nseqs <- load_nseqs(args$nseqs_file, tips_order)
+data_ortho <- load_nseqs(args$ortho_file, tips_order)
 
 # Extract names for debugging
 # tree_sp <- sort(tree$tip.label)
@@ -288,7 +290,7 @@ barplots_theme <- theme_classic() +
     axis.line.y = element_blank()
   )
 
-# Orthologous chromosomes/sequences with single copy orthologues plot
+# Ssequences with single copy orthologues plot
 if (!is.null(data_nseqs)) {
 # Plot number of chromosomes/sequences
   nseqs_plot <- ggplot(data_nseqs, aes(x=1, y=node)) +
@@ -300,13 +302,25 @@ if (!is.null(data_nseqs)) {
   nseqs_plot <- NULL
 }
 
+# Orthologous sequences
+if (!is.null(data_ortho)) {
+# Plot number of chromosomes/sequences
+  ortho_plot <- ggplot(data_ortho, aes(x=1, y=node)) +
+    geom_text(aes(label = data_ortho[,2])) +
+    theme_void() +
+    ggtitle("Ortho \nSeqs") +
+    theme(plot.title = element_text(size = 9, hjust = 0.5, vjust = -2.2))
+}  else {
+  ortho_plot <- NULL
+}
+
 # Quast plots
 if (!is.null(data_quast)) {
 # Plot number of chromosomes/sequences
   ch_plot <- ggplot(data_quast$full, aes(x=1, y=node)) +
     geom_text(aes(label = Sequences)) +
     theme_void() +
-    ggtitle("Seq\nnumber") +
+    ggtitle("Seq\nNumber") +
     theme(plot.title = element_text(size = 9, hjust = 0.5, vjust = -2.2))
   # Plot Quast data genome size
   len_plot <- ggplot(
@@ -469,6 +483,7 @@ get_plot_range <- function(plot, axis = "y") {
 all_ranges <- c(
   get_plot_range(ch_plot, "y"),
   get_plot_range(nseqs_plot, "y"),
+  get_plot_range(ortho_plot, "y"),
   get_plot_range(pies_plot, "y"),
   get_plot_range(len_plot, "x"),
   get_plot_range(n50_plot, "x"),
@@ -482,9 +497,10 @@ new_ylim <- ylim(c(min(all_ranges), max(all_ranges)))
 # using coord_flip()
 new_xlim <- xlim(c(min(all_ranges), max(all_ranges)))
 
-# Set new ylim for sequnces
-if (!is.null(nseqs_plot))   nseqs_plot   <- nseqs_plot + new_ylim
-if (!is.null(ch_plot))   ch_plot   <- ch_plot + new_ylim
+# Set new ylim for sequnces plots (numbers)
+if (!is.null(nseqs_plot)) nseqs_plot <- nseqs_plot + new_ylim
+if (!is.null(ortho_plot)) ortho_plot <- ortho_plot + new_ylim
+if (!is.null(ch_plot))    ch_plot   <- ch_plot + new_ylim
 
 # Set new xlim for Quast genome size (equivalent to ylim)
 if (!is.null(len_plot))  len_plot  <- len_plot + new_xlim
@@ -519,6 +535,7 @@ m = max(tree_plot$data$x) + max(nchar(tree_plot$data$label))^2*args$tree_scale
 all_plots <- list(
   ch_plot    = ch_plot,
   nseqs_plot = nseqs_plot,
+  ortho_plot = ortho_plot,
   len_plot   = len_plot,
   gene_plot  = gene_plot,
   n50_plot   = n50_plot,
@@ -528,6 +545,7 @@ all_plots <- list(
 all_legends <- list(
   ch_plot    = NULL,
   nseqs_plot = NULL,
+  ortho_plot = NULL,
   len_plot   = legend_len,
   gene_plot  = legend_gene,
   n50_plot   = NULL,
@@ -537,11 +555,6 @@ all_legends <- list(
 # Keep only plots and legends not in the skip list (thanks to chat gpt)
 plots <- all_plots[!names(all_plots) %in% skip]
 legends <- all_legends[names(plots)]  # Re-align legends to plots
-
-print('debug line')
-
-plots
-legends
 
 # Call the function
 if (args$type == 'genome_anno') {
