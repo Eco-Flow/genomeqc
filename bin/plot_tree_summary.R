@@ -89,11 +89,11 @@ parser$add_argument('busco_file', type = 'character', help = 'Path to processed 
 parser$add_argument('quast_file', type = 'character', help = 'Path to processed Quast output file')
 parser$add_argument('genes_file', type = 'character', help = 'Path to gene stats output file')
 parser$add_argument('nseqs_file', type = 'character', help = 'Path to number sequences with at least x number of complete BUSCOs file')
-parser$add_argument('ortho_file', type = 'character', help = 'Path to number of orthologous sequences file')
+parser$add_argument('--ortho_file', type = 'character', default = NULL, help = 'Path to number of orthologous sequences file')
 parser$add_argument('--text_size', type = 'double', default = 3, help = 'Text size for the tree plot')
 parser$add_argument('--tree_scale', type = 'double', default = 0.0005, help = 'x axis limits scaling for tree plot (useful when tree labels appear truncated)')
 parser$add_argument('--bar_width', type = 'double', default = 0.7, help = 'Width of bar plots')
-parser$add_argument('--rad_width', type = 'double', default = 0.3, help = 'Radius of pie charts')
+parser$add_argument('--rad_width', type = 'double', default = 0.4, help = 'Radius of pie charts')
 parser$add_argument('--skip_stats', type = 'character', default = NULL, help = "Don't plot these stats (comma separated list)")
 parser$add_argument('--type', type = 'character', choices = c('genome_only', 'genome_anno'), default = 'genome_anno', help = 'Select stats for genome only or for both genome and annotation')
 
@@ -553,8 +553,13 @@ all_legends <- list(
 )
 
 # Keep only plots and legends not in the skip list (thanks to chat gpt)
-plots <- all_plots[!names(all_plots) %in% skip]
+plots <- all_plots[!names(all_plots) %in% skip & !sapply(all_plots, is.null)]
 legends <- all_legends[names(plots)]  # Re-align legends to plots
+
+print("plots")
+plots
+print("legends")
+legends
 
 # Call the function
 if (args$type == 'genome_anno') {
