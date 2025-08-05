@@ -9,7 +9,6 @@ process BUSCO_TSV_TO_GFF {
     tuple val(meta), path(busco_dir)
 
     output:
-    output:
     tuple val(meta), path("${meta.id}_busco.gff"), emit: gff
     tuple val(meta), path("${meta.id}_busco_stats.json"), emit: stats
 
@@ -119,8 +118,12 @@ process BUSCO_TSV_TO_GFF {
                 elif strand == "Minus":
                     strand = "-"
 
-                # Create attributes
-                attributes = f"ID={busco_id};Name={busco_id};Status={status}"
+                # CREATE COORDINATE-BASED GENE ID (like your BUSCO sequences)
+                # Format: NC_000908.2:24468-26006|+
+                coordinate_gene_id = f"{sequence}_{start_int}-{end_int}|{strand}"
+
+                # Create attributes using coordinate-based ID
+                attributes = f"ID={coordinate_gene_id};Name={coordinate_gene_id};BUSCO_ID={busco_id};Status={status};Type=BUSCO_gene"
                 if score not in ["N/A", ""]:
                     attributes += f";Score={score}"
                 if length not in ["N/A", ""]:
@@ -129,7 +132,7 @@ process BUSCO_TSV_TO_GFF {
                     clean_desc = description.replace(';', ',').replace('=', ':')
                     attributes += f";Description={clean_desc}"
 
-                # Create GFF line
+                # Create GFF line with coordinate-based ID
                 gff_line = [
                     sequence,
                     "BUSCO",
@@ -153,7 +156,7 @@ process BUSCO_TSV_TO_GFF {
             outf.write("##gff-version 3\\n")
             outf.write(f"##source BUSCO analysis for {sample_id}\\n")
             outf.write(f"##date {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\\n")
-            outf.write("##description BUSCO gene predictions converted from full_table.tsv\\n")
+            outf.write("##description BUSCO gene predictions with coordinate-based IDs\\n")
 
             for feature in features:
                 outf.write('\\t'.join(feature) + '\\n')
@@ -164,6 +167,13 @@ process BUSCO_TSV_TO_GFF {
 
         print(f"Successfully converted {len(features)} BUSCO features to GFF")
         print(f"Stats: Complete={stats['complete_buscos']}, Fragmented={stats['fragmented_buscos']}, Missing={stats['missing_buscos']}")
+
+        # Print some example coordinate IDs for verification
+        if features:
+            print("Sample coordinate-based gene IDs:")
+            for i, feature in enumerate(features[:5]):
+                coord_id = feature[8].split(';')[0].replace('ID=', '')
+                print(f"  {coord_id}")
 
     # Run the conversion
     convert_busco_tsv_to_gff("${busco_dir}", "${meta.id}")
