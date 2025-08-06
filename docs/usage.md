@@ -163,7 +163,7 @@ Users can also run the pipeline using Merqury by supplying the path to sequencin
 
 ### Running the Decontamination subworkflow
 
-If, in the samplesheet, a NCBI taxid is provided for an assembly, and a path pointing to the FCS-GX database or a manifest to download and build it (check the Parameters tab), the pipeline will run the decontamination subworkflow.
+If, in the samplesheet, a NCBI taxid is provided for an assembly, and a path pointing to the FCS-GX database or a manifest to download and build it (check the Parameters tab in this page), the pipeline will run the decontamination subworkflow.
 
 The decontamination subsworkflow consists of three modules:
   - [FCS-GX](https://github.com/ncbi/fcs/wiki/FCS-GX-quickstart): Detection and removal of foreign organisms contamination. Requires the FCS-GX database.
