@@ -51,7 +51,7 @@ It generates a report with assembly sequence classifications, contamination summ
 <details markdown="1">
 <summary>Output files</summary>
 
-- `NCBI/out`
+- `decontamination/fcs-gx`
   - `<assembly>_<taxid>.fsc_gx_report.txt`: Summary report with sequence classification and cleaning recommendations.
   - `<assembly>_<taxid>.taxonomy.rpt`: Detailed breakdown of sequence classification.
 
@@ -66,7 +66,7 @@ It generates a report with a list of sequences flagged as adaptor or vector matc
 <details markdown="1">
 <summary>Output files</summary>
 
-- `decontamination/adaptor`
+- `decontamination/fcs-adaptor`
   - `<assembly>.cleaned_sequences.fa.gz`: Genome assembly with contaminant regions removed.
   - `<assembly>.fsc_adaptor_report.txt`: Summary report with flagged sequences and cleaning recommendations.
 
@@ -85,9 +85,25 @@ It outputs a cleaned version of the genome assembly based on the recommended act
 <details markdown="1">
 <summary>Output files</summary>
 
-- `fcsgx`
+- `decontamination/cleaned_genome`
   - `<assembly>.cleaned.fasta`: Genome assembly with contaminant sequences removed and contaminant regions trimmed.
   - `<assembly>.contaminants.fasta`: Sequences classified as contaminants.
+
+</details>
+
+#### Tiara
+
+[Tiara](https://ibe-uw.github.io/tiara/) is a deep learning–based classifier designed to identify eukaryotic, archaeal, and bacterial sequences, as well as organelle genomes.
+
+It outputs a report with each sequence of the genome assembly labelled as Eukarya, Archea, Bacteria, organelle or unknown.
+
+<details markdown="1">
+<summary>Output files</summary>
+
+- `decontamination/tiara`
+  - `<assembly>.txt
+  `: Report with sequence classifications.
+  - `log_<assembly>.txt`: Log file with classification statistics and model information.
 
 </details>
 
