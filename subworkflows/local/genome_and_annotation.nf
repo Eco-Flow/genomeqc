@@ -6,6 +6,7 @@ include { QUAST                               } from '../../modules/nf-core/quas
 include { AGAT_SPSTATISTICS                   } from '../../modules/nf-core/agat/spstatistics/main'
 include { GENOME_ANNOTATION_BUSCO_IDEOGRAM    } from '../../modules/local/genome_annotation_busco_ideogram'
 include { GFFREAD                             } from '../../modules/nf-core/gffread/main'
+include { GFFREAD as GFFREAD_VALIDATE         } from '../../modules/nf-core/gffread/main'
 include { ORTHOFINDER                         } from '../../modules/nf-core/orthofinder/main'
 include { FASTAVALIDATOR                      } from '../../modules/nf-core/fastavalidator/main'
 include { GENE_OVERLAPS                       } from '../../modules/local/gene_overlaps'
@@ -30,11 +31,18 @@ workflow GENOME_AND_ANNOTATION {
     //
 
     // Fix and standarize GXF
-    AGAT_CONVERTSPGXF2GXF(
-        ch_gxf
+    //AGAT_CONVERTSPGXF2GXF(
+    //    ch_gxf
+    //)
+    //ch_gxf_agat  = AGAT_CONVERTSPGXF2GXF.out.output_gff
+    //ch_versions  = ch_versions.mix(AGAT_CONVERTSPGXF2GXF.out.versions.first())
+
+    GFFREAD_VALIDATE (
+        ch_gxf,
+        []
     )
-    ch_gxf_agat  = AGAT_CONVERTSPGXF2GXF.out.output_gff
-    ch_versions  = ch_versions.mix(AGAT_CONVERTSPGXF2GXF.out.versions.first())
+    ch_gxf_agat  = GFFREAD_VALIDATE.out.gffread_gff
+    
 
     //
     // MODULE: Run AGAT longest isoform
