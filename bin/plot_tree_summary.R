@@ -92,6 +92,7 @@ parser$add_argument('nseqs_file', type = 'character', help = 'Path to number seq
 parser$add_argument('--ortho_file', type = 'character', default = NULL, help = 'Path to number of orthologous sequences file')
 parser$add_argument('--text_size', type = 'double', default = 3, help = 'Text size for the tree plot')
 parser$add_argument('--tree_scale', type = 'double', default = 0.0005, help = 'x axis limits scaling for tree plot (useful when tree labels appear truncated)')
+parser$add_argument('--tree_margin', type = 'double', default = 15, help = "Tree's right margin size")
 parser$add_argument('--bar_width', type = 'double', default = 0.7, help = 'Width of bar plots')
 parser$add_argument('--rad_width', type = 'double', default = 0.4, help = 'Radius of pie charts')
 parser$add_argument('--skip_stats', type = 'character', default = NULL, help = "Don't plot these stats (comma separated list)")
@@ -571,7 +572,7 @@ if (args$type == 'genome_anno') {
     new_xlim,
     15,
     60,
-    1
+    args$tree_margin
   )
 } else if (args$type == 'genome_only') {
   final_plot <- build_tree_plot(
@@ -582,7 +583,7 @@ if (args$type == 'genome_anno') {
     new_xlim,
     15,
     60,
-    1
+    args$tree_margin
   )
 }
 
