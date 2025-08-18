@@ -4,6 +4,7 @@ include { GENOME_ONLY_BUSCO_IDEOGRAM          } from '../../modules/local/genome
 include { ORTHOFINDER                         } from '../../modules/nf-core/orthofinder/main'
 include { BUSCO_TSV_TO_GFF                    } from '../../modules/local/busco_tsv_to_gff/main'
 include { ORTHOLOGOUS_CHROMOSOMES             } from '../../modules/local/orthologous_chromosomes'
+include { GAWK                                } from '../../modules/nf-core/gawk/main'
 
 workflow GENOME_ONLY {
 
@@ -39,7 +40,20 @@ workflow GENOME_ONLY {
         params.busco_clean ?: []
     )
     ch_versions   = ch_versions.mix(BUSCO_BUSCO.out.versions.first())
-    ch_tree_data  = ch_tree_data.mix(BUSCO_BUSCO.out.batch_summary.collect { meta, file -> file })
+    //ch_tree_data  = ch_tree_data.mix(BUSCO_BUSCO.out.batch_summary.collect { meta, file -> file })
+
+    //
+    // GAWK
+    //
+    // Use GAWK to change ID from file name to meta.id
+
+    GAWK (
+        BUSCO_BUSCO.out.batch_summary,
+        [],
+        false
+    )
+
+    ch_tree_data  = ch_tree_data.mix(GAWK.out.output.collect { meta, file -> file })
 
     //
     // BUSCO Ideogram
