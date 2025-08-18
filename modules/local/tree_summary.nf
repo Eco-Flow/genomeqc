@@ -33,8 +33,8 @@ process TREE_SUMMARY {
     ${counts_command}
 
     # Combine the BUSCO outputs and remove empty tabs
-    head -qn 1 *.txt | head -n 1                                > Busco_combined
-    tail -q -n 1 *.txt | sed -E 's/\t+/\t/g' | sed 's/\t\$//g' >> Busco_combined
+    head -qn 1 *.batch_summary_modified.txt | head -n 1                                > Busco_combined
+    tail -q -n 1 *.batch_summary_modified.txt | sed -E 's/\t+/\t/g' | sed 's/\t\$//g' >> Busco_combined
 
     # Combine QUAST ouput
     quast_2_table.py *quast.tsv -o Quast_to_plot.tsv -col N50,N90,"Total length","GC (%)","# contigs" -plot_types bar,bar,bar,bar,bar

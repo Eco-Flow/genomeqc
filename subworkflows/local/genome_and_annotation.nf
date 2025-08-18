@@ -11,6 +11,7 @@ include { ORTHOFINDER                         } from '../../modules/nf-core/orth
 include { FASTAVALIDATOR                      } from '../../modules/nf-core/fastavalidator/main'
 include { GENE_OVERLAPS                       } from '../../modules/local/gene_overlaps'
 include { ORTHOLOGOUS_CHROMOSOMES             } from '../../modules/local/orthologous_chromosomes'
+include { GAWK                                } from '../../modules/nf-core/gawk/main'
 
 workflow GENOME_AND_ANNOTATION {
 
@@ -183,6 +184,18 @@ workflow GENOME_AND_ANNOTATION {
     ch_versions  = ch_versions.mix(BUSCO_BUSCO.out.versions.first())
 
     //
+    // GAWK
+    //
+    // Use GAWK to change ID from file name to meta.id
+
+    GAWK (
+        BUSCO_BUSCO.out.batch_summary,
+        [],
+        false
+    )
+    ch_tree_data  = ch_tree_data.mix(GAWK.out.output.collect { meta, file -> file })
+
+    //
     // Plot BUSCO ideogram
     //
 
@@ -222,7 +235,7 @@ workflow GENOME_AND_ANNOTATION {
     GENOME_ANNOTATION_BUSCO_IDEOGRAM ( ch_plot_input )
     ch_versions         = ch_versions.mix(GENOME_ANNOTATION_BUSCO_IDEOGRAM.out.versions.first())
 
-    ch_tree_data        = ch_tree_data.mix(BUSCO_BUSCO.out.batch_summary.collect { meta, file -> file })
+    //ch_tree_data        = ch_tree_data.mix(BUSCO_BUSCO.out.batch_summary.collect { meta, file -> file })
 
     emit:
     orthofinder           = ORTHOFINDER.out.orthofinder         // channel: [ val(meta), [folder] ]
