@@ -33,34 +33,34 @@ processed_data <- process_tree_data(
 # UI
 ui <- fluidPage(
   titlePanel("Dynamic Tree Plot Adjuster"),
-  
+
   tabsetPanel(
     tabPanel("Plot Controls",
              br(),
-             
+
              # File Status
 #             wellPanel(
 #               h4("📁 Loaded Data Files"),
 #               fluidRow(
 #                 column(2, div(style = "text-align: center;", icon("tree", "fa-2x", style = "color: green;"), br(), "Tree")),
-#                 column(2, div(style = "text-align: center;", 
-#                               if(file.exists("busco_file.tsv")) list(icon("check-circle", "fa-2x", style = "color: green;"), br(), "BUSCO") 
+#                 column(2, div(style = "text-align: center;",
+#                               if(file.exists("busco_file.tsv")) list(icon("check-circle", "fa-2x", style = "color: green;"), br(), "BUSCO")
 #                               else list(icon("times-circle", "fa-2x", style = "color: red;"), br(), "No BUSCO"))),
-#                 column(2, div(style = "text-align: center;", 
-#                               if(file.exists("quast_file.tsv")) list(icon("check-circle", "fa-2x", style = "color: green;"), br(), "Quast") 
+#                 column(2, div(style = "text-align: center;",
+#                               if(file.exists("quast_file.tsv")) list(icon("check-circle", "fa-2x", style = "color: green;"), br(), "Quast")
 #                               else list(icon("times-circle", "fa-2x", style = "color: red;"), br(), "No Quast"))),
-#                 column(2, div(style = "text-align: center;", 
-#                               if(file.exists("genes_file.tsv")) list(icon("check-circle", "fa-2x", style = "color: green;"), br(), "Genes") 
+#                 column(2, div(style = "text-align: center;",
+#                               if(file.exists("genes_file.tsv")) list(icon("check-circle", "fa-2x", style = "color: green;"), br(), "Genes")
 #                               else list(icon("times-circle", "fa-2x", style = "color: red;"), br(), "No Genes"))),
-#                 column(2, div(style = "text-align: center;", 
-#                               if(file.exists("nseqs_file.tsv")) list(icon("check-circle", "fa-2x", style = "color: green;"), br(), "NSeqs") 
+#                 column(2, div(style = "text-align: center;",
+#                               if(file.exists("nseqs_file.tsv")) list(icon("check-circle", "fa-2x", style = "color: green;"), br(), "NSeqs")
 #                               else list(icon("times-circle", "fa-2x", style = "color: red;"), br(), "No NSeqs"))),
-#                 column(2, div(style = "text-align: center;", 
-#                               if(file.exists("ortho_file.tsv")) list(icon("check-circle", "fa-2x", style = "color: green;"), br(), "Ortho") 
+#                 column(2, div(style = "text-align: center;",
+#                               if(file.exists("ortho_file.tsv")) list(icon("check-circle", "fa-2x", style = "color: green;"), br(), "Ortho")
 #                               else list(icon("times-circle", "fa-2x", style = "color: red;"), br(), "No Ortho")))
 #               )
 #             ),
-             
+
              # Controls
              fluidRow(
                column(4,
@@ -74,7 +74,7 @@ ui <- fluidPage(
                         sliderInput("tree_margin", "Tree Margin:", min = 0, max = 100, value = 15, step = 1)
                       )
                ),
-               
+
                column(4,
                       wellPanel(
                         h4("Plot Parameters"),
@@ -85,7 +85,7 @@ ui <- fluidPage(
                         numericInput("rad_width", "Pie Radius:", value = 0.4, min = 0.1, max = 1, step = 0.05)
                       )
                ),
-               
+
                column(4,
                       wellPanel(
                         h4("Display Options"),
@@ -94,7 +94,7 @@ ui <- fluidPage(
                                              "Sequence Count" = "ch_plot",
                                              "NSeqs Plot" = "nseqs_plot",
                                              "Ortho Plot" = "ortho_plot",
-                                             "Genome Length" = "len_plot", 
+                                             "Genome Length" = "len_plot",
                                              "Gene Statistics" = "gene_plot",
                                              "N50 Statistics" = "n50_plot",
                                              "BUSCO Pies" = "pies_plot"
@@ -106,7 +106,7 @@ ui <- fluidPage(
                       )
                )
              ),
-             
+
              # Plot Display
              wellPanel(
                h4("Tree Plot Preview"),
@@ -119,7 +119,7 @@ ui <- fluidPage(
                )
              )
     ),
-    
+
     tabPanel("Export Settings",
              br(),
              fluidRow(
@@ -147,19 +147,19 @@ ui <- fluidPage(
 
 # Server
 server <- function(input, output, session) {
-  
+
   # Reactive values for the current plot
   current_plot <- reactiveVal(NULL)
-  
+
   # Generate plot when parameters change or refresh button is clicked
-  observeEvent(c(input$refresh_plot, input$text_size, input$tree_scale, 
+  observeEvent(c(input$refresh_plot, input$text_size, input$tree_scale,
                  input$bar_width, input$rad_width, input$skip_stats,
-                 input$tree_space_ratio, input$top_margin, input$right_margin, 
+                 input$tree_space_ratio, input$top_margin, input$right_margin,
                  input$bottom_margin, input$left_margin, input$tree_margin, input$skip_stats), {
-                   
+
                    # Show loading notification
                    showNotification("Generating plot...", type = "message", duration = 2)
-                   
+
                    # Generate the plot
                    plot_result <- generate_complete_plot(
                      processed_data,
@@ -174,18 +174,18 @@ server <- function(input, output, session) {
                      tree_margin = input$tree_margin,
                      skip_stats = input$skip_stats,
                      tree_space_ratio = input$tree_space_ratio
-                     
+
                    )
-                   
+
                    # Store the plot
                    current_plot(plot_result)
-                   
+
                    # Render the current plot in the UI
                    output$tree_plot <- renderPlot({
                      req(current_plot())  # Wait until current_plot() is not NULL
                      current_plot()
                    }, height = function() input$plot_height)
-                   
+
                    # PDF download
                    output$download_pdf <- downloadHandler(
                      filename = function() {
@@ -203,7 +203,7 @@ server <- function(input, output, session) {
                        )
                      }
                    )
-                   
+
                    # SVG download
                    output$download_svg <- downloadHandler(
                      filename = function() {
@@ -221,14 +221,13 @@ server <- function(input, output, session) {
                        )
                      }
                    )
-                   
-                   
+
+
                    #showNotification("Plot updated!", type = "success", duration = 1)
                  }, ignoreNULL = FALSE)
-  
-  
+
+
 }
 
-# Run the application 
+# Run the application
 shinyApp(ui = ui, server = server, options = list(host = "0.0.0.0", port = 8000, launch.browser = FALSE))
-

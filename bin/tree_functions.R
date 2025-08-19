@@ -1,4 +1,8 @@
 #!/usr/bin/env Rscript
+
+# Written by Chris Wyatt and Fernando Duarte and released under the MIT license.
+# Plots the phylogenetic tree with BUSCO, Quast and gene stats results
+
 # Functions mirroring nf-core/genomeqc (gff_valid) plot_tree_summary.R behavior
 # Same function names as your prior modular version
 
@@ -421,7 +425,7 @@ build_tree_plot <- function(tree, plots, legends, xlimit, top_margin = 5.5,
     plot_layout(widths = widths) +
     theme(plot.margin = margin(0, 15, 60, 0))
 
-  final_plot <- combined_plots / combined_legends + plot_layout(heights = c(0.99, 0.01)) + 
+  final_plot <- combined_plots / combined_legends + plot_layout(heights = c(0.99, 0.01)) +
                   plot_annotation(theme = theme( # Had to use plot_annotation to set margins as + theme doesn't work with patchwork
                                   plot.margin = margin(top_margin, right_margin, bottom_margin, left_margin)
                                   ))
@@ -434,7 +438,7 @@ build_tree_plot <- function(tree, plots, legends, xlimit, top_margin = 5.5,
 # ---------------------------
 generate_complete_plot <- function(processed_data, text_size = 3, tree_scale = 0.0005,
                                    bar_width = 0.7, rad_width = 0.4, skip_stats = NULL,
-                                   top_margin = 5.5, right_margin = 5.5, bottom_margin = 5.5, 
+                                   top_margin = 5.5, right_margin = 5.5, bottom_margin = 5.5,
                                    left_margin = 5.5, tree_margin = 15, tree_space_ratio = 1.3) {
 
   plot_results <- generate_plots(
