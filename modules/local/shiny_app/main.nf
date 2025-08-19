@@ -22,7 +22,7 @@ process SHINY_APP {
     script:
     def args   = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
-    def docker_url   = "fduarte001/genomeqc_tree:0.4"
+    def docker_url   = "quay.io/fduarte001/genomeqc_tree:0.4"
     def results_path = file(params.outdir).toAbsolutePath()
     """
     mkdir app
@@ -37,8 +37,10 @@ process SHINY_APP {
 
     echo 'echo "Using port \$PORT"' >> shiny_app.sh
 
+    # Mount directory is executable directory (\$0)
+    echo 'cd \$(dirname \$0)' >> shiny_app.sh
 
-    echo 'CONTAINER_ID=\$(podman run -d -v ${results_path}/shiny/app:/app -p 8000:8000 $docker_url)' >> shiny_app.sh
+    echo 'CONTAINER_ID=\$(docker run -d -v \$(pwd):/app -p 8000:8000 $docker_url)' >> shiny_app.sh
     echo 'sleep 2' >> shiny_app.sh
 
     # Ensure the container is stopped when script exits
