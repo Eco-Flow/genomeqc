@@ -26,8 +26,30 @@ process SHINY_APP {
     def results_path = file(params.outdir).toAbsolutePath()
     """
     mkdir app
-    echo "podman run -v ${results_path}/shiny/app:/app -p 8000:8000 $docker_url &" > shiny_app.sh
+
+    # Pick a free port starting at 8000
+    cat <<'EOF' > shiny_app.sh
+    PORT=8000
+    while lsof -i :\$PORT >/dev/null 2>&1; do
+        PORT=\$((PORT+1))
+    done
+    EOF
+
+    echo 'echo "Using port \$PORT"' >> shiny_app.sh
+
+
+    echo 'CONTAINER_ID=\$(podman run -d -v ${results_path}/shiny/app:/app -p 8000:8000 $docker_url)' >> shiny_app.sh
     echo 'sleep 2' >> shiny_app.sh
+
+    # Ensure the container is stopped when script exits
+    cat <<'EOF' >> shiny_app.sh
+    cleanup() {
+        echo "Stopping container \$CONTAINER_ID"
+        podman stop "\$CONTAINER_ID" >/dev/null 2>&1
+    }
+    trap cleanup EXIT
+    EOF
+
     # Make sure app can be opened in any OS (Darwin is for mac)
     cat <<'EOF' >> shiny_app.sh
     OS_TYPE=\$(uname)
