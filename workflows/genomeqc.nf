@@ -25,6 +25,8 @@ include { DECONTAMINATION                      } from '../subworkflows/local/dec
 include { FCSGX_FETCHDB                        } from '../modules/nf-core/fcsgx/fetchdb/main'
 include { BUSCO_SEQS as BUSCO_SEQS_GENOME_ANNO } from '../modules/local/buscos_seqs/main'
 include { BUSCO_SEQS as BUSCO_SEQS_GENOME      } from '../modules/local/buscos_seqs/main'
+include { SHINY_APP as SHINY_APP_GENOME_ANNO   } from '../modules/local/shiny_app/main'
+include { SHINY_APP as SHINY_APP_GENOME        } from '../modules/local/shiny_app/main'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -242,7 +244,7 @@ workflow GENOMEQC {
                          | mix(GENOME_AND_ANNOTATION.out.busco_short_summaries.map { meta, txt -> txt })
         ch_versions      = ch_versions.mix(GENOME_AND_ANNOTATION.out.versions)
 
-        // Numeber of sequences with more than x complete single copy buscos
+        // Number of sequences with more than x complete single copy buscos
         // this should depend on whether protein mode was used or not, not
 
         BUSCO_SEQS_GENOME_ANNO(
@@ -276,6 +278,32 @@ workflow GENOMEQC {
             ch_tree_genome
         )
         ch_versions      = ch_versions.mix(TREE_SUMMARY_GENO.out.versions)
+
+        //
+        // MODULE: Run SHINY APP
+        //
+
+        // Prepare script with functions channel
+        ch_functions = Channel.fromPath("$projectDir/bin/tree_functions.R", checkIfExists: true)
+        ch_app       = Channel.fromPath("$projectDir/bin/shiny_app.R", checkIfExists: true)
+
+        // For genome and annotation
+        SHINY_APP_GENOME_ANNO (
+            TREE_SUMMARY_GENO_ANNO.out.tables,
+            TREE_SUMMARY_GENO_ANNO.out.tree,
+            ch_functions,
+            ch_app
+        )
+        ch_versions      = ch_versions.mix(SHINY_APP_GENOME_ANNO.out.versions)
+
+        // For genome only
+        SHINY_APP_GENOME (
+            TREE_SUMMARY_GENO.out.tables,
+            TREE_SUMMARY_GENO.out.tree,
+            ch_functions,
+            ch_app
+        )
+        ch_versions      = ch_versions.mix(SHINY_APP_GENOME.out.versions)
     }
 
     //
