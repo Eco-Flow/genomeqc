@@ -20,34 +20,27 @@ process SHINY_APP {
     path "versions.yml"           , emit: versions
 
     script:
-    def args   = task.ext.args ?: ''
-    def prefix = task.ext.prefix ?: "${meta.id}"
-    def docker_url   = "quay.io/fduarte001/genomeqc_tree:0.4"
-    def results_path = file(params.outdir).toAbsolutePath()
+    //def args   = task.ext.args ?: ''
+    def prefix           = task.ext.prefix ?: "${meta.id}"
+    def container_engine = params.container_engine ? "${params.container_engine}" : 'docker'
+    def docker_url       = "quay.io/fduarte001/genomeqc_tree:0.4"
+    def results_path     = file(params.outdir).toAbsolutePath()
     """
     mkdir app
 
-    # Pick a free port starting at 8000
-    cat <<'EOF' > shiny_app.sh
-    PORT=8000
-    while lsof -i :\$PORT >/dev/null 2>&1; do
-        PORT=\$((PORT+1))
-    done
-    EOF
-
-    echo 'echo "Using port \$PORT"' >> shiny_app.sh
-
     # Mount directory is executable directory (\$0)
-    echo 'cd \$(dirname \$0)' >> shiny_app.sh
+    echo 'cd \$(dirname \$0)' > shiny_app.sh
 
-    echo 'CONTAINER_ID=\$(docker run -d -v \$(pwd):/app -p 8000:8000 $docker_url)' >> shiny_app.sh
+    # Using port 8000 as is the one usually available
+
+    echo 'CONTAINER_ID=\$($container_engine run -d -v \$(pwd):/app -p 8000:8000 $docker_url)' >> shiny_app.sh
     echo 'sleep 2' >> shiny_app.sh
 
-    # Ensure the container is stopped when script exits
+    # Ensure the container is stopped and port is available again once script exits
     cat <<'EOF' >> shiny_app.sh
     cleanup() {
         echo "Stopping container \$CONTAINER_ID"
-        podman stop "\$CONTAINER_ID" >/dev/null 2>&1
+        $container_engine stop "\$CONTAINER_ID" >/dev/null 2>&1
     }
     trap cleanup EXIT
     EOF
@@ -58,12 +51,18 @@ process SHINY_APP {
     if [[ "\$OS_TYPE" == "Darwin" ]]; then
         open http://localhost:8000
     elif [[ "\$OS_TYPE" == "Linux" ]]; then
-        xdg-open http://localhost:8000
+        if command -v xdg-open >/dev/null; then
+            xdg-open http://localhost:8000
+        else
+            echo "App running at http://localhost:8000"
+        fi
     elif [[ "\$OS_TYPE" == "MINGW"* || "\$OS_TYPE" == "CYGWIN"* ]]; then
         start http://localhost:8000
     else
         echo "Please open your browser at http://localhost:8000"
     fi
+    # So that container doesn't close unless ctr+c
+    $container_engine logs -f "\$CONTAINER_ID"
     EOF
 
     chmod +x shiny_app.sh

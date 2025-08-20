@@ -121,6 +121,8 @@ ui <- fluidPage(
     ),
 
     tabPanel("Export Settings",
+             h4("Export preview"),
+             uiOutput("export_preview"),
              br(),
              fluidRow(
                column(6,
@@ -155,7 +157,8 @@ server <- function(input, output, session) {
   observeEvent(c(input$refresh_plot, input$text_size, input$tree_scale,
                  input$bar_width, input$rad_width, input$skip_stats,
                  input$tree_space_ratio, input$top_margin, input$right_margin,
-                 input$bottom_margin, input$left_margin, input$tree_margin, input$skip_stats), {
+                 input$bottom_margin, input$left_margin, input$tree_margin, input$skip_stats,
+                 input$export_width, input$export_height, input$export_dpi), {
 
                    # Show loading notification
                    showNotification("Generating plot...", type = "message", duration = 2)
@@ -185,6 +188,28 @@ server <- function(input, output, session) {
                      req(current_plot())  # Wait until current_plot() is not NULL
                      current_plot()
                    }, height = function() input$plot_height)
+
+                  # Render plot to be exported
+                  output$export_preview <- renderUI({
+                    req(current_plot())  # Wait until current_plot() is not NULL
+                    tmp <- tempfile(fileext = ".png")
+                    # Save the plot as PNG using the export settings
+                    ggsave(
+                      filename = tmp,
+                      plot = current_plot(),
+                      device = "png",
+                      width = input$export_width,
+                      height = input$export_height,
+                      units = "in",
+                      dpi = input$export_dpi
+                    )
+                    # Convert to base64 to embed directly in Shiny
+                    encoded <- base64enc::dataURI(file = tmp, mime = "image/png")
+
+                    tags$img(src = encoded, style = "max-width:100%; height:auto; border:1px solid #ccc;")
+                }
+                )
+
 
                    # PDF download
                    output$download_pdf <- downloadHandler(
