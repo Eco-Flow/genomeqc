@@ -113,9 +113,7 @@ ui <- fluidPage(
                plotOutput("tree_plot", height = "auto"),
                br(),
                fluidRow(
-                 column(4, actionButton("refresh_plot", "Refresh Plot", class = "btn-primary")),
-                 column(4, downloadButton("download_pdf", "Download PDF", class = "btn-success")),
-                 column(4, downloadButton("download_svg", "Download SVG", class = "btn-info"))
+                 column(4, actionButton("refresh_plot", "Refresh Plot", class = "btn-primary"), style = "float: center"),
                )
              )
     ),
@@ -133,13 +131,17 @@ ui <- fluidPage(
                         numericInput("export_dpi", "DPI:", value = 300, min = 72, max = 600),
                         textInput("export_filename", "Filename:", value = "tree_plot")
                       )
-               ),
-#               column(6,
-#                      wellPanel(
-#                        h4("Current Parameters"),
-#                        verbatimTextOutput("current_params")
-#                      )
-#               )
+               )
+             ),
+             fluidRow(
+                column(6,
+                      wellPanel(
+                        fluidRow(
+                          column(4, downloadButton("download_pdf", "Download PNG", class = "btn-success")),
+                          column(4, downloadButton("download_svg", "Download SVG", class = "btn-info"), style = "float: right")
+                        )
+                      )
+               )
              )
     )
   )
