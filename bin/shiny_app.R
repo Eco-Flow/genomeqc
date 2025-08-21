@@ -211,20 +211,20 @@ server <- function(input, output, session) {
                 )
 
 
-                   # PDF download
+                   # PNG download
                    output$download_pdf <- downloadHandler(
                      filename = function() {
-                       paste0("tree_plot_", Sys.Date(), ".pdf")
+                       paste0("tree_plot_", Sys.Date(), ".png")
                      },
                      content = function(file) {
                        req(current_plot())  # make sure plot exists
                        ggsave(
                          filename = file,
                          plot = current_plot(),
-                         device = "pdf",
-                         width = 5, height = 8,    # adjust or make reactive to input
+                         device = "png",
+                         width = input$export_width, height = input$export_height,    # adjust or make reactive to input
                          units = "in",
-                         dpi = 300
+                         dpi = input$export_dpi
                        )
                      }
                    )
