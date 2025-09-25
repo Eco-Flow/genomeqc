@@ -167,7 +167,7 @@ for gff_file in gff_files:
                 if gene_id:
                     # Clean gene ID
                     gene_id = gene_id.strip().strip('"').strip("'")
-                    gene_id = gene_id.replace(":", "_")
+                    gene_id = gene_id.replace(":", "_") # To avoid mismatches with orthofinder (orthofinder)
                     gene_to_chr[gene_id] = (final_species_name, chromosome)
                     gene_count += 1
 
