@@ -10,6 +10,7 @@ include { ORTHOFINDER                         } from '../../modules/nf-core/orth
 include { FASTAVALIDATOR                      } from '../../modules/nf-core/fastavalidator/main'
 include { GENE_OVERLAPS                       } from '../../modules/local/gene_overlaps'
 include { ORTHOLOGOUS_CHROMOSOMES             } from '../../modules/local/orthologous_chromosomes'
+include { GAWK                                } from '../../modules/nf-core/gawk/main'
 
 workflow GENOME_AND_ANNOTATION {
 
@@ -152,12 +153,13 @@ workflow GENOME_AND_ANNOTATION {
     //
 
     ORTHOLOGOUS_CHROMOSOMES (
-        ORTHOFINDER.out.orthofinder.map { meta, folder -> 
-            file("${folder}/Orthogroups/Orthogroups.tsv") 
+        ORTHOFINDER.out.orthofinder.map { meta, folder ->
+            file("${folder}/Orthogroups/Orthogroups.tsv")
         },
         AGAT_SPKEEPLONGESTISOFORM.out.gff.map { meta, gff -> gff }.collect()
     )
     ch_versions  = ch_versions.mix(ORTHOLOGOUS_CHROMOSOMES.out.versions)
+    ch_tree_data = ch_tree_data.mix(ORTHOLOGOUS_CHROMOSOMES.out.species_summary)
 
     //
     // MODULE: Run BUSCO
@@ -172,6 +174,18 @@ workflow GENOME_AND_ANNOTATION {
         params.busco_clean ?: []
     )
     ch_versions  = ch_versions.mix(BUSCO_BUSCO.out.versions.first())
+
+    //
+    // GAWK
+    //
+    // Use GAWK to change ID from file name to meta.id
+
+    GAWK (
+        BUSCO_BUSCO.out.batch_summary,
+        [],
+        false
+    )
+    ch_tree_data  = ch_tree_data.mix(GAWK.out.output.collect { meta, file -> file })
 
     //
     // Plot BUSCO ideogram
@@ -213,7 +227,7 @@ workflow GENOME_AND_ANNOTATION {
     GENOME_ANNOTATION_BUSCO_IDEOGRAM ( ch_plot_input )
     ch_versions         = ch_versions.mix(GENOME_ANNOTATION_BUSCO_IDEOGRAM.out.versions.first())
 
-    ch_tree_data        = ch_tree_data.mix(BUSCO_BUSCO.out.batch_summary.collect { meta, file -> file })
+    //ch_tree_data        = ch_tree_data.mix(BUSCO_BUSCO.out.batch_summary.collect { meta, file -> file })
 
     emit:
     orthofinder           = ORTHOFINDER.out.orthofinder         // channel: [ val(meta), [folder] ]
@@ -221,6 +235,7 @@ workflow GENOME_AND_ANNOTATION {
     quast_results         = QUAST.out.results                   // channel: [ val(meta), [tsv] ]
     busco_short_summaries = BUSCO_BUSCO.out.short_summaries_txt // channel: [ val(meta), [txt] ]
     orthologous_chromosomes = ORTHOLOGOUS_CHROMOSOMES.out.species_summary // channel: [ path(tsv) ]
+    buscos_per_seqs       = GENOME_ANNOTATION_BUSCO_IDEOGRAM.out.busco_mappings.collect { meta, table -> table} // channel: [ val(meta), [csv] ]
 
     versions              = ch_versions                   // channel: [ versions.yml ]
 }

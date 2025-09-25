@@ -21,10 +21,13 @@ process TREE_SUMMARY {
     def args = task.ext.args     ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     def counts_command = meta.mode == 'genome_anno' ? "gene_overlaps_table.py *.counts.tsv gene_stats.tsv --include-sense --include-antisense" : "touch gene_stats.tsv" // Genome only option needs a gene_stats file, even if it's empty. Should check for a more elegant solution
+    def ortho_file = file("species_orthologous_chromosomes.tsv") ? "--ortho_file species_orthologous_chromosomes.tsv" : ''
 
     """
     #Remove unwanted extensions in the tree file
     sed \'s/\\.prot\\.fa\\.largestIsoform//g\' ${tree}/Species_Tree/SpeciesTree_rooted_node_labels.txt > tree.nw
+
+    echo $ortho_file
 
     # Combine GENE OVERLAPS outputs
     ${counts_command}
@@ -42,6 +45,8 @@ process TREE_SUMMARY {
     Busco_combined \\
     Quast_to_plot.tsv \\
     gene_stats.tsv \\
+    n_seqs_above_x_buscos.tsv \\
+    $ortho_file \\
     $args
 
     cat <<-END_VERSIONS > versions.yml
