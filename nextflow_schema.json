@@ -368,6 +368,12 @@
       "type": "integer",
       "help_text": "Threshold for BUSCO count table: counts how many sequences in each assembly have at least this many Complete BUSCOs.\n",
       "description": "Minimum number of Complete BUSCOs a sequence must have to be counted"
+    },
+    "val_tool": {
+      "type": "string",
+      "default": "gffread",
+      "description": "Tool for gxf validation",
+      "enum": ["agat", "gffread"]
     }
   }
 }

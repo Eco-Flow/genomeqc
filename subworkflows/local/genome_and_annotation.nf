@@ -6,6 +6,7 @@ include { QUAST                               } from '../../modules/nf-core/quas
 include { AGAT_SPSTATISTICS                   } from '../../modules/nf-core/agat/spstatistics/main'
 include { GENOME_ANNOTATION_BUSCO_IDEOGRAM    } from '../../modules/local/genome_annotation_busco_ideogram'
 include { GFFREAD                             } from '../../modules/nf-core/gffread/main'
+include { GFFREAD as GFFREAD_VALIDATE         } from '../../modules/nf-core/gffread/main'
 include { ORTHOFINDER                         } from '../../modules/nf-core/orthofinder/main'
 include { FASTAVALIDATOR                      } from '../../modules/nf-core/fastavalidator/main'
 include { GENE_OVERLAPS                       } from '../../modules/local/gene_overlaps'
@@ -27,15 +28,37 @@ workflow GENOME_AND_ANNOTATION {
     ch_tree_data = Channel.empty()
 
     //
-    // MODULE: run AGAT convertspgxf2gxf
+    // MODULE: Run AGAT convertspgxf2gxf or GFFREAD validate
     //
 
     // Fix and standarize GXF
-    AGAT_CONVERTSPGXF2GXF(
-        ch_gxf
-    )
-    ch_gxf_agat  = AGAT_CONVERTSPGXF2GXF.out.output_gff
-    ch_versions  = ch_versions.mix(AGAT_CONVERTSPGXF2GXF.out.versions.first())
+    if ( params.val_tool == "agat" ) {
+        AGAT_CONVERTSPGXF2GXF (
+            ch_gxf
+        )
+        ch_gxf_agat  = AGAT_CONVERTSPGXF2GXF.out.output_gff
+        ch_versions  = ch_versions.mix(AGAT_CONVERTSPGXF2GXF.out.versions.first())
+    } else if ( params.val_tool == "gffread" ) {
+        GFFREAD_VALIDATE (
+            ch_gxf,
+            []
+        )
+        ch_gxf_agat  = GFFREAD_VALIDATE.out.gffread_gff
+        ch_versions  = ch_versions.mix(GFFREAD_VALIDATE.out.versions.first())
+    }
+
+    //AGAT_CONVERTSPGXF2GXF(
+    //    ch_gxf
+    //)
+    //ch_gxf_agat  = AGAT_CONVERTSPGXF2GXF.out.output_gff
+    //ch_versions  = ch_versions.mix(AGAT_CONVERTSPGXF2GXF.out.versions.first())
+
+    //GFFREAD_VALIDATE (
+    //    ch_gxf,
+    //    []
+    //)
+    //ch_gxf_agat  = GFFREAD_VALIDATE.out.gffread_gff
+    
 
     //
     // MODULE: Run AGAT longest isoform
