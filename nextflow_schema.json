@@ -224,90 +224,124 @@
                     "fa_icon": "far calendar",
                     "description": "Suffix to add to the trace report filename. Default is the date and time in the format yyyy-MM-dd_HH-mm-ss.",
                     "hidden": true
+                },
+                "groups": {
+                    "type": "string",
+                    "default": "all",
+                    "description": "A string with NCBI taxonomic groups to download. Can be a comma-separated list. Options are 'all', 'archaea', 'bacteria', 'fungi', 'invertebrate', 'metagenomes', 'plant', 'protozoa', 'vertebrate_mammalian', 'vertebrate_other', 'viral'."
+                },
+                "busco_mode": {
+                    "type": "string",
+                    "default": "proteins",
+                    "description": "A flag to set the busco mode for genome and annotation mode ('genome' is hardcoded in genome only mode).",
+                    "enum": ["proteins", "genome"]
+                },
+                "busco_lineage": {
+                    "type": "string",
+                    "default": "hymenoptera_odb10",
+                    "description": "A flag to set the busco lineage."
+                },
+                "busco_lineages_path": {
+                    "type": "string",
+                    "description": "A flag to set the BUSCO lineages directory (optional)"
+                },
+                "busco_config": {
+                    "type": "string",
+                    "description": "A path to a BUSCO config file (optional)"
+                },
+                "gxdb": {
+                    "type": "string",
+                    "description": "Path to FCS-GX database."
+                },
+                "genome_only": {
+                    "type": "boolean",
+                    "description": "Run genomeqc on genomes only"
+                },
+                "kvalue": {
+                    "type": "integer",
+                    "default": 21,
+                    "description": "k size for meryl (merqury)"
+                },
+                "skip_tidk": {
+                    "type": "boolean",
+                    "description": "Do not run TIDK",
+                    "help_text": "You may wish to turn off the tidk subworkflow"
                 }
             }
         }
     },
     "allOf": [
-        {
-            "$ref": "#/$defs/input_output_options"
-        },
-        {
-            "$ref": "#/$defs/reference_genome_options"
-        },
-        {
-            "$ref": "#/$defs/institutional_config_options"
-        },
-        {
-            "$ref": "#/$defs/generic_options"
-        }
+        { "$ref": "#/$defs/input_output_options" },
+        { "$ref": "#/$defs/reference_genome_options" },
+        { "$ref": "#/$defs/institutional_config_options" },
+        { "$ref": "#/$defs/generic_options" }
     ],
     "properties": {
-      "save_sorted_seqs": {
-        "type": "boolean",
-        "description": "Publish sorted fasta genome files from seqkit"
-      },
-      "save_validated_annotation": {
-        "type": "boolean",
-        "description": "Publish gff files validated by AGAT"
-      },
-      "save_assembly": {
-        "type": "boolean",
-        "description": "Publish genomes and/or annotations of user-supplied RefSeq IDs"
-      },
-      "save_extracted_seqs": {
-        "type": "boolean",
-        "description": "Publish extracted protein fasta files by GFFREAD"
-      },
-      "save_orthofinder_results": {
-        "type": "boolean",
-        "description": "Publish orthofinder results",
-        "default": true
-      },
-      "save_longest_isoform": {
-        "type": "boolean",
-        "description": "Publish longest protein isoform fasta files"
-      },
-      "save_filtered_seqs": {
-        "type": "boolean",
-        "description": "Publish filtered fasta genome files from seqkit"
-      },
-      "tree_scale": {
-        "type": "integer",
-        "description": "Modifies scale of the tree plot in the tree summary, default value is '0.0005'. Useful if tree tips overlap with the concatenated plots. Very sensitive, increase/decrease by two-fold"
-      },
-      "busco_clean": {
-        "type": "boolean",
-        "description": "Remove intermediate files"
-      },
-      "skip_plots_genome_anno": {
-        "type": "string",
-        "description": "Skip these stat plots in the genome and annotation tree plot",
-        "pattern": "^(ch_plot|nseqs_plot|ortho_plot|len_plot|gene_plot|n50_plot|pies_plot)(,(ch_plot|len_plot|gene_plot|n50_plot|pies_plot))*$",
-        "help_text": "Comma-separated list of plot types to skip. Valid values: ch_plot, len_plot, gene_plot, n50_plot, pies_plot\nch_plot: Number of sequences\nlen_plot: Genome size and GC cotent\ngene_plot: Numeber of genes and overlapping genes\nn50_plot: N50\npies_plot: BUSCO stats",
-        "default": "nseqs_plot"
-      },
-      "skip_plots_genome_only": {
-        "type": "string",
-        "description": "Skip these stat plots in the genome only tree plot",
-        "pattern": "^(ch_plot|nseqs_plot|ortho_plot|len_plot|n50_plot|pies_plot)(,(ch_plot|len_plot|n50_plot|pies_plot))*$",
-        "help_text": "Comma-separated list of plot types to skip. Valid values: ch_plot, len_plot, n50_plot, pies_plot\nch_plot: Number of sequences\nlen_plot: Genome size and GC content\nn50_plot: N50\npies_plot: BUSCO stats",
-        "default": "nseqs_plot"
-      },
-      "gxdb_manifiest": {
-        "type": "string",
-        "description": "Path to FCS GX contamination screening database"
-      },
-      "min_buscos": {
-        "type": "integer",
-        "help_text": "Threshold for BUSCO count table: counts how many sequences in each assembly have at least this many Complete BUSCOs.\n",
-        "description": "Minimum number of Complete BUSCOs a sequence must have to be counted"
-      },
-      "val_tool": {
-        "type": "string",
-        "default": "gffread",
-        "description": "Tool for gxf validation",
-        "enum": ["agat", "gffread"]
-      }
+        "save_sorted_seqs": {
+            "type": "boolean",
+            "description": "Publish sorted fasta genome files from seqkit"
+        },
+        "save_validated_annotation": {
+            "type": "boolean",
+            "description": "Publish gff files validated by AGAT"
+        },
+        "save_assembly": {
+            "type": "boolean",
+            "description": "Publish genomes and/or annotations of user-supplied RefSeq IDs"
+        },
+        "save_extracted_seqs": {
+            "type": "boolean",
+            "description": "Publish extracted protein fasta files by GFFREAD"
+        },
+        "save_orthofinder_results": {
+            "type": "boolean",
+            "description": "Publish orthofinder results",
+            "default": true
+        },
+        "save_longest_isoform": {
+            "type": "boolean",
+            "description": "Publish longest protein isoform fasta files"
+        },
+        "save_filtered_seqs": {
+            "type": "boolean",
+            "description": "Publish filtered fasta genome files from seqkit"
+        },
+        "tree_scale": {
+            "type": "integer",
+            "description": "Modifies scale of the tree plot in the tree summary, default value is '0.0005'. Useful if tree tips overlap with the concatenated plots. Very sensitive, increase/decrease by two-fold"
+        },
+        "busco_clean": {
+            "type": "boolean",
+            "description": "Remove intermediate files"
+        },
+        "skip_plots_genome_anno": {
+            "type": "string",
+            "description": "Skip these stat plots in the genome and annotation tree plot",
+            "pattern": "^(ch_plot|nseqs_plot|ortho_plot|len_plot|gene_plot|n50_plot|pies_plot)(,(ch_plot|len_plot|gene_plot|n50_plot|pies_plot))*$",
+            "help_text": "Comma-separated list of plot types to skip. Valid values: ch_plot, len_plot, gene_plot, n50_plot, pies_plot\nch_plot: Number of sequences\nlen_plot: Genome size and GC cotent\ngene_plot: Numeber of genes and overlapping genes\nn50_plot: N50\npies_plot: BUSCO stats",
+            "default": "nseqs_plot"
+        },
+        "skip_plots_genome_only": {
+            "type": "string",
+            "description": "Skip these stat plots in the genome only tree plot",
+            "pattern": "^(ch_plot|nseqs_plot|ortho_plot|len_plot|n50_plot|pies_plot)(,(ch_plot|len_plot|n50_plot|pies_plot))*$",
+            "help_text": "Comma-separated list of plot types to skip. Valid values: ch_plot, len_plot, n50_plot, pies_plot\nch_plot: Number of sequences\nlen_plot: Genome size and GC content\nn50_plot: N50\npies_plot: BUSCO stats",
+            "default": "nseqs_plot"
+        },
+        "gxdb_manifiest": {
+            "type": "string",
+            "description": "Path to FCS GX contamination screening database"
+        },
+        "min_buscos": {
+            "type": "integer",
+            "help_text": "Threshold for BUSCO count table: counts how many sequences in each assembly have at least this many Complete BUSCOs.\n",
+            "description": "Minimum number of Complete BUSCOs a sequence must have to be counted"
+        },
+        "val_tool": {
+            "type": "string",
+            "default": "gffread",
+            "description": "Tool for gxf validation",
+            "enum": ["agat", "gffread"]
+        }
     }
-  }
+}

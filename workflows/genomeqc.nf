@@ -3,7 +3,6 @@
     IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-<<<<<<< HEAD
 include { MERYL_UNIONSUM                       } from '../modules/nf-core/meryl/unionsum/main'
 include { MERYL_COUNT                          } from '../modules/nf-core/meryl/count/main'
 include { MERQURY_MERQURY                      } from '../modules/nf-core/merqury/merqury/main'
@@ -318,12 +317,9 @@ workflow GENOMEQC {
     ch_methods_description                = Channel.value(
         methodsDescriptionText(ch_multiqc_custom_methods_description))
 
-<<<<<<< HEAD
     ch_multiqc_files = ch_multiqc_files.mix(
         ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
 
-=======
->>>>>>> 3d4218889a1bd3ce5da19cb75588deee1cb055c0
     ch_multiqc_files = ch_multiqc_files.mix(ch_collated_versions)
 
     ch_multiqc_files = ch_multiqc_files.mix(
