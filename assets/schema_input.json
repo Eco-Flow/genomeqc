@@ -37,8 +37,7 @@
                 "errorMessage": "FastQ file to run Merqury, GZIP-compressed or uncompressed,  contain spaces and must have extension '.fq', '.fq.gz', '.fastq' or '.fastq.gz'"
             },
             "taxid": {
-                "type": "string",
-                "pattern": "^\\d+$",
+                "type": "integer",
                 "meta": ["taxid"],
                 "errorMessage": "Species taxid for decontamination screening, must be a valid NCBI taxid (numeric string without spaces)"
             }

@@ -40,7 +40,7 @@ workflow DECONTAMINATION {
 
     // Run Module fetch database
     FCSGX_FETCHDB(
-        ch_gxdb_manifest ?: [] // If there no manifest, use empty channel (won't run)
+        ch_gxdb_manifest ?: Channel.empty() // If there no manifest, use empty channel (won't run)
     )
     ch_gxdb            = ch_gxdb_local ?: FCSGX_FETCHDB.out.database
 
@@ -51,8 +51,6 @@ workflow DECONTAMINATION {
         ch_gxdb
     )
     ch_versions        = ch_versions.mix(FCS_FCSGX.out.versions.first())
-
-
 
     ch_cleangenome_in  = ch_fasta
                        | join(FCS_FCSGX.out.fcs_gx_report, by: 0)
