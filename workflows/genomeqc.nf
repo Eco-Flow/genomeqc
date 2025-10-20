@@ -168,6 +168,7 @@ workflow GENOMEQC {
     if ( params.gxdb || params.gxdb_manifiest ) {
         DECONTAMINATION (
             ch_input_decon,
+            params.ramdisk ?: [],
             params.gxdb ?: [],
             params.gxdb_manifiest ?: []
         )
