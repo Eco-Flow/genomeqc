@@ -48,8 +48,12 @@ workflow DECONTAMINATION {
 
     // Run Module fcs gx
 
+    // Prepare input channel for fcs gx
+    ch_fcsgx = FCSGX_CLEANADAPTOR.out.cleaned
+             | map { meta, fasta -> tuple( meta, meta.taxid, fasta) }
+
     FCSGX_RUNGX ( 
-        FCSGX_CLEANADAPTOR.out.cleaned,
+        ch_fcsgx,
         ch_gxdb,
         ch_ramdisk
     )
