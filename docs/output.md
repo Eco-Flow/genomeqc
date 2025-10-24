@@ -1,4 +1,4 @@
-# ecoflow/genomeqc: Output
+# nf-core/genomeqc: Output
 
 ## Introduction
 
