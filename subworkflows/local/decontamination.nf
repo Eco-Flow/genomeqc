@@ -13,6 +13,7 @@ workflow DECONTAMINATION {
     take:
     // TODO nf-core: edit input (take) channels
     ch_fasta      // channel: [ val(meta), [ fasta ] ]
+    ch_ramdisk
     ch_gxdb_local // channel: val(gxdb)
     ch_gxdb_manifest // channel: val(gxdb)
 
@@ -40,24 +41,22 @@ workflow DECONTAMINATION {
 
     // Run Module fetch database
     FCSGX_FETCHDB(
-        ch_gxdb_manifest ?: Channel.empty()  // If there no manifest, use empty channel (won't run)
+        ch_gxdb_manifest ?: Channel.empty() // If there no manifest, use empty channel (won't run)
     )
     ch_gxdb            = ch_gxdb_local ?: FCSGX_FETCHDB.out.database
 
-    // Extract taxid for main FCSGX module
-    ch_cleaned_adaptor = FCSGX_CLEANADAPTOR.out.cleaned.map { meta, fasta -> tuple(meta, meta.taxid, fasta) }
-    ch_cleaned_adaptor.view()
-
     // Run Module fcs gx
 
-    FCSGX_RUNGX (
-        ch_cleaned_adaptor,
+    // Prepare input channel for fcs gx
+    ch_fcsgx = FCSGX_CLEANADAPTOR.out.cleaned
+             | map { meta, fasta -> tuple( meta, meta.taxid, fasta) }
+
+    FCSGX_RUNGX ( 
+        ch_fcsgx,
         ch_gxdb,
-        params.ramdisk_path ?: []
+        ch_ramdisk
     )
     ch_versions        = ch_versions.mix(FCSGX_RUNGX.out.versions.first())
-
-
 
     ch_cleangenome_in  = ch_fasta
                        | join(FCSGX_RUNGX.out.fcsgx_report, by: 0)
