@@ -29,10 +29,10 @@ species_2,/path/to/genome.fasta,/path/to/annotation.gxf
 species_3,/path/to/genome.fasta,/path/to/annotation.gxf
 ```
 
-If running the pipeline using **ncbi accessions (GenBank and/or RefSeq)**, indicate the corresponding ID using the **ncbi** field:
+If running the pipeline using **ncbi accessions (GenBank and/or RefSeq)**, indicate the corresponding ID using the **refseq** field:
 
 ```csv title="samplesheet.csv"
-species,ncbi
+species,refseq
 species_1,GCF_000000001.1
 species_2,GCF_000000002.1
 species_3,GCF_000000003.1
@@ -60,7 +60,7 @@ species_3,/path/to/genome.fasta,/path/to/annotation.gxf,/path/to/reads.fastq,432
 This is what the complete samplesheet would look like if using local files:
 
 ```csv title="samplesheet.csv"
-species,ncbi,fastq,taxid
+species,refseq,fastq,taxid
 species_1,GCF_000000001.1,/path/to/reads.fastq,1234
 species_2,GCF_000000002.1,/path/to/reads.fastq,1245
 species_3,GCF_000000003.1,/path/to/reads.fastq,4321
@@ -69,7 +69,7 @@ species_3,GCF_000000003.1,/path/to/reads.fastq,4321
 You can mix different input types in the same samplesheet. If a specific field doesn’t apply to a row, leave it empty (as shown below). The pipeline will automatically detect the input type for each species and run accordingly:
 
 ```csv title="samplesheet.csv"
-species,ncbi,fasta,gxf,fastq,taxid
+species,refseq,fasta,gxf,fastq,taxid
 species_1,,/path/to/genome.fasta,/path/to/annotation.gxf,/path/to/reads.fastq,1234
 species_2,,/path/to/genome.fasta,/path/to/annotation.gxf,,4321
 species_3,,/path/to/genome.fasta,/path/to/annotation.gxf,
@@ -87,7 +87,7 @@ As for now, the pipeline doesn't support SRA accession for **Merqury**. We will 
 | Column    | Description                                                                                                                                                                            |
 | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `species`  | Species name or custom sample name. Spaces in sample names are automatically converted to underscores (`_`) (not sure if this is an option right now). |
-| `ncbi` | ncbi acession. Can be GenBank (starts with "GCA") or RefSeq (starts with "GCF").                                                             |
+| `refseq` | ncbi acession. Can be GenBank (starts with "GCA") or RefSeq (starts with "GCF").                                                             |
 | `fasta` | Full path to the genome fasta file. Can be compressed or uncompressed.                                                             |
 | `gxf` | Full path to the genome annotation gff/gtf file. Can be compressed or uncompressed.                                                             |
 | `fastq` | Full path to FastQ file for long reads (e.g. PacBio or ONT). File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                             |
