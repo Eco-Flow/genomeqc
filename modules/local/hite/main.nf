@@ -10,7 +10,7 @@ process HITE {
 
     output:
     tuple val(meta), path("*_hite_results") , emit: hite_results
-    path "versions.yml"                     , emit: versions
+    path "versions.yml"      , emit: versions
 
     script:
     def args   = task.ext.args ?: ''
@@ -42,9 +42,7 @@ process HITE {
     --thread ${task.cpus} \\
     $args
 
-    cd \${mydir}/${prefix}_hite_results/
-
-    cat <<-END_VERSIONS > versions.yml
+    cat <<-END_VERSIONS > \${mydir}/versions.yml
     "${task.process}":
        Python version: \$(python --version | cut -f 2 -d " ")
         HiTE version: 3.2.0
