@@ -269,10 +269,13 @@ workflow GENOMEQC {
         // MODULE: Run HITE
         //
 
-        HITE (
-            ch_fasta
-        )
 
+        if (params.run_hite) {
+            HITE (
+                ch_fasta
+            )
+        }
+       
         //
         // MODULE: Run TREE SUMMARY
         //
