@@ -227,7 +227,7 @@ workflow GENOMEQC {
     // Run genome only or genome + gxf
     if (params.genome_only) { // Does this work or should I remove it?
         GENOME_ONLY (
-            ch_input.fasta
+            ch_input_anno.fasta.mix(ch_input_geno.fasta)
         )
         ch_multiqc_files = ch_multiqc_files
                          | mix(GENOME_ONLY.out.quast_results.map { meta, results -> results })
