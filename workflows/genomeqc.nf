@@ -3,30 +3,31 @@
     IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-include { MERYL_UNIONSUM                       } from '../modules/nf-core/meryl/unionsum/main'
-include { MERYL_COUNT                          } from '../modules/nf-core/meryl/count/main'
-include { MERQURY_MERQURY                      } from '../modules/nf-core/merqury/merqury/main'
-include { CREATE_PATH                          } from '../modules/local/create_path'
-include { NCBIGENOMEDOWNLOAD                   } from '../modules/nf-core/ncbigenomedownload/main'
-include { PIGZ_UNCOMPRESS as UNCOMPRESS_FASTA  } from '../modules/nf-core/pigz/uncompress/main'
-include { PIGZ_UNCOMPRESS as UNCOMPRESS_GXF    } from '../modules/nf-core/pigz/uncompress/main'
-include { GENOME_ONLY                          } from '../subworkflows/local/genome_only'
-include { GENOME_AND_ANNOTATION                } from '../subworkflows/local/genome_and_annotation'
+include { MERYL_UNIONSUM                         } from '../modules/nf-core/meryl/unionsum/main'
+include { MERYL_COUNT                            } from '../modules/nf-core/meryl/count/main'
+include { MERQURY_MERQURY                        } from '../modules/nf-core/merqury/merqury/main'
+include { CREATE_PATH                            } from '../modules/local/create_path'
+include { NCBIGENOMEDOWNLOAD                     } from '../modules/nf-core/ncbigenomedownload/main'
+include { PIGZ_UNCOMPRESS as UNCOMPRESS_FASTA    } from '../modules/nf-core/pigz/uncompress/main'
+include { PIGZ_UNCOMPRESS as UNCOMPRESS_GXF      } from '../modules/nf-core/pigz/uncompress/main'
+include { GENOME_ONLY                            } from '../subworkflows/local/genome_only'
+include { GENOME_AND_ANNOTATION                  } from '../subworkflows/local/genome_and_annotation'
 include { TREE_SUMMARY as TREE_SUMMARY_GENO_ANNO } from '../modules/local/tree_summary'
 include { TREE_SUMMARY as TREE_SUMMARY_GENO      } from '../modules/local/tree_summary'
-include { validateInputSamplesheet             } from '../subworkflows/local/utils_nfcore_genomeqc_pipeline'
-include { FASTA_EXPLORE_SEARCH_PLOT_TIDK       } from '../subworkflows/nf-core/fasta_explore_search_plot_tidk/main'
-include { DECONTAMINATION                      } from '../subworkflows/local/decontamination'
-include { FCSGX_FETCHDB                        } from '../modules/nf-core/fcsgx/fetchdb/main'
-include { BUSCO_SEQS as BUSCO_SEQS_GENOME_ANNO } from '../modules/local/buscos_seqs/main'
-include { BUSCO_SEQS as BUSCO_SEQS_GENOME      } from '../modules/local/buscos_seqs/main'
+include { validateInputSamplesheet               } from '../subworkflows/local/utils_nfcore_genomeqc_pipeline'
+include { FASTA_EXPLORE_SEARCH_PLOT_TIDK         } from '../subworkflows/nf-core/fasta_explore_search_plot_tidk/main'
+include { DECONTAMINATION                        } from '../subworkflows/local/decontamination'
+include { FCSGX_FETCHDB                          } from '../modules/nf-core/fcsgx/fetchdb/main'
+include { BUSCO_SEQS as BUSCO_SEQS_GENOME_ANNO   } from '../modules/local/buscos_seqs/main'
+include { BUSCO_SEQS as BUSCO_SEQS_GENOME        } from '../modules/local/buscos_seqs/main'
 include { SHINY_APP as SHINY_APP_GENOME_ANNO   } from '../modules/local/shiny_app/main'
 include { SHINY_APP as SHINY_APP_GENOME        } from '../modules/local/shiny_app/main'
-include { MULTIQC                              } from '../modules/nf-core/multiqc/main'
-include { paramsSummaryMap                     } from 'plugin/nf-schema'
-include { paramsSummaryMultiqc                 } from '../subworkflows/nf-core/utils_nfcore_pipeline'
-include { softwareVersionsToYAML               } from '../subworkflows/nf-core/utils_nfcore_pipeline'
-include { methodsDescriptionText               } from '../subworkflows/local/utils_nfcore_genomeqc_pipeline'
+include { HITE                                   } from '../modules/local/hite/main'
+include { MULTIQC                                } from '../modules/nf-core/multiqc/main'
+include { paramsSummaryMap                       } from 'plugin/nf-schema'
+include { paramsSummaryMultiqc                   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
+include { softwareVersionsToYAML                 } from '../subworkflows/nf-core/utils_nfcore_pipeline'
+include { methodsDescriptionText                 } from '../subworkflows/local/utils_nfcore_genomeqc_pipeline'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -222,10 +223,13 @@ workflow GENOMEQC {
                                             | flatMap { meta, data -> data }
     ch_versions                             = ch_versions.mix(MERQURY_MERQURY.out.versions.first())
 
+    //
+    // SUBWORKFLOWS: Run genome only or genome + annotation subworkflows
+    //
     // Run genome only or genome + gxf
     if (params.genome_only) { // Does this work or should I remove it?
         GENOME_ONLY (
-            ch_input.fasta
+            ch_input_anno.fasta.mix(ch_input_geno.fasta)
         )
         ch_multiqc_files = ch_multiqc_files
                          | mix(GENOME_ONLY.out.quast_results.map { meta, results -> results })
@@ -263,6 +267,17 @@ workflow GENOMEQC {
                             | concat(BUSCO_SEQS_GENOME.out.table.map { meta, table -> table})
                             | collect
 
+        //
+        // MODULE: Run HITE
+        //
+
+
+        if (params.run_hite) {
+            HITE (
+                ch_fasta
+            )
+        }
+       
         //
         // MODULE: Run TREE SUMMARY
         //

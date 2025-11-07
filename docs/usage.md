@@ -20,10 +20,10 @@ Before running the pipeline, you will need to create a samplesheet with informat
 
 The pipeline can be run using NCBI accessions (RefSeq or GenBank) or local files. It needs at least an **genome** (GenBank accession or local file in FASTA format) per species to run. If annotations (RefSeq accession or local file in GTF/GFF format) are added, the pipeline will on both **genomes and annotations**, and will use the sequences in the **annotation** to run BUSCO (this can be changed in the parameters). If you provide local FASTQ reads for an assembly, the pipeline will run Merqury. If you provide taxids in NCBI format, it will run the decontamination subworkflow.
 
-If running the pipeline on **local** files, point to the location these files using the **fasta** and/or **gxf** fields:
+If running the pipeline on **local** files, point to the location these files using the **fasta** and/or **gff** fields:
 
 ```csv title="samplesheet.csv"
-species,fasta,gxf
+species,fasta,gff
 species_1,/path/to/genome.fasta,/path/to/annotation.gxf
 species_2,/path/to/genome.fasta,/path/to/annotation.gxf
 species_3,/path/to/genome.fasta,/path/to/annotation.gxf
@@ -51,7 +51,7 @@ species_3,/path/to/genome.fasta,/path/to/annotation.gxf,/path/to/reads.fastq
 This is what the complete samplesheet would look like if using NCBI accessions:
 
 ```csv title="samplesheet.csv"
-species,fasta,gxf,fastq,taxid
+species,fasta,gff,fastq,taxid
 species_1,/path/to/genome.fasta,/path/to/annotation.gxf,/path/to/reads.fastq,1234
 species_2,/path/to/genome.fasta,/path/to/annotation.gxf,/path/to/reads.fastq,1245
 species_3,/path/to/genome.fasta,/path/to/annotation.gxf,/path/to/reads.fastq,4321
@@ -69,7 +69,7 @@ species_3,GCF_000000003.1,/path/to/reads.fastq,4321
 You can mix different input types in the same samplesheet. If a specific field doesn’t apply to a row, leave it empty (as shown below). The pipeline will automatically detect the input type for each species and run accordingly:
 
 ```csv title="samplesheet.csv"
-species,refseq,fasta,gxf,fastq,taxid
+species,refseq,fasta,gff,fastq,taxid
 species_1,,/path/to/genome.fasta,/path/to/annotation.gxf,/path/to/reads.fastq,1234
 species_2,,/path/to/genome.fasta,/path/to/annotation.gxf,,4321
 species_3,,/path/to/genome.fasta,/path/to/annotation.gxf,
@@ -89,7 +89,7 @@ As for now, the pipeline doesn't support SRA accession for **Merqury**. We will 
 | `species`  | Species name or custom sample name. Spaces in sample names are automatically converted to underscores (`_`) (not sure if this is an option right now). |
 | `refseq` | ncbi acession. Can be GenBank (starts with "GCA") or RefSeq (starts with "GCF").                                                             |
 | `fasta` | Full path to the genome fasta file. Can be compressed or uncompressed.                                                             |
-| `gxf` | Full path to the genome annotation gff/gtf file. Can be compressed or uncompressed.                                                             |
+| `gff` | Full path to the genome annotation gff/gtf file. Can be compressed or uncompressed.                                                             |
 | `fastq` | Full path to FastQ file for long reads (e.g. PacBio or ONT). File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                             |
 | `taxid` | Species taxid for decontamination screening, must be a valid NCBI taxid (numeric string without spaces).                                                             |
 
@@ -153,7 +153,7 @@ The pipeline will produce a tree plot summary alonside a MultiQC report with qua
 The pipeline will run on genome and annotation mode if these inputs are provided in the samplesheet:
 
 1. Path to **fasta** AND
-2. Path to **gxf** OR
+2. Path to **gff** OR
 3. **ncbi** RefSeq accession.
 
 The pipeline will produce a tree plot summary alonside a MultiQC report with quality statistics.
@@ -179,7 +179,7 @@ The decontamination subsworkflow consists of three modules:
 The pipeline can be ran using different test profiles:
 
 1. `-profile test` Will run on genome and annotation and Merqury using **RefSeq accessions** and local **fastqs**.
-3. `-profile test_local` Will run on genome and annotation on local files (**fasta** and **gxf**).
+3. `-profile test_local` Will run on genome and annotation on local files (**fasta** and **gff**).
 4. `-profile test_genomeonly` Will run genome only on local files (**fasta**).
 5. `-profile test_nofastq` Will run genome and annotation using **RefSeq accessions**.
 
