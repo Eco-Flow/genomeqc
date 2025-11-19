@@ -188,6 +188,7 @@ workflow GENOMEQC {
             []
         )
     }
+    ch_versions = ch_versions.mix(FASTA_EXPLORE_SEARCH_PLOT_TIDK.out.versions.first())
 
     // Merqury: Evaluate genome assemblies with k-mers and more
     // https://github.com/marbl/merqury
