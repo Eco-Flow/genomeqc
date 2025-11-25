@@ -20,9 +20,10 @@ include { DECONTAMINATION                        } from '../subworkflows/local/d
 include { FCSGX_FETCHDB                          } from '../modules/nf-core/fcsgx/fetchdb/main'
 include { BUSCO_SEQS as BUSCO_SEQS_GENOME_ANNO   } from '../modules/local/buscos_seqs/main'
 include { BUSCO_SEQS as BUSCO_SEQS_GENOME        } from '../modules/local/buscos_seqs/main'
-include { SHINY_APP as SHINY_APP_GENOME_ANNO   } from '../modules/local/shiny_app/main'
-include { SHINY_APP as SHINY_APP_GENOME        } from '../modules/local/shiny_app/main'
+include { SHINY_APP as SHINY_APP_GENOME_ANNO     } from '../modules/local/shiny_app/main'
+include { SHINY_APP as SHINY_APP_GENOME          } from '../modules/local/shiny_app/main'
 include { HITE                                   } from '../modules/local/hite/main'
+include { REPEATMASKER_REPEATMASKER              } from '../modules/nf-core/repeatmasker/repeatmasker/main'
 include { MULTIQC                                } from '../modules/nf-core/multiqc/main'
 include { paramsSummaryMap                       } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc                   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -182,10 +183,15 @@ workflow GENOMEQC {
     // Run TIDK
     //
 
+    ch_repeat = params.repeat ? ch_fasta.map { meta, fasta -> [ meta, params.repeat ] } : Channel.empty
+    
+    ch_repeat.view()
+    //Channel.value(params.repeat).map { repeat -> [ [id:'telomeric_repeat'], repeat ] } : Channel.empty()
+
     if (!params.skip_tidk) {
         FASTA_EXPLORE_SEARCH_PLOT_TIDK (
             ch_fasta,
-            []
+            ch_repeat
         )
     }
 
@@ -222,6 +228,12 @@ workflow GENOMEQC {
                                             | mix(ch_hapmers_blob_png)
                                             | flatMap { meta, data -> data }
     ch_versions                             = ch_versions.mix(MERQURY_MERQURY.out.versions.first())
+
+    // Run RepeatModeler
+    REPEATMASKER_REPEATMASKER (
+        ch_fasta,
+        []
+    ) 
 
     //
     // SUBWORKFLOWS: Run genome only or genome + annotation subworkflows

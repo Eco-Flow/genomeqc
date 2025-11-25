@@ -29,7 +29,15 @@ process REPEATMASKER_REPEATMASKER {
     def out_fasta    = fasta.getBaseName(fasta.name.endsWith('.gz') ? 1 : 0)
     def fasta_gz_cmd = fasta.name.endsWith('.gz') ? "gunzip -c ${fasta} > ${out_fasta}" : ""
 
+    def run_config   = params.famdb_library ? "/usr/local/share/RepeatMasker" : ""
+
     """
+    if [ -n "${run_config}" ]; then
+        cd ${run_config}
+        perl ./configure
+        cd -
+    fi
+
     ${fasta_gz_cmd}
     RepeatMasker \\
         $lib_arg \\
