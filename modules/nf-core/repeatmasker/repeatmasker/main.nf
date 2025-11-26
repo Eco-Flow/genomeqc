@@ -3,9 +3,11 @@ process REPEATMASKER_REPEATMASKER {
     label 'process_high'
 
     conda "${moduleDir}/environment.yml"
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/repeatmasker:4.1.5--pl5321hdfd78af_0':
-        'biocontainers/repeatmasker:4.1.5--pl5321hdfd78af_0' }"
+    //container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
+    //    'https://depot.galaxyproject.org/singularity/repeatmasker:4.1.5--pl5321hdfd78af_0':
+    //    'biocontainers/repeatmasker:4.1.5--pl5321hdfd78af_0' }"
+    container 'docker://dfam/tetools:1.95'
+
 
     input:
     tuple val(meta), path(fasta)
@@ -29,12 +31,12 @@ process REPEATMASKER_REPEATMASKER {
     def out_fasta    = fasta.getBaseName(fasta.name.endsWith('.gz') ? 1 : 0)
     def fasta_gz_cmd = fasta.name.endsWith('.gz') ? "gunzip -c ${fasta} > ${out_fasta}" : ""
 
-    def run_config   = params.famdb_library ? "/usr/local/share/RepeatMasker" : ""
+    def run_config   = params.famdb_library ? "/opt/RepeatMasker" : ""
 
     """
     if [ -n "${run_config}" ]; then
         cd ${run_config}
-        perl ./configure
+        ./tetoolsDfamUpdate.pl
         cd -
     fi
 
