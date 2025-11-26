@@ -24,6 +24,11 @@ include { SHINY_APP as SHINY_APP_GENOME_ANNO     } from '../modules/local/shiny_
 include { SHINY_APP as SHINY_APP_GENOME          } from '../modules/local/shiny_app/main'
 include { HITE                                   } from '../modules/local/hite/main'
 include { REPEATMASKER_REPEATMASKER              } from '../modules/nf-core/repeatmasker/repeatmasker/main'
+include { CDHIT_CDHITEST                         } from '../modules/nf-core/cdhit/cdhitest/main'
+include { FAMDB_PY                               } from '../modules/local/famdb.py/main'
+include { REPEATMODELER_BUILDDATABASE            } from '../modules/nf-core/repeatmodeler/builddatabase/main'
+include { REPEATMODELER_REPEATMODELER            } from '../modules/nf-core/repeatmodeler/repeatmodeler/main'
+include { CAT_CAT                                } from '../modules/nf-core/cat/cat/main'
 include { MULTIQC                                } from '../modules/nf-core/multiqc/main'
 include { paramsSummaryMap                       } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc                   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -229,10 +234,51 @@ workflow GENOMEQC {
                                             | flatMap { meta, data -> data }
     ch_versions                             = ch_versions.mix(MERQURY_MERQURY.out.versions.first())
 
-    // Run RepeatModeler
+    // Annotate TE
+
+    ch_famdb_lib =  Channel.fromPath(params.famdb_library)
+                    | map { path -> tuple( [id: 'famdb'], path )  }
+
+    // Extract repeat library from famdb h5 partitions
+    FAMDB_PY (
+        ch_famdb_lib,
+        params.famdb_lineage
+    )
+
+    // User RepeatModeler to build de nove repeat library
+    //
+    // MODULE: Run RepeatModeler BuildDatabase
+    //
+    REPEATMODELER_BUILDDATABASE (
+        ch_fasta
+    )
+
+    //
+    // MODULE: Run RepeatMasker
+    //
+    REPEATMODELER_REPEATMODELER (
+        REPEATMODELER_BUILDDATABASE.out.db
+    )
+
+    // Create combined library
+    ch_combined_libs = FAMDB_PY.out.famdb_lib
+                     | map { meta, fasta -> fasta }
+                     | combine(REPEATMODELER_REPEATMODELER.out.library)
+                     | map { famdb_fasta, meta, modeler_fasta -> 
+                         tuple(meta, [famdb_fasta, modeler_fasta]) 
+                     }
+    
+    CAT_CAT (
+        ch_combined_libs
+    )
+
+    CDHIT_CDHITEST (
+        CAT_CAT.out.file_out
+    )
+
     REPEATMASKER_REPEATMASKER (
         ch_fasta,
-        []
+        CDHIT_CDHITEST.out.fasta
     ) 
 
     //

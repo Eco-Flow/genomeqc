@@ -3,5 +3,6 @@
 channels:
   - conda-forge
   - bioconda
+
 dependencies:
-  - bioconda::repeatmodeler=2.0.7
+  - bioconda::repeatmasker=4.1.5
