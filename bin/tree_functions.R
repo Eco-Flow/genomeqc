@@ -227,7 +227,7 @@ generate_plots <- function(processed_data, text_size = 3, tree_scale = 0.0005,
     ch_plot <- ggplot(data_quast$full, aes(x = 1, y = node)) +
       geom_text(aes(label = Sequences)) +
       theme_void() +
-      ggtitle("Seq\nNumber") +
+      ggtitle("Seq\nnumber") +
       theme(plot.title = element_text(size = 9, hjust = 0.5, vjust = -2.2))
 
     len_plot <- ggplot(data_quast$len, aes(y = value, x = node)) +

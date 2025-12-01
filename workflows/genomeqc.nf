@@ -188,7 +188,7 @@ workflow GENOMEQC {
     // Run TIDK
     //
 
-    ch_repeat = params.repeat ? ch_fasta.map { meta, fasta -> [ meta, params.repeat ] } : Channel.empty
+    ch_repeat = params.repeat ? ch_fasta.map { meta, fasta -> [ meta, params.repeat ] } : Channel.empty()
     
     ch_repeat.view()
     //Channel.value(params.repeat).map { repeat -> [ [id:'telomeric_repeat'], repeat ] } : Channel.empty()
@@ -236,13 +236,14 @@ workflow GENOMEQC {
 
     // Annotate TE
 
-    ch_famdb_lib =  Channel.fromPath(params.famdb_library)
+    ch_famdb_lib =  params.famdb_library ? Channel.fromPath(params.famdb_library)
                     | map { path -> tuple( [id: 'famdb'], path )  }
+                    : Channel.empty()
 
     // Extract repeat library from famdb h5 partitions
     FAMDB_PY (
         ch_famdb_lib,
-        params.famdb_lineage
+        params.famdb_lineage ? params.famdb_lineage : Channel.empty()
     )
 
     // User RepeatModeler to build de nove repeat library
@@ -250,7 +251,7 @@ workflow GENOMEQC {
     // MODULE: Run RepeatModeler BuildDatabase
     //
     REPEATMODELER_BUILDDATABASE (
-        ch_fasta
+        params.run_repeat_modeler ? ch_fasta : Channel.empty() 
     )
 
     //
@@ -263,7 +264,7 @@ workflow GENOMEQC {
     // Create combined library
     ch_combined_libs = FAMDB_PY.out.famdb_lib
                      | map { meta, fasta -> fasta }
-                     | combine(REPEATMODELER_REPEATMODELER.out.library)
+                     | combine(REPEATMODELER_REPEATMODELER.out.fasta)
                      | map { famdb_fasta, meta, modeler_fasta -> 
                          tuple(meta, [famdb_fasta, modeler_fasta]) 
                      }
