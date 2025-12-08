@@ -66,7 +66,7 @@ ui <- fluidPage(
                column(4,
                       wellPanel(
                         h4("Margin Controls"),
-                        sliderInput("tree_space_ratio", "Tree space ratio:", value = 1.3, min = -100, max = 100, step = 0.1),
+                        sliderInput("tree_space_ratio", "Tree space ratio:", value = 1.3, min = 0, max = 10, step = 0.1),
                         sliderInput("top_margin", "Top margin:", min = 0, max = 100, value = 5.5, step = 0.5),
                         sliderInput("right_margin", "Right margin:", min = 0, max = 100, value = 5.5, step = 0.5),
                         sliderInput("bottom_margin", "Bottom Margin:", min = 0, max = 100, value = 5.5, step = 0.5),

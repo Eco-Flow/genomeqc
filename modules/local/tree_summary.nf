@@ -2,7 +2,7 @@ process TREE_SUMMARY {
     tag "$meta.id"
     label 'process_single'
 
-    container = 'fduarte001/genomeqc_tree:0.3'
+    container 'fduarte001/genomeqc_tree:0.3'
     publishDir "$params.outdir/tree_plots" , mode: "${params.publish_dir_mode}", pattern:"*.pdf"
 
     input:
@@ -28,8 +28,6 @@ process TREE_SUMMARY {
     """
     #Remove unwanted extensions in the tree file
     sed \'s/\\.prot\\.fa\\.largestIsoform//g\' ${tree}/Species_Tree/SpeciesTree_rooted_node_labels.txt > tree.nw
-
-    echo $ortho_file
 
     # Combine GENE OVERLAPS outputs
     ${counts_command}

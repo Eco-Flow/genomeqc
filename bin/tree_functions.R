@@ -397,13 +397,13 @@ build_tree_plot <- function(tree, plots, legends, xlimit, top_margin = 5.5,
 
   max_x <- max(tree_data$x, na.rm = TRUE)
   tip_labels <- tree$data$label[!is.na(tree$data$label)]
-  max_label_chars <- max(nchar(tip_labels), na.rm = TRUE)
+  #max_label_chars <- max(nchar(tip_labels), na.rm = TRUE)
 
-  text_size_pts <- tree$theme$text$size %||% 11
-  char_width_estimate <- text_size_pts * 0.015
-  label_padding <- max_label_chars * char_width_estimate
+  #text_size_pts <- tree$theme$text$size %||% 11
+  #char_width_estimate <- text_size_pts * 0.015
+  #label_padding <- max_label_chars * char_width_estimate
 
-  tree_xlim <- max_x * tree_space_ratio + label_padding
+  tree_xlim <- max_x + tree_space_ratio  #* tree_space_ratio + label_padding
   tree <- tree + xlim(0, tree_xlim)
 
   # Build the patchwork layout
