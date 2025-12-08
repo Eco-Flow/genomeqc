@@ -35,11 +35,13 @@ process HITE {
 
     cd /HiTE
 
+    echo \$TMPDIR
 
     python main.py \\
     --genome \${newpath} \\
     --out_dir \${mydir}/${prefix}_hite_results \\
     --thread ${task.cpus} \\
+    --work_dir \$TMPDIR
     $args
 
     cat <<-END_VERSIONS > \${mydir}/versions.yml

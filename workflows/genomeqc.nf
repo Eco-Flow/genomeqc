@@ -246,12 +246,12 @@ workflow GENOMEQC {
         params.famdb_lineage ? params.famdb_lineage : Channel.empty()
     )
 
-    // User RepeatModeler to build de nove repeat library
+    // User RepeatModeler to build de novo repeat library
     //
     // MODULE: Run RepeatModeler BuildDatabase
     //
     REPEATMODELER_BUILDDATABASE (
-        params.run_repeat_modeler ? ch_fasta : Channel.empty() 
+        params.famdb_library ? ch_fasta : Channel.empty() 
     )
 
     //
