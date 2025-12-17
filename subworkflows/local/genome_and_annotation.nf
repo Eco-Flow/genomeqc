@@ -1,7 +1,8 @@
 
 include { AGAT_CONVERTSPGXF2GXF               } from '../../modules/nf-core/agat/convertspgxf2gxf'
 include { AGAT_SPKEEPLONGESTISOFORM           } from '../../modules/nf-core/agat/spkeeplongestisoform'
-include { BUSCO_BUSCO                         } from '../../modules/nf-core/busco/busco/main'
+include { BUSCO_BUSCO as BUSCO_GENOME         } from '../../modules/nf-core/busco/busco/main'
+include { BUSCO_BUSCO as BUSCO_PROTEINS       } from '../../modules/nf-core/busco/busco/main'
 include { QUAST                               } from '../../modules/nf-core/quast/main'
 include { AGAT_SPSTATISTICS                   } from '../../modules/nf-core/agat/spstatistics/main'
 include { GENOME_ANNOTATION_BUSCO_IDEOGRAM    } from '../../modules/local/genome_annotation_busco_ideogram'
@@ -11,7 +12,8 @@ include { ORTHOFINDER                         } from '../../modules/nf-core/orth
 include { FASTAVALIDATOR                      } from '../../modules/nf-core/fastavalidator/main'
 include { GENE_OVERLAPS                       } from '../../modules/local/gene_overlaps'
 include { ORTHOLOGOUS_CHROMOSOMES             } from '../../modules/local/orthologous_chromosomes'
-include { GAWK                                } from '../../modules/nf-core/gawk/main'
+include { GAWK as GAWK_GENO                   } from '../../modules/nf-core/gawk/main'
+include { GAWK as GAWK_PROT                   } from '../../modules/nf-core/gawk/main'
 
 workflow GENOME_AND_ANNOTATION {
 
@@ -169,7 +171,6 @@ workflow GENOME_AND_ANNOTATION {
         [[],[]]
     )
     ch_versions  = ch_versions.mix(ORTHOFINDER.out.versions)
-    ORTHOFINDER.out.orthofinder.view()
 
     //
     // MODULE: Run ORTHOLOGOUS_CHROMOSOMES
@@ -185,37 +186,59 @@ workflow GENOME_AND_ANNOTATION {
     ch_tree_data = ch_tree_data.mix(ORTHOLOGOUS_CHROMOSOMES.out.species_summary)
 
     //
-    // MODULE: Run BUSCO
+    // MODULE: Run BUSCO for genome annotation
     //
 
-    BUSCO_BUSCO (
-        GFFREAD.out.gffread_fasta,
-        params.busco_mode,
+    BUSCO_GENOME (
+        ch_fasta,
+        'genome',
         params.busco_lineage,
         params.busco_lineages_path ?: [],
         params.busco_config ?: [],
         params.busco_clean ?: []
     )
-    ch_versions  = ch_versions.mix(BUSCO_BUSCO.out.versions.first())
+    ch_versions  = ch_versions.mix(BUSCO_GENOME.out.versions.first())
+
+    //
+    // MODULE: Run BUSCO for proteins
+    //
+
+    BUSCO_PROTEINS (
+        GFFREAD.out.gffread_fasta,
+        'proteins',
+        params.busco_lineage,
+        params.busco_lineages_path ?: [],
+        params.busco_config ?: [],
+        params.busco_clean ?: []
+    )
+    ch_versions  = ch_versions.mix(BUSCO_PROTEINS.out.versions.first())
 
     //
     // GAWK
     //
     // Use GAWK to change ID from file name to meta.id
-
-    GAWK (
-        BUSCO_BUSCO.out.batch_summary,
+    // For BUSCO genome
+    GAWK_GENO (
+        BUSCO_GENOME.out.batch_summary,
         [],
         false
     )
-    ch_tree_data  = ch_tree_data.mix(GAWK.out.output.collect { meta, file -> file })
+    ch_versions  = ch_versions.mix(GAWK_GENO.out.versions.first())
+    
+    // For BUSCO protein
+    GAWK_PROT (
+        BUSCO_PROTEINS.out.batch_summary,
+        [],
+        false
+    )
+    ch_versions  = ch_versions.mix(GAWK_PROT.out.versions.first())
 
     //
     // Plot BUSCO ideogram
     //
 
     // Prepare BUSCO output
-    ch_busco_full_table = BUSCO_BUSCO.out.full_table
+    ch_busco_full_table = BUSCO_PROTEINS.out.full_table
                         | map { meta, full_tables ->
                             def lineages = full_tables.toString().split('/')[-2].replaceAll('run_', '').replaceAll('_odb\\d+', '')
                             [meta.id, lineages, full_tables]
@@ -250,15 +273,14 @@ workflow GENOME_AND_ANNOTATION {
     GENOME_ANNOTATION_BUSCO_IDEOGRAM ( ch_plot_input )
     ch_versions         = ch_versions.mix(GENOME_ANNOTATION_BUSCO_IDEOGRAM.out.versions.first())
 
-    //ch_tree_data        = ch_tree_data.mix(BUSCO_BUSCO.out.batch_summary.collect { meta, file -> file })
-
     emit:
-    orthofinder           = ORTHOFINDER.out.orthofinder         // channel: [ val(meta), [folder] ]
-    tree_data             = ch_tree_data.flatten().collect()
-    quast_results         = QUAST.out.results                   // channel: [ val(meta), [tsv] ]
-    busco_short_summaries = BUSCO_BUSCO.out.short_summaries_txt // channel: [ val(meta), [txt] ]
-    orthologous_chromosomes = ORTHOLOGOUS_CHROMOSOMES.out.species_summary // channel: [ path(tsv) ]
-    buscos_per_seqs       = GENOME_ANNOTATION_BUSCO_IDEOGRAM.out.busco_mappings.collect { meta, table -> table} // channel: [ val(meta), [csv] ]
+    orthofinder                = ORTHOFINDER.out.orthofinder         // channel: [ val(meta), [folder] ]
+    tree_data                  = ch_tree_data.flatten().collect()
+    quast_results              = QUAST.out.results                   // channel: [ val(meta), [tsv] ]
+    busco_short_summaries_geno = GAWK_GENO.out.output
+    busco_short_summaries_prot = GAWK_PROT.out.output
+    orthologous_chromosomes    = ORTHOLOGOUS_CHROMOSOMES.out.species_summary // channel: [ path(tsv) ]
+    buscos_per_seqs            = GENOME_ANNOTATION_BUSCO_IDEOGRAM.out.busco_mappings.collect { meta, table -> table} // channel: [ val(meta), [csv] ]
 
-    versions              = ch_versions                   // channel: [ versions.yml ]
+    versions                   = ch_versions                   // channel: [ versions.yml ]
 }

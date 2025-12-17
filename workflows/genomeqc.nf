@@ -189,9 +189,6 @@ workflow GENOMEQC {
     //
 
     ch_repeat = params.repeat ? ch_fasta.map { meta, fasta -> [ meta, params.repeat ] } : Channel.empty()
-    
-    ch_repeat.view()
-    //Channel.value(params.repeat).map { repeat -> [ [id:'telomeric_repeat'], repeat ] } : Channel.empty()
 
     if (!params.skip_tidk) {
         FASTA_EXPLORE_SEARCH_PLOT_TIDK (
@@ -203,7 +200,7 @@ workflow GENOMEQC {
     // Merqury: Evaluate genome assemblies with k-mers and more
     // https://github.com/marbl/merqury
     // Only run if not skipping and fastq is provided in the samplesheet
-        // MODULE: MERYL_COUNT
+    // MODULE: MERYL_COUNT
     MERYL_COUNT(
         ch_input_merq.fq,
         params.kvalue
@@ -255,7 +252,7 @@ workflow GENOMEQC {
     )
 
     //
-    // MODULE: Run RepeatMasker
+    // MODULE: Run RepeatModuler
     //
     REPEATMODELER_REPEATMODELER (
         REPEATMODELER_BUILDDATABASE.out.db
@@ -269,13 +266,19 @@ workflow GENOMEQC {
                          tuple(meta, [famdb_fasta, modeler_fasta]) 
                      }
     
+    // Combine libraries with CAT
     CAT_CAT (
         ch_combined_libs
     )
 
+    // Reduce redundancy with CD-HIT-EST
     CDHIT_CDHITEST (
         CAT_CAT.out.file_out
     )
+
+    //
+    // MODULE: Run RepeatMasker
+    //
 
     REPEATMASKER_REPEATMASKER (
         ch_fasta,
@@ -304,12 +307,14 @@ workflow GENOMEQC {
         )
         ch_multiqc_files = ch_multiqc_files
                          | mix(GENOME_AND_ANNOTATION.out.quast_results.map { meta, results -> results })
-                         | mix(GENOME_AND_ANNOTATION.out.busco_short_summaries.map { meta, txt -> txt })
+                         | mix(GENOME_AND_ANNOTATION.out.busco_short_summaries_prot.map { meta, txt -> txt })
         ch_versions      = ch_versions.mix(GENOME_AND_ANNOTATION.out.versions)
 
+        //
+        // MODULE: run BUSCO SEQS
+        //
         // Number of sequences with more than x complete single copy buscos
-        // this should depend on whether protein mode was used or not, not
-
+        // this should depend on whether protein mode was used or not
         BUSCO_SEQS_GENOME_ANNO(
             GENOME_AND_ANNOTATION.out.buscos_per_seqs.map { tables -> [[id:"tables"], tables] }
         )
@@ -329,8 +334,6 @@ workflow GENOMEQC {
         //
         // MODULE: Run HITE
         //
-
-
         if (params.run_hite) {
             HITE (
                 ch_fasta
@@ -340,15 +343,42 @@ workflow GENOMEQC {
         //
         // MODULE: Run TREE SUMMARY
         //
+        // Prepare busco channel for genome and annotation
+        // First for genome completness
+        ch_busco_geno_anno1 = GENOME_AND_ANNOTATION.out.busco_short_summaries_geno
+                            | map { meta, file -> file }
+                            | collect
+                            | map { files -> tuple( [id:"busco_geno_anno"], files )}
+        // Then for annotation completeness
+        ch_busco_geno_anno2 = GENOME_AND_ANNOTATION.out.busco_short_summaries_prot
+                            | map { meta, file -> file }
+                            | collect
+                            | map { files -> tuple( [id:"busco_geno_anno"], files )}
+        // Combine both channels into a multi-channel object
+        ch_busco_geno_anno  = ch_busco_geno_anno1.join(ch_busco_geno_anno2)
+                            | multiMap {
+                                meta, geno_files, prot_files ->
+                                    geno      : geno_files ? tuple( meta, geno_files ) : [[],[]]
+                                    prot      : prot_files ? tuple( meta, prot_files ) : [[],[]]
+                            }
+        
+        ch_busco_geno_anno.geno.view()
+        ch_busco_geno_anno.prot.view()
 
+        // Run TREE SUMMARY for genome and annotation
         TREE_SUMMARY_GENO_ANNO (
             GENOME_AND_ANNOTATION.out.orthofinder,
+            ch_busco_geno_anno.geno,
+            ch_busco_geno_anno.prot,
             ch_tree_genome_anno
         )
         ch_versions      = ch_versions.mix(TREE_SUMMARY_GENO_ANNO.out.versions)
 
+        // Run TREE SUMMARY for genome only
         TREE_SUMMARY_GENO (
             GENOME_ONLY.out.orthofinder,
+            [[],[]], // No busco for genome only
+            [[],[]], // No busco for genome only
             ch_tree_genome
         )
         ch_versions      = ch_versions.mix(TREE_SUMMARY_GENO.out.versions)
@@ -356,7 +386,6 @@ workflow GENOMEQC {
         //
         // MODULE: Run SHINY APP
         //
-
         // Prepare script with functions channel
         ch_functions = Channel.fromPath("$projectDir/bin/tree_functions.R", checkIfExists: true)
         ch_app       = Channel.fromPath("$projectDir/bin/shiny_app.R", checkIfExists: true)

@@ -23,7 +23,8 @@ source("tree_functions.R")
 # Load data once at startup
 processed_data <- process_tree_data(
   tree_file = "tree.nw",
-  busco_file = if(file.exists("Busco_combined.tsv")) "Busco_combined.tsv" else NULL,
+  busco_file_geno = if(file.exists("Busco_combined_geno.tsv")) "Busco_combined_geno.tsv" else NULL,
+  busco_file_prot = if(file.exists("Busco_combined_prot.tsv")) "Busco_combined_prot.tsv" else NULL,
   quast_file = if(file.exists("Quast_to_plot.tsv")) "Quast_to_plot.tsv" else NULL,
   genes_file = if(file.exists("gene_stats.tsv")) "gene_stats.tsv" else NULL,
   nseqs_file = if(file.exists("n_seqs_above_x_buscos_output.tsv")) "n_seqs_above_x_buscos_output.tsv" else NULL,
@@ -97,7 +98,8 @@ ui <- fluidPage(
                                              "Genome Length" = "len_plot",
                                              "Gene Statistics" = "gene_plot",
                                              "N50 Statistics" = "n50_plot",
-                                             "BUSCO Pies" = "pies_plot"
+                                             "BUSCO Genome Pies" = "busco_gen_plot",
+                                             "BUSCO Protein Pies" = "busco_prot_plot"
                                            )),
                         #selectInput("plot_type", "Plot Type:",
                         #            choices = list("Genome + Annotation" = "genome_anno", "Genome Only" = "genome_only"),
