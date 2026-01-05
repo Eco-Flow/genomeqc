@@ -182,6 +182,7 @@ process_tree_data <- function(tree_file, busco_file_geno = NULL, busco_file_prot
 plot_busco_pies <- function(data_busco,
                             title = "BUSCO",
                             rad_width = NULL,
+                            len_pos_x = 0,
                             fill_colors = c(
                               Single     = "deepskyblue",
                               Duplicated = "orange",
@@ -218,10 +219,11 @@ plot_busco_pies <- function(data_busco,
     pies_plot +
       theme(
         legend.position = "right",
-        legend.justification = c(0, 1.08),
+        legend.justification = c(len_pos_x, 1.08),
         legend.title = element_blank(),
         legend.key.size = unit(0.2, "cm"),
-        legend.text = element_text(size = 8)
+        legend.text = element_text(size = 8),
+        #legend.box.margin = margin(l = 6)
       )
   )
 
@@ -322,8 +324,12 @@ generate_plots <- function(processed_data, text_size = 3, tree_scale = 0.0005,
   }
 
   # BUSCO plots
-  busco_gen_plot  <- plot_busco_pies(data_busco_geno, rad_width = rad_width, title = "BUSCO\ngenome")
-  busco_prot_plot <- plot_busco_pies(data_busco_prot, rad_width = rad_width, title = "BUSCO\nprotein")
+  # -- if both genome and proteome busco datasets are present,
+  # change legend x position so that it's not skewed --
+  len_pos_x <- 0.4 * (!is.null(data_busco_geno) && !is.null(data_busco_prot)) # very smart chatgpt
+  # Plot both genome and proteome BUSCO pies
+  busco_gen_plot  <- plot_busco_pies(data_busco_geno, rad_width = rad_width, title = "BUSCO\ngenome", len_pos_x = len_pos_x)
+  busco_prot_plot <- plot_busco_pies(data_busco_prot, rad_width = rad_width, title = "BUSCO\nprotein", len_pos_x = len_pos_x)
 
 
   gene_plot <- NULL
