@@ -237,7 +237,7 @@ plot_busco_pies <- function(data_busco,
 
 # Now for the plot generator
 generate_plots <- function(processed_data, text_size = 3, tree_scale = 0.0005,
-                           bar_width = 0.7, rad_width = 0.4, skip_stats = NULL) {
+                           bar_width = 0.7, rad_width = 0.4, skip_stats = NULL, busco_len_pos_x = 0.4) {
 
   tree <- processed_data$tree
   data_busco_geno <- processed_data$data_busco_geno
@@ -326,10 +326,16 @@ generate_plots <- function(processed_data, text_size = 3, tree_scale = 0.0005,
   # BUSCO plots
   # -- if both genome and proteome busco datasets are present,
   # change legend x position so that it's not skewed --
-  len_pos_x <- 0.4 * (!is.null(data_busco_geno) && !is.null(data_busco_prot)) # very smart chatgpt
+  len_pos_x <- busco_len_pos_x * (!is.null(data_busco_geno) && !is.null(data_busco_prot)) # very smart chatgpt
   # Plot both genome and proteome BUSCO pies
-  busco_gen_plot  <- plot_busco_pies(data_busco_geno, rad_width = rad_width, title = "BUSCO\ngenome", len_pos_x = len_pos_x)
-  busco_prot_plot <- plot_busco_pies(data_busco_prot, rad_width = rad_width, title = "BUSCO\nprotein", len_pos_x = len_pos_x)
+  busco_gen_plot  <- plot_busco_pies(data_busco_geno, 
+                                      rad_width = rad_width, 
+                                      title = "BUSCO\ngenome",
+                                      len_pos_x = len_pos_x)
+  busco_prot_plot <- plot_busco_pies(data_busco_prot, 
+                                      rad_width = rad_width, 
+                                      title = "BUSCO\nprotein", 
+                                      len_pos_x = len_pos_x)
 
 
   gene_plot <- NULL

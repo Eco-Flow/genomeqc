@@ -98,6 +98,7 @@ parser$add_argument('--bar_width', type = 'double', default = 0.7, help = 'Width
 parser$add_argument('--rad_width', type = 'double', default = 0.4, help = 'Radius of pie charts')
 parser$add_argument('--skip_stats', type = 'character', default = NULL, help = "Don't plot these stats (comma separated list)")
 parser$add_argument('--type', type = 'character', choices = c('genome_only', 'genome_anno'), default = 'genome_anno', help = 'Select stats for genome only or for both genome and annotation')
+parser$add_argument('--len_pos_x', type = 'double', default = 5, help = 'Position of the BUSCO legend on the x axis when both genome and protein BUSCO pies are plotted')
 
 args <- parser$parse_args()
 
@@ -384,6 +385,7 @@ n50_plot <- n50_plot + guides(fill="none")
 # Helper function to plot BUSCO pies
 make_busco_scatterpie <- function(data_busco,
                                   rad_width,
+                                  len_pos_x = 0,
                                   type = c("genome", "protein")) {
 
   if (is.null(data_busco)) {
@@ -423,7 +425,7 @@ make_busco_scatterpie <- function(data_busco,
     pies_plot +
       theme(
         legend.position = "right",
-        legend.justification = c(0, 1.08),
+        legend.justification = c(len_pos_x, 1.08),
         legend.title = element_blank(),
         legend.key.size = unit(0.2, "cm"),
         legend.text = element_text(size = 8)
@@ -439,15 +441,23 @@ make_busco_scatterpie <- function(data_busco,
   )
 }
 
+# BUSCO plots
+# -- if both genome and proteome busco datasets are present,
+# change legend x position so that it's not skewed --
+len_pos_x <- args$len_pos_x * (!is.null(data_busco_geno) && !is.null(data_busco_prot)) # very smart chatgpt
+
+# Plot both genome and proteome BUSCO pies
 busco_gen_plot <- make_busco_scatterpie(
   data_busco = data_busco_geno,
   rad_width  = args$rad_width,
+  len_pos_x = len_pos_x,
   type       = "genome"
 )
 
 busco_prot_plot <- make_busco_scatterpie(
   data_busco = data_busco_prot,
   rad_width  = args$rad_width,
+  len_pos_x = len_pos_x,
   type       = "protein"
 )
 
@@ -660,10 +670,10 @@ if (args$type == 'genome_anno') {
   )
 }
 
-pdf("tree_plot.pdf")
+pdf("tree_plot.pdf", width = 10, height = 7)
 final_plot
 dev.off()
 
-svg("tree_plot.svg")
+svg("tree_plot.svg", width = 10, height = 7)
 final_plot
 dev.off()
