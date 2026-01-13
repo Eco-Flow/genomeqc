@@ -22,13 +22,6 @@ include { BUSCO_SEQS as BUSCO_SEQS_GENOME_ANNO   } from '../modules/local/buscos
 include { BUSCO_SEQS as BUSCO_SEQS_GENOME        } from '../modules/local/buscos_seqs/main'
 include { SHINY_APP as SHINY_APP_GENOME_ANNO     } from '../modules/local/shiny_app/main'
 include { SHINY_APP as SHINY_APP_GENOME          } from '../modules/local/shiny_app/main'
-include { HITE                                   } from '../modules/local/hite/main'
-include { REPEATMASKER_REPEATMASKER              } from '../modules/nf-core/repeatmasker/repeatmasker/main'
-include { CDHIT_CDHITEST                         } from '../modules/nf-core/cdhit/cdhitest/main'
-include { FAMDB_PY                               } from '../modules/local/famdb.py/main'
-include { REPEATMODELER_BUILDDATABASE            } from '../modules/nf-core/repeatmodeler/builddatabase/main'
-include { REPEATMODELER_REPEATMODELER            } from '../modules/nf-core/repeatmodeler/repeatmodeler/main'
-include { CAT_CAT                                } from '../modules/nf-core/cat/cat/main'
 include { MULTIQC                                } from '../modules/nf-core/multiqc/main'
 include { paramsSummaryMap                       } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc                   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -189,9 +182,6 @@ workflow GENOMEQC {
     //
 
     ch_repeat = params.repeat ? ch_fasta.map { meta, fasta -> [ meta, params.repeat ] } : Channel.empty()
-    
-    ch_repeat.view()
-    //Channel.value(params.repeat).map { repeat -> [ [id:'telomeric_repeat'], repeat ] } : Channel.empty()
 
     if (!params.skip_tidk) {
         FASTA_EXPLORE_SEARCH_PLOT_TIDK (
@@ -203,7 +193,7 @@ workflow GENOMEQC {
     // Merqury: Evaluate genome assemblies with k-mers and more
     // https://github.com/marbl/merqury
     // Only run if not skipping and fastq is provided in the samplesheet
-        // MODULE: MERYL_COUNT
+    // MODULE: MERYL_COUNT
     MERYL_COUNT(
         ch_input_merq.fq,
         params.kvalue
@@ -234,54 +224,6 @@ workflow GENOMEQC {
                                             | flatMap { meta, data -> data }
     ch_versions                             = ch_versions.mix(MERQURY_MERQURY.out.versions.first())
 
-    // Annotate TE
-
-    ch_famdb_lib =  params.famdb_library ? Channel.fromPath(params.famdb_library)
-                    | map { path -> tuple( [id: 'famdb'], path )  }
-                    : Channel.empty()
-
-    // Extract repeat library from famdb h5 partitions
-    FAMDB_PY (
-        ch_famdb_lib,
-        params.famdb_lineage ? params.famdb_lineage : Channel.empty()
-    )
-
-    // User RepeatModeler to build de novo repeat library
-    //
-    // MODULE: Run RepeatModeler BuildDatabase
-    //
-    REPEATMODELER_BUILDDATABASE (
-        params.famdb_library ? ch_fasta : Channel.empty() 
-    )
-
-    //
-    // MODULE: Run RepeatMasker
-    //
-    REPEATMODELER_REPEATMODELER (
-        REPEATMODELER_BUILDDATABASE.out.db
-    )
-
-    // Create combined library
-    ch_combined_libs = FAMDB_PY.out.famdb_lib
-                     | map { meta, fasta -> fasta }
-                     | combine(REPEATMODELER_REPEATMODELER.out.fasta)
-                     | map { famdb_fasta, meta, modeler_fasta -> 
-                         tuple(meta, [famdb_fasta, modeler_fasta]) 
-                     }
-    
-    CAT_CAT (
-        ch_combined_libs
-    )
-
-    CDHIT_CDHITEST (
-        CAT_CAT.out.file_out
-    )
-
-    REPEATMASKER_REPEATMASKER (
-        ch_fasta,
-        CDHIT_CDHITEST.out.fasta
-    ) 
-
     //
     // SUBWORKFLOWS: Run genome only or genome + annotation subworkflows
     //
@@ -304,12 +246,14 @@ workflow GENOMEQC {
         )
         ch_multiqc_files = ch_multiqc_files
                          | mix(GENOME_AND_ANNOTATION.out.quast_results.map { meta, results -> results })
-                         | mix(GENOME_AND_ANNOTATION.out.busco_short_summaries.map { meta, txt -> txt })
+                         | mix(GENOME_AND_ANNOTATION.out.busco_short_summaries_prot.map { meta, txt -> txt })
         ch_versions      = ch_versions.mix(GENOME_AND_ANNOTATION.out.versions)
 
+        //
+        // MODULE: run BUSCO SEQS
+        //
         // Number of sequences with more than x complete single copy buscos
-        // this should depend on whether protein mode was used or not, not
-
+        // this should depend on whether protein mode was used or not
         BUSCO_SEQS_GENOME_ANNO(
             GENOME_AND_ANNOTATION.out.buscos_per_seqs.map { tables -> [[id:"tables"], tables] }
         )
@@ -325,30 +269,46 @@ workflow GENOMEQC {
         ch_tree_genome      = GENOME_ONLY.out.tree_data
                             | concat(BUSCO_SEQS_GENOME.out.table.map { meta, table -> table})
                             | collect
-
-        //
-        // MODULE: Run HITE
-        //
-
-
-        if (params.run_hite) {
-            HITE (
-                ch_fasta
-            )
-        }
        
         //
         // MODULE: Run TREE SUMMARY
         //
+        // Prepare busco channel for genome and annotation
+        // First for genome completness
+        ch_busco_geno_anno1 = GENOME_AND_ANNOTATION.out.busco_short_summaries_geno
+                            | map { meta, file -> file }
+                            | collect
+                            | map { files -> tuple( [id:"busco_geno_anno"], files )}
+        // Then for annotation completeness
+        ch_busco_geno_anno2 = GENOME_AND_ANNOTATION.out.busco_short_summaries_prot
+                            | map { meta, file -> file }
+                            | collect
+                            | map { files -> tuple( [id:"busco_geno_anno"], files )}
+        // Combine both channels into a multi-channel object
+        ch_busco_geno_anno  = ch_busco_geno_anno1.join(ch_busco_geno_anno2)
+                            | multiMap {
+                                meta, geno_files, prot_files ->
+                                    geno      : geno_files ? tuple( meta, geno_files ) : [[],[]]
+                                    prot      : prot_files ? tuple( meta, prot_files ) : [[],[]]
+                            }
+        
+        ch_busco_geno_anno.geno.view()
+        ch_busco_geno_anno.prot.view()
 
+        // Run TREE SUMMARY for genome and annotation
         TREE_SUMMARY_GENO_ANNO (
             GENOME_AND_ANNOTATION.out.orthofinder,
+            ch_busco_geno_anno.geno,
+            ch_busco_geno_anno.prot,
             ch_tree_genome_anno
         )
         ch_versions      = ch_versions.mix(TREE_SUMMARY_GENO_ANNO.out.versions)
 
+        // Run TREE SUMMARY for genome only
         TREE_SUMMARY_GENO (
             GENOME_ONLY.out.orthofinder,
+            [[],[]], // No busco for genome only
+            [[],[]], // No busco for genome only
             ch_tree_genome
         )
         ch_versions      = ch_versions.mix(TREE_SUMMARY_GENO.out.versions)
@@ -356,7 +316,6 @@ workflow GENOMEQC {
         //
         // MODULE: Run SHINY APP
         //
-
         // Prepare script with functions channel
         ch_functions = Channel.fromPath("$projectDir/bin/tree_functions.R", checkIfExists: true)
         ch_app       = Channel.fromPath("$projectDir/bin/shiny_app.R", checkIfExists: true)

@@ -144,7 +144,7 @@ load_nseqs <- function(file, tree_tips) {
 # ---------------------------
 # Main data ingest (same name)
 # ---------------------------
-process_tree_data <- function(tree_file, busco_file = NULL, quast_file = NULL,
+process_tree_data <- function(tree_file, busco_file_geno = NULL, busco_file_prot = NULL, quast_file = NULL,
                               genes_file = NULL, nseqs_file = NULL, ortho_file = NULL) {
 
   tree <- read.tree(tree_file)
@@ -153,7 +153,8 @@ process_tree_data <- function(tree_file, busco_file = NULL, quast_file = NULL,
   tree_plot <- ggtree(tree)               # temp plot for get_taxa_name()
   tips_order <- rev(get_taxa_name(tree_plot))
 
-  data_busco <- load_busco(busco_file, tips_order)
+  data_busco_geno <- load_busco(busco_file_geno, tips_order)
+  data_busco_prot <- load_busco(busco_file_prot, tips_order)
   data_quast <- load_quast(quast_file, tips_order)
   data_genes <- load_genes(genes_file, tips_order)
   data_nseqs <- load_nseqs(nseqs_file, tips_order)
@@ -164,7 +165,8 @@ process_tree_data <- function(tree_file, busco_file = NULL, quast_file = NULL,
   list(
     tree = tree,
     tips_order = tips_order,
-    data_busco = data_busco,
+    data_busco_geno = data_busco_geno,
+    data_busco_prot = data_busco_prot,
     data_quast = data_quast,
     data_genes = data_genes,
     data_nseqs = data_nseqs,
@@ -175,11 +177,71 @@ process_tree_data <- function(tree_file, busco_file = NULL, quast_file = NULL,
 # ---------------------------
 # Plot generator (same name)
 # ---------------------------
+
+# But first let's create a function that generates BUSCO pie plots separately for genome and proteome
+plot_busco_pies <- function(data_busco,
+                            title = "BUSCO",
+                            rad_width = NULL,
+                            len_pos_x = 0,
+                            fill_colors = c(
+                              Single     = "deepskyblue",
+                              Duplicated = "orange",
+                              Fragmented = "darkorchid4",
+                              Missing    = "firebrick1"
+                            )) {
+
+  # Default return
+  out <- list(
+    plot   = NULL,
+    legend = NULL
+  )
+
+  if (is.null(data_busco)) {
+    return(out)
+  }
+
+  pies_plot <- ggplot() +
+    geom_scatterpie(
+      aes(x = 0, y = node, group = species, r = rad_width),
+      data = data_busco,
+      cols = names(fill_colors),
+      color = NA
+    ) +
+    scale_fill_manual(values = fill_colors) +
+    coord_fixed() +
+    theme_void() +
+    ggtitle(title) +
+    theme(
+      plot.title = element_text(size = 9, hjust = 0.5, vjust = 0.05)
+    )
+
+  legend_busco <- cowplot::get_legend(
+    pies_plot +
+      theme(
+        legend.position = "right",
+        legend.justification = c(len_pos_x, 1.08),
+        legend.title = element_blank(),
+        legend.key.size = unit(0.2, "cm"),
+        legend.text = element_text(size = 8),
+        #legend.box.margin = margin(l = 6)
+      )
+  )
+
+  pies_plot <- pies_plot + guides(fill = "none")
+
+  out$plot   <- pies_plot
+  out$legend <- legend_busco
+
+  return(out)
+}
+
+# Now for the plot generator
 generate_plots <- function(processed_data, text_size = 3, tree_scale = 0.0005,
-                           bar_width = 0.7, rad_width = 0.4, skip_stats = NULL) {
+                           bar_width = 0.7, rad_width = 0.4, skip_stats = NULL, busco_len_pos_x = 0.4) {
 
   tree <- processed_data$tree
-  data_busco <- processed_data$data_busco
+  data_busco_geno <- processed_data$data_busco_geno
+  data_busco_prot <- processed_data$data_busco_prot
   data_quast <- processed_data$data_quast
   data_genes <- processed_data$data_genes
   data_nseqs <- processed_data$data_nseqs
@@ -261,32 +323,20 @@ generate_plots <- function(processed_data, text_size = 3, tree_scale = 0.0005,
       guides(fill = "none")
   }
 
-  pies_plot <- NULL
-  legend_busco <- NULL
-  if (!is.null(data_busco)) {
-    pies_plot <- ggplot() +
-      geom_scatterpie(
-        aes(x = 0, y = node, group = species, r = rad_width),
-        data = data_busco,
-        cols = c("Single", "Duplicated", "Fragmented", "Missing"),
-        color = NA
-      ) +
-      scale_fill_manual(values = c("deepskyblue", "orange", "darkorchid4", "firebrick1")) +
-      coord_fixed() +
-      theme_void() +
-      ggtitle("BUSCO") +
-      theme(plot.title = element_text(size = 9, hjust = 0.5, vjust = 0.05))
+  # BUSCO plots
+  # -- if both genome and proteome busco datasets are present,
+  # change legend x position so that it's not skewed --
+  len_pos_x <- busco_len_pos_x * (!is.null(data_busco_geno) && !is.null(data_busco_prot)) # very smart chatgpt
+  # Plot both genome and proteome BUSCO pies
+  busco_gen_plot  <- plot_busco_pies(data_busco_geno, 
+                                      rad_width = rad_width, 
+                                      title = "BUSCO\ngenome",
+                                      len_pos_x = len_pos_x)
+  busco_prot_plot <- plot_busco_pies(data_busco_prot, 
+                                      rad_width = rad_width, 
+                                      title = "BUSCO\nprotein", 
+                                      len_pos_x = len_pos_x)
 
-    legend_busco <- cowplot::get_legend(
-      pies_plot +
-        theme(legend.position = "right",
-              legend.justification = c(0, 1.08),
-              legend.title = element_blank(),
-              legend.key.size = unit(0.2, "cm"),
-              legend.text = element_text(size = 8))
-    )
-    pies_plot <- pies_plot + guides(fill = "none")
-  }
 
   gene_plot <- NULL
   legend_gene <- NULL
@@ -324,7 +374,8 @@ generate_plots <- function(processed_data, text_size = 3, tree_scale = 0.0005,
     get_plot_range(ch_plot, "y"),
     get_plot_range(nseqs_plot, "y"),
     get_plot_range(ortho_plot, "y"),
-    get_plot_range(pies_plot, "y"),
+    get_plot_range(busco_gen_plot$plot, "y"),
+    get_plot_range(busco_prot_plot$plot, "y"),
     get_plot_range(len_plot, "x"),
     get_plot_range(n50_plot, "x"),
     get_plot_range(gene_plot, "x")
@@ -337,7 +388,8 @@ generate_plots <- function(processed_data, text_size = 3, tree_scale = 0.0005,
     if (!is.null(nseqs_plot)) nseqs_plot <- nseqs_plot + new_ylim
     if (!is.null(ortho_plot)) ortho_plot <- ortho_plot + new_ylim
     if (!is.null(ch_plot))    ch_plot    <- ch_plot    + new_ylim
-    if (!is.null(pies_plot))  pies_plot  <- pies_plot  + new_ylim
+    if (!is.null(busco_gen_plot$plot))  busco_gen_plot$plot  <- busco_gen_plot$plot  + new_ylim
+    if (!is.null(busco_prot_plot$plot))  busco_prot_plot$plot  <- busco_prot_plot$plot  + new_ylim
 
     if (!is.null(len_plot))   len_plot   <- len_plot   + new_xlim
     if (!is.null(n50_plot))   n50_plot   <- n50_plot   + new_xlim
@@ -356,7 +408,8 @@ generate_plots <- function(processed_data, text_size = 3, tree_scale = 0.0005,
     len_plot   = len_plot,
     gene_plot  = gene_plot,
     n50_plot   = n50_plot,
-    pies_plot  = pies_plot
+    busco_gen_plot  = busco_gen_plot$plot,
+    busco_prot_plot = busco_prot_plot$plot
   )
   all_legends <- list(
     ch_plot   = NULL,
@@ -365,9 +418,11 @@ generate_plots <- function(processed_data, text_size = 3, tree_scale = 0.0005,
     len_plot   = legend_len,
     gene_plot  = legend_gene,
     n50_plot   = NULL,
-    pies_plot  = legend_busco
+    busco_gen_plot  = busco_gen_plot$legend,
+    busco_prot_plot = if (!is.null(busco_gen_plot$legend)) NULL else busco_prot_plot$legend # Only plot legend once
   )
 
+  # What's this for? To filter out skipped plots and legends?
   if (!is.null(skip_stats) && length(skip_stats) > 0) {
     plots   <- all_plots[!names(all_plots) %in% skip_stats & !sapply(all_plots, is.null)]
     legends <- all_legends[names(plots)]
