@@ -112,6 +112,14 @@ for gff_file in gff_files:
     debug_info.append(f"Final species name: '{final_species_name}'")
 
     gene_count = 0
+    is_busco = False
+    with open(gff_file, 'r') as f:
+        first_line = f.readline().strip()
+        if "BUSCO" in first_line or "busco" in first_line:
+            is_busco = True
+            print(f"[INFO] Detected BUSCO file format for {gff_file}")
+            debug_info.append(f"Detected BUSCO format for {gff_file}")
+    
     try:
         with open(gff_file, 'r') as f:
             for line_num, line in enumerate(f, 1):
@@ -132,27 +140,34 @@ for gff_file in gff_files:
 
                 # Extract gene ID from attributes
                 gene_id = None
-
-                # Try different attribute patterns
-                for pattern in [r'ID=([^;]+)', r'Name=([^;]+)', r'gene_id=([^;]+)']:
-                    match = re.search(pattern, attributes)
+                
+                if is_busco:
+                    # For BUSCO files, use name istead of ID
+                    match = re.search(r'Name=([^;]+)', attributes)
                     if match:
                         gene_id = match.group(1)
-                        break
+                else:
+                    # Try different attribute patterns
+                    for pattern in [r'ID=([^;]+)', r'Name=([^;]+)', r'gene_id=([^;]+)']:
+                        match = re.search(pattern, attributes)
+                        if match:
+                            gene_id = match.group(1)
+                            break
 
-                # If no pattern matched, try splitting by semicolon
-                if not gene_id:
-                    for attr in attributes.split(';'):
-                        attr = attr.strip()
-                        if '=' in attr:
-                            key, value = attr.split('=', 1)
-                            if key.lower() in ['id', 'name', 'gene_id']:
-                                gene_id = value
-                                break
+                    # If no pattern matched, try splitting by semicolon
+                    if not gene_id:
+                        for attr in attributes.split(';'):
+                            attr = attr.strip()
+                            if '=' in attr:
+                                key, value = attr.split('=', 1)
+                                if key.lower() in ['id', 'name', 'gene_id']:
+                                    gene_id = value
+                                    break
 
                 if gene_id:
                     # Clean gene ID
                     gene_id = gene_id.strip().strip('"').strip("'")
+                    gene_id = gene_id.replace(":", "_") # To avoid mismatches with orthofinder (orthofinder)
                     gene_to_chr[gene_id] = (final_species_name, chromosome)
                     gene_count += 1
 

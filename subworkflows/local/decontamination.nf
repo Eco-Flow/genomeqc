@@ -1,7 +1,6 @@
 include { FCS_FCSADAPTOR                          } from '../../modules/nf-core/fcs/fcsadaptor/main'
 include { FCSGX_CLEANGENOME as FCSGX_CLEANADAPTOR } from '../../modules/nf-core/fcsgx/cleangenome/main'
 include { FCSGX_FETCHDB                           } from '../../modules/nf-core/fcsgx/fetchdb/main'
-//include { FCS_FCSGX                               } from '../../modules/nf-core/fcs/fcsgx/main'
 include { FCSGX_RUNGX                             } from '../../modules/nf-core/fcsgx/rungx/main'
 include { FCSGX_CLEANGENOME                       } from '../../modules/nf-core/fcsgx/cleangenome/main'
 include { TIARA_TIARA as TIARA_RAW                } from '../../modules/nf-core/tiara/tiara/main'
@@ -24,7 +23,7 @@ workflow DECONTAMINATION {
 
     // Run module FCS_Adaptor find contamination
 
-    FCS_FCSADAPTOR ( 
+    FCS_FCSADAPTOR (
         ch_fasta
     )
     ch_versions        = ch_versions.mix(FCS_FCSADAPTOR.out.versions.first())
@@ -88,4 +87,3 @@ workflow DECONTAMINATION {
 
     versions = ch_versions                     // channel: [ versions.yml ]
 }
-

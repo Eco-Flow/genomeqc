@@ -33,16 +33,13 @@ read_gff_to_granges <- function(gff_file) {
     return(gr)
 }
 
-print("Parsing GFF..")
 # Load GFF file into GRanges
 gr <- read_gff_to_granges(input_gff_file)
 
-print("Filering gene features...")
 # Filter only "gene" features
 genes <- gr[gr$feature == "gene"]
 total_genes <- length(genes)
 
-print("Finding overlaps...")
 # Find overlaps
 overlap_results <- findOverlaps(genes, genes, ignore.strand = FALSE)
 
@@ -50,71 +47,82 @@ overlap_results <- findOverlaps(genes, genes, ignore.strand = FALSE)
 sense_count_within <- 0
 antisense_count_within <- 0
 
-# extract indices once
-q_idx <- queryHits(overlap_results)
-s_idx <- subjectHits(overlap_results)
-
-# filter self-overlaps
-keep <- q_idx != s_idx
-q_idx <- q_idx[keep]
-s_idx <- s_idx[keep]
-
-# extract genes
-q_genes <- genes[q_idx]
-s_genes <- genes[s_idx]
-
-# overlap ranges in bulk
-overlaps <- pintersect(ranges(q_genes), ranges(s_genes))
-overlap_len <- width(overlaps)
-
-# query/subject lengths
-q_len <- width(ranges(q_genes))
-s_len <- width(ranges(s_genes))
-
-# percentage overlaps
-q_pct <- (overlap_len / q_len) * 100
-s_pct <- (overlap_len / s_len) * 100
-
-# strands
-q_strand <- as.character(strand(q_genes))
-s_strand <- as.character(strand(s_genes))
-
-# overlap type
-overlap_type <- ifelse(
-  !is.na(q_strand) & !is.na(s_strand),
-  ifelse(q_strand == s_strand, "sense", "antisense"),
-  "unknown"
-)
-
-# counters for fully contained overlaps
-sense_count_within     <- sum(q_pct == 100 & overlap_type == "sense")
-antisense_count_within <- sum(q_pct == 100 & overlap_type == "antisense")
-
-# results data.frame all at once
+# Initialize a results data frame
 results <- data.frame(
-  query_gene        = q_genes$attribute,
-  subject_gene      = s_genes$attribute,
-  query_start       = start(q_genes),
-  query_end         = end(q_genes),
-  subject_start     = start(s_genes),
-  subject_end       = end(s_genes),
-  query_strand      = q_strand,
-  subject_strand    = s_strand,
-  overlap_type      = overlap_type,
-  query_overlap_pct = q_pct,
-  subject_overlap_pct = s_pct,
-  stringsAsFactors = FALSE
+    query_gene = character(),
+    subject_gene = character(),
+    query_start = integer(),
+    query_end = integer(),
+    subject_start = integer(),
+    subject_end = integer(),
+    query_strand = character(),
+    subject_strand = character(),
+    overlap_type = character(),
+    query_overlap_pct = numeric(),
+    subject_overlap_pct = numeric(),
+    stringsAsFactors = FALSE
 )
 
-# optional: progress indicator (print every 5%)
-n <- length(q_idx)
-steps <- seq(0, 100, by = 5)
-for (pct in steps) {
-  idx <- floor(pct/100 * n)
-  if (idx > 0) message("Processed ", pct, "% (", idx, " overlaps)")
+# Iterate through overlaps
+for (i in seq_len(length(overlap_results))) {
+    query_idx <- queryHits(overlap_results)[i]
+    subject_idx <- subjectHits(overlap_results)[i]
+
+    if (query_idx != subject_idx) {
+        query_gene <- genes[query_idx]
+        subject_gene <- genes[subject_idx]
+        overlap_range <- intersect(ranges(query_gene), ranges(subject_gene))
+        overlap_length <- width(overlap_range)
+
+        query_length <- width(ranges(query_gene))
+        subject_length <- width(ranges(subject_gene))
+
+        query_overlap_pct <- (overlap_length / query_length) * 100
+        subject_overlap_pct <- (overlap_length / subject_length) * 100
+
+        # Determine overlap type
+        query_strand <- as.character(strand(query_gene))
+        subject_strand <- as.character(strand(subject_gene))
+
+        if (!is.na(query_strand) && !is.na(subject_strand)) {
+            if (query_strand == subject_strand) {
+                overlap_type <- "sense"
+            } else {
+                overlap_type <- "antisense"
+            }
+        } else {
+            overlap_type <- "unknown"
+        }
+
+
+        # Increment counters for fully contained overlaps
+        if (query_overlap_pct == 100 && overlap_type == "sense") {
+            sense_count_within <- sense_count_within + 1
+        } else if (query_overlap_pct == 100 && overlap_type == "antisense") {
+            antisense_count_within <- antisense_count_within + 1
+        }
+
+        # Append to results
+        results <- rbind(
+            results,
+            data.frame(
+                query_gene = query_gene$attribute,
+                subject_gene = subject_gene$attribute,
+                query_start = start(query_gene),
+                query_end = end(query_gene),
+                subject_start = start(subject_gene),
+                subject_end = end(subject_gene),
+                query_strand = as.character(strand(query_gene)),
+                subject_strand = as.character(strand(subject_gene)),
+                overlap_type = overlap_type,
+                query_overlap_pct = query_overlap_pct,
+                subject_overlap_pct = subject_overlap_pct,
+                stringsAsFactors = FALSE
+            )
+        )
+    }
 }
 
-print("Writing to output...")
 # Write results to output file
 write.table(results, file = output_table, sep = "\t", row.names = FALSE, quote = FALSE)
 
