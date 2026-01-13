@@ -85,10 +85,11 @@ library(scales)
 # Parse command-line arguments
 parser <- ArgumentParser(description = 'Plot phylogenetic tree with statistics and true/false data')
 parser$add_argument('tree_file', type = 'character', help = 'Path to the Newick formatted tree file')
-parser$add_argument('busco_file', type = 'character', help = 'Path to processed BUSCO output file')
 parser$add_argument('quast_file', type = 'character', help = 'Path to processed Quast output file')
 parser$add_argument('genes_file', type = 'character', help = 'Path to gene stats output file')
 parser$add_argument('nseqs_file', type = 'character', help = 'Path to number sequences with at least x number of complete BUSCOs file')
+parser$add_argument('--busco_geno', type = 'character', help = 'Path to processed BUSCO genome output file')
+parser$add_argument('--busco_prot', type = 'character', help = 'Path to processed BUSCO protein output file')
 parser$add_argument('--ortho_file', type = 'character', default = NULL, help = 'Path to number of orthologous sequences file')
 parser$add_argument('--text_size', type = 'double', default = 3, help = 'Text size for the tree plot')
 parser$add_argument('--tree_scale', type = 'double', default = 0.0005, help = 'x axis limits scaling for tree plot (useful when tree labels appear truncated)')
@@ -97,6 +98,7 @@ parser$add_argument('--bar_width', type = 'double', default = 0.7, help = 'Width
 parser$add_argument('--rad_width', type = 'double', default = 0.4, help = 'Radius of pie charts')
 parser$add_argument('--skip_stats', type = 'character', default = NULL, help = "Don't plot these stats (comma separated list)")
 parser$add_argument('--type', type = 'character', choices = c('genome_only', 'genome_anno'), default = 'genome_anno', help = 'Select stats for genome only or for both genome and annotation')
+parser$add_argument('--len_pos_x', type = 'double', default = 5, help = 'Position of the BUSCO legend on the x axis when both genome and protein BUSCO pies are plotted')
 
 args <- parser$parse_args()
 
@@ -246,7 +248,8 @@ load_nseqs <- function(file, tree_tips) {
 }
 
 # --- Load optional input files ---
-data_busco <- load_busco(args$busco_file, tips_order)
+data_busco_geno <- load_busco(args$busco_geno, tips_order)
+data_busco_prot <- load_busco(args$busco_prot, tips_order)
 data_quast <- load_quast(args$quast_file, tips_order)
 data_genes <- load_genes(args$genes_file, tips_order)
 data_nseqs <- load_nseqs(args$nseqs_file, tips_order)
@@ -379,42 +382,121 @@ n50_plot <- n50_plot + guides(fill="none")
   legend_len <- NULL
 }
 
-if (!is.null(data_busco)) {
+# Helper function to plot BUSCO pies
+make_busco_scatterpie <- function(data_busco,
+                                  rad_width,
+                                  len_pos_x = 0,
+                                  type = c("genome", "protein")) {
+
+  if (is.null(data_busco)) {
+    return(list(
+      pies_plot = NULL,
+      legend_busco = NULL
+    ))
+  }
+
+  type <- match.arg(type)
+
   # Create the scatterpie plot
   pies_plot <- ggplot() +
     geom_scatterpie(
-     aes(x = 0, y = node, group = species, r = args$rad_width),  # r determines the radius of the pies
+      aes(x = 0, y = node, group = species, r = rad_width),
       data = data_busco,
       cols = c("Single", "Duplicated", "Fragmented", "Missing"),
-     color = NA
+      color = NA
     ) +
-    scale_fill_manual(values = c("deepskyblue", "orange", "darkorchid4", "firebrick1")) +
+    scale_fill_manual(
+      values = c(
+        "Single"     = "deepskyblue",
+        "Duplicated" = "orange",
+        "Fragmented" = "darkorchid4",
+        "Missing"    = "firebrick1"
+      )
+    ) +
     coord_fixed() +
     theme_void() +
-   ggtitle("BUSCO") +
-   theme(plot.title = element_text(size = 9, hjust = 0.5, vjust = 0.05))
+    ggtitle(paste0("BUSCO\n", type)) +
+    theme(
+      plot.title = element_text(size = 9, hjust = 0.5, vjust = 0.05)
+    )
 
   # Extract legend
   legend_busco <- cowplot::get_legend(
     pies_plot +
-      #guides(fill=guide_legend(ncol=2)) +
-     theme(legend.position = "right",
-           legend.justification = c(0, 1.08),
-           legend.title = element_blank(),
-           legend.key.size = unit(0.2, "cm"),
-           #legend.background = element_rect(fill = NA), # I don't know why this doesn't work, if I set this to NA an outline appears around the legend
-           legend.text = element_text(size = 8))
+      theme(
+        legend.position = "right",
+        legend.justification = c(len_pos_x, 1.08),
+        legend.title = element_blank(),
+        legend.key.size = unit(0.2, "cm"),
+        legend.text = element_text(size = 8)
+      )
   )
+
+  # Remove legend from pie plot
+  pies_plot <- pies_plot + guides(fill = "none")
+
+  list(
+    plot   = pies_plot,
+    legend = legend_busco
+  )
+}
+
+# BUSCO plots
+# -- if both genome and proteome busco datasets are present,
+# change legend x position so that it's not skewed --
+len_pos_x <- args$len_pos_x * (!is.null(data_busco_geno) && !is.null(data_busco_prot)) # very smart chatgpt
+
+# Plot both genome and proteome BUSCO pies
+busco_gen_plot <- make_busco_scatterpie(
+  data_busco = data_busco_geno,
+  rad_width  = args$rad_width,
+  len_pos_x = len_pos_x,
+  type       = "genome"
+)
+
+busco_prot_plot <- make_busco_scatterpie(
+  data_busco = data_busco_prot,
+  rad_width  = args$rad_width,
+  len_pos_x = len_pos_x,
+  type       = "protein"
+)
+
+#if (!is.null(data_busco)) {
+  # Create the scatterpie plot
+#  pies_plot <- ggplot() +
+#    geom_scatterpie(
+#     aes(x = 0, y = node, group = species, r = args$rad_width),  # r determines the radius of the pies
+#      data = data_busco,
+#      cols = c("Single", "Duplicated", "Fragmented", "Missing"),
+#     color = NA
+#    ) +
+#    scale_fill_manual(values = c("deepskyblue", "orange", "darkorchid4", "firebrick1")) +
+#    coord_fixed() +
+#    theme_void() +
+#   ggtitle("BUSCO\ngenome") +
+#   theme(plot.title = element_text(size = 9, hjust = 0.5, vjust = 0.05))
+
+  # Extract legend
+#  legend_busco <- cowplot::get_legend(
+#    pies_plot +
+      #guides(fill=guide_legend(ncol=2)) +
+#     theme(legend.position = "right",
+#           legend.justification = c(0, 1.08),
+#           legend.title = element_blank(),
+#           legend.key.size = unit(0.2, "cm"),
+           #legend.background = element_rect(fill = NA), # I don't know why this doesn't work, if I set this to NA an outline appears around the legend
+#           legend.text = element_text(size = 8))
+#  )
 
   # Display the legend alone
   #cowplot::ggdraw() + cowplot::draw_grob(legend_busco)
 
   # Remove lenged for pieplot
-  pies_plot <- pies_plot + guides(fill="none")
-} else {
-  pies_plot <- NULL
-  legend_busco <- NULL
-}
+#  pies_plot <- pies_plot + guides(fill="none")
+#} else {
+#  pies_plot <- NULL
+#  legend_busco <- NULL
+#}
 
 # Display the legend alone
 #cowplot::ggdraw() + cowplot::draw_grob(legend_len)
@@ -456,9 +538,6 @@ if (!is.null(data_genes)) {
   legend_gene <- NULL
 }
 
-# Display the legend alone
-#cowplot::ggdraw() + cowplot::draw_grob(legend_gene)
-
 # Helper function to safely extract axis ranges
 get_plot_range <- function(plot, axis = "y") {
   # For error message in case plot is null
@@ -485,7 +564,8 @@ all_ranges <- c(
   get_plot_range(ch_plot, "y"),
   get_plot_range(nseqs_plot, "y"),
   get_plot_range(ortho_plot, "y"),
-  get_plot_range(pies_plot, "y"),
+  get_plot_range(busco_gen_plot$plot, "y"),
+  get_plot_range(busco_prot_plot$plot, "y"),
   get_plot_range(len_plot, "x"),
   get_plot_range(n50_plot, "x"),
   get_plot_range(gene_plot, "x")
@@ -509,8 +589,9 @@ if (!is.null(len_plot))  len_plot  <- len_plot + new_xlim
 # Set new xlim for Quast N50 (equivalent to ylim)
 if (!is.null(n50_plot))  n50_plot  <- n50_plot + new_xlim
 
-# Set new ylim for Quast pies
-if (!is.null(pies_plot)) pies_plot <- pies_plot + new_ylim
+# Set new ylim for BUSCI pies
+if (!is.null(busco_gen_plot$plot)) busco_gen_plot$plot <- busco_gen_plot$plot + new_ylim
+if (!is.null(busco_prot_plot$plot)) busco_prot_plot$plot <- busco_prot_plot$plot + new_ylim
 
 # Set new xlim for gene stats (equivalent to ylim)
 if (!is.null(gene_plot)) gene_plot <- gene_plot + new_xlim
@@ -540,7 +621,8 @@ all_plots <- list(
   len_plot   = len_plot,
   gene_plot  = gene_plot,
   n50_plot   = n50_plot,
-  pies_plot  = pies_plot
+  busco_gen_plot  = busco_gen_plot$plot,
+  busco_prot_plot = busco_prot_plot$plot
 )
 
 all_legends <- list(
@@ -550,7 +632,8 @@ all_legends <- list(
   len_plot   = legend_len,
   gene_plot  = legend_gene,
   n50_plot   = NULL,
-  pies_plot  = legend_busco
+  busco_gen_plot  = busco_gen_plot$legend,
+  busco_prot_plot = if (!is.null(busco_gen_plot$legend)) NULL else busco_prot_plot$legend # Only plot legend once
 )
 
 # Keep only plots and legends not in the skip list (thanks to chat gpt)
@@ -587,10 +670,10 @@ if (args$type == 'genome_anno') {
   )
 }
 
-pdf("tree_plot.pdf")
+pdf("tree_plot.pdf", width = 10, height = 7)
 final_plot
 dev.off()
 
-svg("tree_plot.svg")
+svg("tree_plot.svg", width = 10, height = 7)
 final_plot
 dev.off()
