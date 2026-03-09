@@ -41,10 +41,10 @@ dependencies:
   - pip
   - minimap2=2.28
   - pip:
-    - python-Levenshtein
-    - PyPDF2
-    - PyMuPDF
-    - statannot
-    - psutil
-    - intervaltree
-    - tabulate>=0.9.0
+      - python-Levenshtein
+      - PyPDF2
+      - PyMuPDF
+      - statannot
+      - psutil
+      - intervaltree
+      - tabulate>=0.9.0

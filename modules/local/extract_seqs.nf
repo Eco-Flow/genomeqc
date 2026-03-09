@@ -3,7 +3,7 @@ process EXTRACT_SEQS {
     label 'process_low'
     //label 'process_med_memory'
 
-    container = 'community.wave.seqera.io/library/agat:1.4.1--304a47c62ae478b4'
+    container 'community.wave.seqera.io/library/agat:1.4.1--304a47c62ae478b4'
 
     input:
     tuple val (meta),  path(fasta)
@@ -21,7 +21,7 @@ process EXTRACT_SEQS {
     -g ${gff} \\
     -f ${fasta} \\
     -p -o ${prefix}.prot.fasta --clean_final_stop
-    
+
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

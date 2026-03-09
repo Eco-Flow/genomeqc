@@ -269,7 +269,7 @@ workflow GENOMEQC {
         ch_tree_genome      = GENOME_ONLY.out.tree_data
                             | concat(BUSCO_SEQS_GENOME.out.table.map { meta, table -> table})
                             | collect
-       
+
         //
         // MODULE: Run TREE SUMMARY
         //
@@ -291,7 +291,7 @@ workflow GENOMEQC {
                                     geno      : geno_files ? tuple( meta, geno_files ) : [[],[]]
                                     prot      : prot_files ? tuple( meta, prot_files ) : [[],[]]
                             }
-        
+
         ch_busco_geno_anno.geno.view()
         ch_busco_geno_anno.prot.view()
 

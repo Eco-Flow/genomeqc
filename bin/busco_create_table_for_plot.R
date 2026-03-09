@@ -37,9 +37,9 @@ colnames(busco_data) <- c("Busco_id", "Status", "Sequence", "Score", "Length", "
 
 # Read the GFF file
 gff_data <- read_tsv(
-  gff_file, 
-  comment = "#", 
-  col_names = FALSE, 
+  gff_file,
+  comment = "#",
+  col_names = FALSE,
   col_types = cols(
     X1 = col_character(), X2 = col_character(), X3 = col_character(),
     X4 = col_integer(), X5 = col_integer(), X6 = col_character(),

@@ -26,8 +26,9 @@
 The pipeline takes a list of genomes and annotations (from local files or ncbi accessions), and runs commonly used tools to assess their quality.
 
 Depending on the provided inputs, there are two ways this pipeline can run:
- 1. Genome only (minmal run, only fasta files are supplied)
- 2. Genome and Annotation (both fasta and gtf/gff files are supplied)
+
+1.  Genome only (minmal run, only fasta files are supplied)
+2.  Genome and Annotation (both fasta and gtf/gff files are supplied)
 
 <!-- TODO nf-core:
 For an example, see https://github.com/nf-core/rnaseq/blob/master/README.md#introduction
@@ -36,19 +37,21 @@ For an example, see https://github.com/nf-core/rnaseq/blob/master/README.md#intr
 ![pipeline_diagram](docs/images/nf-core-genomeqc_metro_map_v2.png)
 
 **2. Genome Only:**
+
 1. Downloads the genome files from NCBI: [NCBI genome download](https://github.com/kblin/ncbi-genome-download) - Or you provide your own genomes
 2. Describes genome assembly:
    1. [BUSCO](https://busco.ezlab.org/): Evaluates genome completeness based on **single copy markers**.
    2. **BUSCO Ideogram**: Plots the location of markers on the assembly.
    3. [tidk](https://github.com/tolkit/telomeric-identifier) (optional): Indetfies and visualises telomeric repeats.
-   3. [QUAST](https://github.com/ablab/quast): Computes contiguity and integrity statistics: N50, N90, GC%, number of sequences.
-   4. Contamination screening:
+   4. [QUAST](https://github.com/ablab/quast): Computes contiguity and integrity statistics: N50, N90, GC%, number of sequences.
+   5. Contamination screening:
       - [FCS-GX](https://github.com/ncbi/fcs/wiki/FCS-GX-quickstart): Detection and removal of foreign organisms contamination.
       - [FCS-adaptor](https://github.com/ncbi/fcs/wiki/FCS-adaptor-quickstart): Detection and removal of adaptor and vector contamination.
       - [Tiara](https://ibe-uw.github.io/tiara/): DNA sequence classification.
 3. Summary with [MultiQC](http://multiqc.info).
 
 **1. Genome and Annotation:**
+
 1. Downloads the genome and gene annotation files from NCBI: [NCBI genome download](https://github.com/kblin/ncbi-genome-download) - Or you provide your own genomes/annotations
 2. Describes genome assembly:
    1. [BUSCO](https://busco.ezlab.org/): Evaluates genome completeness based on **single copy markers**.
@@ -65,10 +68,10 @@ For an example, see https://github.com/nf-core/rnaseq/blob/master/README.md#intr
    1. [AGAT](https://agat.readthedocs.io/en/latest/): Number of genes, features, length...
    2. **Gene Overlaps**: Finds the number of overlapping genes.
    3. More options...
-5. Extracts longest protein isoform: [GffRead](https://github.com/gpertea/gffread).
-6. Finds orthologous genes: [Orthofinder](https://github.com/davidemms/OrthoFinder).
-7. Plots an orthology-based phylogenetic tree : **Tee Summary**, as well as other relevant stats from the above steps.
-8. Summary with [MultiQC](http://multiqc.info).
+4. Extracts longest protein isoform: [GffRead](https://github.com/gpertea/gffread).
+5. Finds orthologous genes: [Orthofinder](https://github.com/davidemms/OrthoFinder).
+6. Plots an orthology-based phylogenetic tree : **Tee Summary**, as well as other relevant stats from the above steps.
+7. Summary with [MultiQC](http://multiqc.info).
 
 > [!WARNING]
 > We strongly suggest users to specify the lineage using the `--busco_lineage` parameter, as setting the lineage to `auto` (default value) might cause problems with `BUSCO` during the lineage determination step.
@@ -86,7 +89,7 @@ For an example, see https://github.com/nf-core/rnaseq/blob/master/README.md#intr
 
 First, prepare an input **samplesheet** in **csv format** (e.g. `samplesheet.csv`). You can prepare your sampplesheet using:
 
-###  1. Local files
+### 1. Local files
 
 Simply point out to your local genome assembly and annotation (in FASTA and GFF format, respectively) using the `fasta` and `gff` fields:
 
@@ -186,5 +189,4 @@ You can cite the `nf-core` publication as follows:
 >
 > _Nat Biotechnol._ 2020 Feb 13. doi: [10.1038/s41587-020-0439-x](https://dx.doi.org/10.1038/s41587-020-0439-x).
 
-
-python  app/downloader-utility.py --clade "Chordata" --project_name "DToL" --data_status "Mapped Reads - Done" --experiment_type "Chromium genome"  --download_location "/Users/raheela/Documents" --download_option "assemblies" --species_list "Apamea sordens,Bufo bufo"
+python app/downloader-utility.py --clade "Chordata" --project_name "DToL" --data_status "Mapped Reads - Done" --experiment_type "Chromium genome" --download_location "/Users/raheela/Documents" --download_option "assemblies" --species_list "Apamea sordens,Bufo bufo"

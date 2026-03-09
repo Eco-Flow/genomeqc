@@ -69,7 +69,7 @@ process TREE_SUMMARY {
     if [ -f "n_seqs_above_x_buscos.tsv" ]; then
         cp n_seqs_above_x_buscos.tsv n_seqs_above_x_buscos_output.tsv
     fi
-    
+
     if [ -f "species_orthologous_chromosomes.tsv" ]; then
         cp species_orthologous_chromosomes.tsv species_orthologous_chromosomes_output.tsv
     fi

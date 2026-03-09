@@ -328,13 +328,13 @@ generate_plots <- function(processed_data, text_size = 3, tree_scale = 0.0005,
   # change legend x position so that it's not skewed --
   len_pos_x <- busco_len_pos_x * (!is.null(data_busco_geno) && !is.null(data_busco_prot)) # very smart chatgpt
   # Plot both genome and proteome BUSCO pies
-  busco_gen_plot  <- plot_busco_pies(data_busco_geno, 
-                                      rad_width = rad_width, 
+  busco_gen_plot  <- plot_busco_pies(data_busco_geno,
+                                      rad_width = rad_width,
                                       title = "BUSCO\ngenome",
                                       len_pos_x = len_pos_x)
-  busco_prot_plot <- plot_busco_pies(data_busco_prot, 
-                                      rad_width = rad_width, 
-                                      title = "BUSCO\nprotein", 
+  busco_prot_plot <- plot_busco_pies(data_busco_prot,
+                                      rad_width = rad_width,
+                                      title = "BUSCO\nprotein",
                                       len_pos_x = len_pos_x)
 
 
