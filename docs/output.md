@@ -15,6 +15,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 <!-- [pigz uncompress](#pigz-uncompress) - Uncompresses FASTA and GFF files -->
 <!-- [FastaValidator](#fastavalidator) Validate FASTA files -->
 <!-- [AGAT convert sp_GXF2GXF]() - Standataizes gff files -->
+
 - [NCBI genome download](#ncbi-genome-download) - Download genomes and their annotations from RefSeq
 - Genome quality metrics:
   - [Quast](#quast) - Genome quality and contiguity metrics
@@ -102,7 +103,7 @@ It outputs a report with each sequence of the genome assembly labelled as Eukary
 
 - `decontamination/tiara`
   - `<assembly>.txt
-  `: Report with sequence classifications.
+`: Report with sequence classifications.
   - `log_<assembly>.txt`: Log file with classification statistics and model information.
 
 </details>
@@ -246,7 +247,7 @@ It outputs a report with completness stats, a summarized table with these stats,
   - `short_summary.specific.<busco_db>.<species_name>.fasta.txt` Completness report in tsv format
   - `<species_name>-<busco_db>-busco.batch_summary.txt`: Summarized completness report in tsv format
   - `<species_name>_<lineage>.png` Ideogram with the location of single copy markers
-</details>
+  </details>
 
 ![output_example_busco](images/output_example/syngnathus_acus_ideogram.png)
 

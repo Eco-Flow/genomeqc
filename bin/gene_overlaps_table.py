@@ -23,11 +23,11 @@ for file in args.input_files:
     try:
         # Load the file into a DataFrame
         df = pd.read_csv(file, sep='\t', header=None, names=['Statistic', 'Count'])
-        
+
         # Extract required statistics
         total_genes = df.loc[df['Statistic'] == 'Total number of genes', 'Count'].values[0]
         overlapping_genes = df.loc[df['Statistic'] == 'Total number of overlapping genes', 'Count'].values[0]
-        
+
         # Optional statistics
         sense_genes = df.loc[df['Statistic'] == 'Number of genes fully contained in sense direction', 'Count'].values[0] if args.include_sense else "NA"
         antisense_genes = df.loc[df['Statistic'] == 'Number of genes fully contained in antisense direction', 'Count'].values[0] if args.include_antisense else "NA"
@@ -43,7 +43,7 @@ for file in args.input_files:
             entry['Fully_contained_sense_genes'] = sense_genes
         if args.include_antisense:
             entry['Fully_contained_antisense_genes'] = antisense_genes
-        
+
         results.append(entry)
     except Exception as e:
         print(f"Error processing {file}: {e}")

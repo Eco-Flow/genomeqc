@@ -82,16 +82,16 @@ species_9,GCA_000000009.1,,,/path/to/reads.fastq
 species_10,GCA_000000010.1,,,,1324
 ```
 
-As for now, the pipeline doesn't support SRA accession for **Merqury**. We will consider this option  the future.
+As for now, the pipeline doesn't support SRA accession for **Merqury**. We will consider this option the future.
 
-| Column    | Description                                                                                                                                                                            |
-| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `species`  | Species name or custom sample name. Spaces in sample names are automatically converted to underscores (`_`) (not sure if this is an option right now). |
-| `refseq` | ncbi acession. Can be GenBank (starts with "GCA") or RefSeq (starts with "GCF").                                                             |
-| `fasta` | Full path to the genome fasta file. Can be compressed or uncompressed.                                                             |
-| `gff` | Full path to the genome annotation gff/gtf file. Can be compressed or uncompressed.                                                             |
-| `fastq` | Full path to FastQ file for long reads (e.g. PacBio or ONT). File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                             |
-| `taxid` | Species taxid for decontamination screening, must be a valid NCBI taxid (numeric string without spaces).                                                             |
+| Column    | Description                                                                                                                                            |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `species` | Species name or custom sample name. Spaces in sample names are automatically converted to underscores (`_`) (not sure if this is an option right now). |
+| `refseq`  | ncbi acession. Can be GenBank (starts with "GCA") or RefSeq (starts with "GCF").                                                                       |
+| `fasta`   | Full path to the genome fasta file. Can be compressed or uncompressed.                                                                                 |
+| `gff`     | Full path to the genome annotation gff/gtf file. Can be compressed or uncompressed.                                                                    |
+| `fastq`   | Full path to FastQ file for long reads (e.g. PacBio or ONT). File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                    |
+| `taxid`   | Species taxid for decontamination screening, must be a valid NCBI taxid (numeric string without spaces).                                               |
 
 An [example samplesheet](../assets/samplesheet.csv) has been provided with the pipeline.
 
@@ -167,21 +167,21 @@ Users can also run the pipeline using Merqury by supplying the path to sequencin
 If, in the samplesheet, a NCBI taxid is provided for an assembly, and a path pointing to the FCS-GX database or a manifest to download and build it (check the Parameters tab in this page), the pipeline will run the decontamination subworkflow.
 
 The decontamination subsworkflow consists of three modules:
-  - [FCS-GX](https://github.com/ncbi/fcs/wiki/FCS-GX-quickstart): Detection and removal of foreign organisms contamination. Requires the FCS-GX database.
-  - [FCS-adaptor](https://github.com/ncbi/fcs/wiki/FCS-adaptor-quickstart): Detection and removal of adaptor and vector contamination.
-  - [Tiara](https://ibe-uw.github.io/tiara/): For DNA sequence classification in two stages:
-    1. The sequences are classified to either archaea, bacteria, prokarya, eukarya, organelle or unknown.
-    2. The sequences labeled as organelle in the first stage are classified to either mitochondria, plastid or unknown.
 
+- [FCS-GX](https://github.com/ncbi/fcs/wiki/FCS-GX-quickstart): Detection and removal of foreign organisms contamination. Requires the FCS-GX database.
+- [FCS-adaptor](https://github.com/ncbi/fcs/wiki/FCS-adaptor-quickstart): Detection and removal of adaptor and vector contamination.
+- [Tiara](https://ibe-uw.github.io/tiara/): For DNA sequence classification in two stages:
+  1. The sequences are classified to either archaea, bacteria, prokarya, eukarya, organelle or unknown.
+  2. The sequences labeled as organelle in the first stage are classified to either mitochondria, plastid or unknown.
 
 ### Running tests
 
 The pipeline can be ran using different test profiles:
 
 1. `-profile test` Will run on genome and annotation and Merqury using **RefSeq accessions** and local **fastqs**.
-3. `-profile test_local` Will run on genome and annotation on local files (**fasta** and **gff**).
-4. `-profile test_genomeonly` Will run genome only on local files (**fasta**).
-5. `-profile test_nofastq` Will run genome and annotation using **RefSeq accessions**.
+2. `-profile test_local` Will run on genome and annotation on local files (**fasta** and **gff**).
+3. `-profile test_genomeonly` Will run genome only on local files (**fasta**).
+4. `-profile test_nofastq` Will run genome and annotation using **RefSeq accessions**.
 
 Test files are stored in the genomeqc branch of the [test-dataset repository](https://github.com/nf-core/test-datasets/tree/genomeqc).
 
@@ -239,7 +239,7 @@ If `-profile` is not specified, the pipeline will run locally and expect all sof
 - `shifter`
   - A generic configuration profile to be used with [Shifter](https://nersc.gitlab.io/development/shifter/how-to-use/)
 - `charliecloud`
-  - A generic configuration profile to be used with [Charliecloud](https://hpc.github.io/charliecloud/)
+  - A generic configuration profile to be used with [Charliecloud](https://charliecloud.io/)
 - `apptainer`
   - A generic configuration profile to be used with [Apptainer](https://apptainer.org/)
 - `wave`

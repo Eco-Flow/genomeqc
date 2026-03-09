@@ -1,7 +1,7 @@
 process GENE_OVERLAPS {
     tag "$meta.id"
     label 'process_single'
-    container = 'ecoflowucl/gene_overlap:v1.0'
+    container 'ecoflowucl/gene_overlap:v1.0'
 
     input:
     tuple val(meta), path(gff)

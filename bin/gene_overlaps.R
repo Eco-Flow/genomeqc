@@ -21,7 +21,7 @@ read_gff_to_granges <- function(gff_file) {
     colnames(gff_data) <- c("seqname", "source", "feature", "start", "end",
                             "score", "strand", "frame", "attribute")
     gff_data <- gff_data %>%
-      filter(strand %in% c("-","+")) 
+      filter(strand %in% c("-","+"))
 
     gr <- GRanges(
         seqnames = gff_data$seqname,

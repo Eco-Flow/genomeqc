@@ -60,7 +60,7 @@ workflow GENOME_AND_ANNOTATION {
     //    []
     //)
     //ch_gxf_agat  = GFFREAD_VALIDATE.out.gffread_gff
-    
+
 
     //
     // MODULE: Run AGAT longest isoform
@@ -224,7 +224,7 @@ workflow GENOME_AND_ANNOTATION {
         false
     )
     ch_versions  = ch_versions.mix(GAWK_GENO.out.versions.first())
-    
+
     // For BUSCO protein
     GAWK_PROT (
         BUSCO_PROTEINS.out.batch_summary,
