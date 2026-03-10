@@ -20,9 +20,9 @@ process HITE {
     if [ -f *.gz ]; then
       gunzip -c "$fasta" > myunzip.fa
       #myunzip.fa=\$(gunzip -c "$fasta")
-      awk '/^>/ { print (NR==1 ? "" : RS) \$0; next } { printf "%s", \$0 } END { printf RS }' myunzip.fa > genome_line_removal.fasta
+      awk '/^>/ { print (NR==1 ? "" : RS) \$0; next } { printf "%s", \$0 } END { printf RS }' myunzip.fa > ${prefix}.fasta
     else
-      awk '/^>/ { print (NR==1 ? "" : RS) \$0; next } { printf "%s", \$0 } END { printf RS }' $fasta > genome_line_removal.fasta
+      awk '/^>/ { print (NR==1 ? "" : RS) \$0; next } { printf "%s", \$0 } END { printf RS }' $fasta > ${prefix}.fasta
     fi
 
     # Capture the current working directory
@@ -31,7 +31,7 @@ process HITE {
     # Create the output directory
     mkdir -p \${mydir}/${prefix}_hite_results
 
-    newpath=`realpath genome_line_removal.fasta`
+    newpath=`realpath ${prefix}.fasta`
 
     cd /HiTE
 
