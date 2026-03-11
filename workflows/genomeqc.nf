@@ -248,25 +248,37 @@ workflow GENOMEQC {
     // MODULE: Run RepeatModeler BuildDatabase
     //
     REPEATMODELER_BUILDDATABASE (
-        params.famdb_library ? ch_fasta : Channel.empty() 
+        ch_fasta
+        //params.famdb_library ? ch_fasta : Channel.empty() 
     )
 
     //
     // MODULE: Run RepeatModuler
     //
+
     REPEATMODELER_REPEATMODELER (
         REPEATMODELER_BUILDDATABASE.out.db
     )
 
     // Create combined library
-    ch_combined_libs = FAMDB_PY.out.famdb_lib
-                     | map { meta, fasta -> fasta }
-                     | combine(REPEATMODELER_REPEATMODELER.out.fasta)
-                     | map { famdb_fasta, meta, modeler_fasta -> 
-                         tuple(meta, [famdb_fasta, modeler_fasta]) 
+    ch_famdb_combined = FAMDB_PY.out.famdb_lib
+                      | map { meta, fasta -> fasta }
+                      | combine(REPEATMODELER_REPEATMODELER.out.fasta)
+                      | map { famdb_fasta, meta, modeler_fasta -> 
+                          tuple(meta, [famdb_fasta, modeler_fasta]) 
+                      }
+
+    ch_modeler_only = REPEATMODELER_REPEATMODELER.out.fasta
+                    | map { meta, fasta -> tuple(meta, [fasta]) }
+
+    ch_combined_libs = ch_modeler_only
+                     | join(ch_famdb_combined, by: 0, remainder: true)
+                     | map { meta, modeler_files, combined_files ->
+                         combined_files != null ? tuple(meta, combined_files) : tuple(meta, modeler_files)
                      }
-    
+
     // Combine libraries with CAT
+    if ( ch_combined_libs ) {
     CAT_CAT (
         ch_combined_libs
     )
@@ -282,8 +294,9 @@ workflow GENOMEQC {
 
     REPEATMASKER_REPEATMASKER (
         ch_fasta,
-        CDHIT_CDHITEST.out.fasta
+        CDHIT_CDHITEST.out.fasta_lib
     ) 
+    }
 
     //
     // SUBWORKFLOWS: Run genome only or genome + annotation subworkflows
@@ -362,8 +375,6 @@ workflow GENOMEQC {
                                     prot      : prot_files ? tuple( meta, prot_files ) : [[],[]]
                             }
         
-        ch_busco_geno_anno.geno.view()
-        ch_busco_geno_anno.prot.view()
 
         // Run TREE SUMMARY for genome and annotation
         TREE_SUMMARY_GENO_ANNO (

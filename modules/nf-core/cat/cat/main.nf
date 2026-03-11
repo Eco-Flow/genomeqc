@@ -33,6 +33,7 @@ process CAT_CAT {
 
     // Use input file ending as default
     prefix   = task.ext.prefix ?: "${meta.id}${getFileSuffix(file_list[0])}"
+    prefix   = prefix.replaceFirst(/^/, "cat_")
     out_zip  = prefix.endsWith('.gz')
     in_zip   = file_list[0].endsWith('.gz')
     command1 = (in_zip && !out_zip) ? 'zcat' : 'cat'

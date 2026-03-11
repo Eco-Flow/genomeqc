@@ -11,9 +11,9 @@ process REPEATMODELER_REPEATMODELER {
     tuple val(meta), path(db)
 
     output:
-    tuple val(meta), path("*.fa") , emit: fasta
-    tuple val(meta), path("*.stk"), emit: stk
-    tuple val(meta), path("*.log"), emit: log
+    tuple val(meta), path("*.fa") , emit: fasta, optional: true
+    tuple val(meta), path("*.stk"), emit: stk, optional: true
+    tuple val(meta), path("*.log"), emit: log, optional: true
     path "versions.yml"           , emit: versions
 
     when:
@@ -28,10 +28,13 @@ process REPEATMODELER_REPEATMODELER {
         -database $db_name \\
         $args \\
         -threads $task.cpus
-
-    mv ${db_name}-families.fa   ${prefix}.fa
-    mv ${db_name}-families.stk  ${prefix}.stk
-    mv ${db_name}-rmod.log      ${prefix}.log
+    
+    if [ -f "${db_name}-families.fa" ]
+    then
+      mv ${db_name}-families.fa   ${prefix}.fa
+      mv ${db_name}-families.stk  ${prefix}.stk
+      mv ${db_name}-rmod.log      ${prefix}.log
+    fi
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
