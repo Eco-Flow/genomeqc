@@ -24,7 +24,7 @@ include { SHINY_APP as SHINY_APP_GENOME_ANNO     } from '../modules/local/shiny_
 include { SHINY_APP as SHINY_APP_GENOME          } from '../modules/local/shiny_app/main'
 include { HITE                                   } from '../modules/local/hite/main'
 include { RM_DOWNLOAD_DB                         } from '../modules/local/repeatmasker_download_db/main'
-include { RM_CONCAT_DB                           } from '../modules/local/RM_concat_db/main'
+//include { RM_CONCAT_DB                           } from '../modules/local/RM_concat_db/main'
 include { REPEATMASKER_REPEATMASKER              } from '../modules/nf-core/repeatmasker/repeatmasker/main'
 include { CDHIT_CDHITEST                         } from '../modules/nf-core/cdhit/cdhitest/main'
 include { FAMDB_PY                               } from '../modules/local/famdb.py/main'
@@ -242,29 +242,28 @@ workflow GENOMEQC {
     RM_DOWNLOAD_DB (
         RM_database ? RM_database : Channel.empty()
     )
-    RM_CONCAT_DB(
-    RM_DOWNLOAD_DB.out.h5
-        .map { meta, h5 -> h5 }  
-        .collect()               
-    )
+    //RM_CONCAT_DB(
+    //RM_DOWNLOAD_DB.out.h5
+    //    .map { meta, h5 -> h5 }  
+    //    .collect()               
+    //)
     }
-    RM_CONCAT_DB.out.h5.view()
 
     //ch_famdb_lib =  params.famdb_library ? Channel.fromPath(params.famdb_library)
     //                | map { path -> tuple( [id: 'famdb'], path )  }
     //                : Channel.empty()
     
-    ch_famdb_lib = RM_CONCAT_DB.out.h5 ? RM_CONCAT_DB.out.h5
-                                       | map { path -> tuple( [id: 'famdb'], path )  }
+    ch_famdb_lib = RM_DOWNLOAD_DB.out.h5 ? RM_DOWNLOAD_DB.out.h5
+                                       | map { path -> tuple( path )  } 
+                                       | first()
                                        : Channel.empty()
 
     ch_famdb_lib.view()
     // Extract repeat library from famdb h5 partitions
     FAMDB_PY (
         ch_famdb_lib,
-        params.famdb_lineage ? params.famdb_lineage : Channel.empty()
+        params.famdb_lineage ? params.famdb_lineage : ''
     )
-
     // User RepeatModeler to build de novo repeat library
     //
     // MODULE: Run RepeatModeler BuildDatabase
