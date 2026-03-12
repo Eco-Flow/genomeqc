@@ -11,8 +11,8 @@ process CDHIT_CDHITEST {
     tuple val(meta), path(sequences)
 
     output:
-    //tuple val(meta), path("*.{fa,fq}")    ,emit: fasta_lib
-    path("*.{fa,fq}")                     ,emit: fasta_lib
+    tuple val(meta), path("*.{fa,fq}")    ,emit: fasta_lib
+    //path("*.{fa,fq}")                     ,emit: fasta_lib
     tuple val(meta), path("*.clstr")      ,emit: clusters
     path "versions.yml"                   ,emit: versions
 

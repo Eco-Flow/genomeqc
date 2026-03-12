@@ -20,12 +20,22 @@ process FAMDB_PY {
     def prefix = task.ext.prefix ?: "${meta.id}"
 
     """
-    python /usr/local/share/RepeatMasker/famdb.py \
-    -i $h5_dir \
-    families -f fasta_name \
-    -d \
-    $args \
-    $lineage > ${lineage}.fasta
+    if [ ! -z "$lineage" ]
+    then
+      python /usr/local/share/RepeatMasker/famdb.py \
+      -i $h5_dir \
+      families -f fasta_name \
+      -d \
+      $args \
+      $lineage > ${lineage}.fasta
+    else
+      python /usr/local/share/RepeatMasker/famdb.py \
+      -i $h5_dir \
+      families -f fasta_name \
+      -d \
+      $args \
+    > famdb_db.fasta
+    fi
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

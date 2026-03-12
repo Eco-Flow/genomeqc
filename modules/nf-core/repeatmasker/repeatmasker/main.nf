@@ -9,7 +9,7 @@ process REPEATMASKER_REPEATMASKER {
 
     input:
     tuple val(meta), path(fasta)
-    path(lib)
+    tuple val(meta), path(lib)
 
     output:
     tuple val(meta), path("${prefix}.masked")   , emit: masked
