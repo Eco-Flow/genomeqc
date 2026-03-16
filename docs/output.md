@@ -31,6 +31,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
   - [Tiara](#tiara) - Sequence classification (domain and organelle level)
 - [GffRead](#gffread) - Extract longest isoform from FASTA file
 - [BUSCO](#busco) - Genome completeness based on single copy markers
+- [RepeatModeler](#repeatmodeler) - Summary of repeat content
 - [Orthofinder](#orthofinder) - Phylogenetic orthology inference
 - [Tree summary](#tree-summary) - Phylogenetic summary plot
 - [MultiQC](#multiqc) - Aggregate report describing results and QC from the whole pipeline
@@ -249,6 +250,21 @@ It outputs a report with completness stats, a summarized table with these stats,
 </details>
 
 ![output_example_busco](images/output_example/syngnathus_acus_ideogram.png)
+
+### RepeatModeler
+
+[REPEATMODELER](https://github.com/Dfam-consortium/RepeatModeler) is a de novo transposable element (TE) family identification and modeling package. At the heart of RepeatModeler are three de-novo repeat finding programs ( RECON, RepeatScout and LtrHarvest/Ltr_retriever ) which employ complementary computational methods for identifying repeat element boundaries and family relationships from sequence data.
+
+It outputs a report table containing the number of elements and the percentage of the genome covereged by each category of elements.
+
+<details markdown="1">
+<summary>Output files</summary>
+
+- `repeatmasker/<species_name>/`
+  - `<species_name>.masked` softmasked genome sequences (fasta)
+  - `<species_name>.out` detailed table containing repeat position and classification
+  - `<species_name>.tbl` table summarising repeat annotation result
+</details>
 
 ### Orthofinder
 
