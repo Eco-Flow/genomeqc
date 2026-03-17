@@ -30,7 +30,10 @@ Depending on the inputs provided, there are two ways this pipeline can run:
 1.  Genome only (minmal run, only fasta files are supplied)
 2.  Genome and Annotation (both fasta and gtf/gff files are supplied)
 
-![pipeline_diagram](docs/images/nf-core-genomeqc_metro_map_v3.png)
+<picture>
+   <source media="(prefers-color-scheme: dark)" srcset="docs/images/nf-core-genomeqc_metro_map_v3.png">
+   <img alt="nf-core/genomeqc" src="docs/images/nf-core-genomeqc_metro_map_v3.png">
+</picture>
 
 **1. Genome Only:**
 
