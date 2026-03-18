@@ -14,10 +14,10 @@ workflow GENOME_ONLY {
     main:
     ch_fasta.view { "Running ${it[0]} on genome only mode"}
 
-    ch_versions   = Channel.empty()
+    ch_versions   = channel.empty()
 
     // For tree plot
-    ch_tree_data = Channel.empty()
+    ch_tree_data = channel.empty()
 
     //
     // MODULE: Run Quast
@@ -28,7 +28,6 @@ workflow GENOME_ONLY {
         [[],[]],
         [[],[]]
     )
-    ch_versions   = ch_versions.mix(QUAST.out.versions.first())
     ch_tree_data = ch_tree_data.mix(QUAST.out.tsv.map { tuple -> tuple[1] })
 
     BUSCO_BUSCO (
@@ -39,7 +38,6 @@ workflow GENOME_ONLY {
         params.busco_config ?: [],
         params.busco_clean ?: []
     )
-    ch_versions   = ch_versions.mix(BUSCO_BUSCO.out.versions.first())
     //ch_tree_data  = ch_tree_data.mix(BUSCO_BUSCO.out.batch_summary.collect { meta, file -> file })
 
     //
@@ -52,7 +50,6 @@ workflow GENOME_ONLY {
         [],
         false
     )
-
     ch_tree_data  = ch_tree_data.mix(GAWK.out.output.collect { meta, file -> file })
 
     //
@@ -96,7 +93,6 @@ workflow GENOME_ONLY {
         ch_busco_proteins,
         [[],[]]
     )
-    ch_versions  = ch_versions.mix(ORTHOFINDER.out.versions)
 
     // Transform tsv to gff for orthologous chromosomes module
     BUSCO_TSV_TO_GFF (

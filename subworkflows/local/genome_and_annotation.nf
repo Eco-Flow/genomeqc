@@ -24,10 +24,10 @@ workflow GENOME_AND_ANNOTATION {
     main:
     ch_fasta.view { "Running ${it[0]} on genome and annotation mode"}
 
-    ch_versions  = Channel.empty()
+    ch_versions  = channel.empty()
 
     // For tree plot
-    ch_tree_data = Channel.empty()
+    ch_tree_data = channel.empty()
 
     //
     // MODULE: Run AGAT convertspgxf2gxf or GFFREAD validate
@@ -39,27 +39,13 @@ workflow GENOME_AND_ANNOTATION {
             ch_gxf
         )
         ch_gxf_agat  = AGAT_CONVERTSPGXF2GXF.out.output_gff
-        ch_versions  = ch_versions.mix(AGAT_CONVERTSPGXF2GXF.out.versions.first())
     } else if ( params.val_tool == "gffread" ) {
         GFFREAD_VALIDATE (
             ch_gxf,
             []
         )
         ch_gxf_agat  = GFFREAD_VALIDATE.out.gffread_gff
-        ch_versions  = ch_versions.mix(GFFREAD_VALIDATE.out.versions.first())
     }
-
-    //AGAT_CONVERTSPGXF2GXF(
-    //    ch_gxf
-    //)
-    //ch_gxf_agat  = AGAT_CONVERTSPGXF2GXF.out.output_gff
-    //ch_versions  = ch_versions.mix(AGAT_CONVERTSPGXF2GXF.out.versions.first())
-
-    //GFFREAD_VALIDATE (
-    //    ch_gxf,
-    //    []
-    //)
-    //ch_gxf_agat  = GFFREAD_VALIDATE.out.gffread_gff
 
 
     //
@@ -72,7 +58,6 @@ workflow GENOME_AND_ANNOTATION {
         []
 
     )
-    ch_versions  = ch_versions.mix(AGAT_SPKEEPLONGESTISOFORM.out.versions.first())
 
     // Get longest isoform from gff
     ch_gxf_long  = AGAT_SPKEEPLONGESTISOFORM.out.gff
@@ -101,7 +86,6 @@ workflow GENOME_AND_ANNOTATION {
     AGAT_SPSTATISTICS (
         ch_input.gxf_unfilt
     )
-    ch_versions  = ch_versions.mix(AGAT_SPSTATISTICS.out.versions.first())
 
     //
     // MODULE: Run gene overlap module
@@ -110,7 +94,6 @@ workflow GENOME_AND_ANNOTATION {
     GENE_OVERLAPS {
         ch_input.gxf_filt
     }
-    ch_versions  = ch_versions.mix(GENE_OVERLAPS.out.versions.first())
     ch_tree_data = ch_tree_data.mix(GENE_OVERLAPS.out.overlap_counts.collect { meta, file -> file })
 
     //
@@ -122,7 +105,6 @@ workflow GENOME_AND_ANNOTATION {
         [[],[]],
         ch_input.gxf_unfilt
     )
-    ch_versions  = ch_versions.mix(QUAST.out.versions.first())
 
     // For tree
 
@@ -136,7 +118,6 @@ workflow GENOME_AND_ANNOTATION {
         ch_input.gxf_filt,
         ch_input.fasta.map { meta, fasta -> fasta}
     )
-    ch_versions  = ch_versions.mix(GFFREAD.out.versions.first())
 
     //
     // MODULE: Run fasta validator
@@ -170,7 +151,6 @@ workflow GENOME_AND_ANNOTATION {
         ortho_ch,
         [[],[]]
     )
-    ch_versions  = ch_versions.mix(ORTHOFINDER.out.versions)
 
     //
     // MODULE: Run ORTHOLOGOUS_CHROMOSOMES
@@ -197,7 +177,6 @@ workflow GENOME_AND_ANNOTATION {
         params.busco_config ?: [],
         params.busco_clean ?: []
     )
-    ch_versions  = ch_versions.mix(BUSCO_GENOME.out.versions.first())
 
     //
     // MODULE: Run BUSCO for proteins
@@ -211,7 +190,6 @@ workflow GENOME_AND_ANNOTATION {
         params.busco_config ?: [],
         params.busco_clean ?: []
     )
-    ch_versions  = ch_versions.mix(BUSCO_PROTEINS.out.versions.first())
 
     //
     // GAWK
@@ -223,7 +201,6 @@ workflow GENOME_AND_ANNOTATION {
         [],
         false
     )
-    ch_versions  = ch_versions.mix(GAWK_GENO.out.versions.first())
 
     // For BUSCO protein
     GAWK_PROT (
@@ -231,7 +208,6 @@ workflow GENOME_AND_ANNOTATION {
         [],
         false
     )
-    ch_versions  = ch_versions.mix(GAWK_PROT.out.versions.first())
 
     //
     // Plot BUSCO ideogram

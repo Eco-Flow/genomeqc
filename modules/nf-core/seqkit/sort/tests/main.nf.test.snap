@@ -11,7 +11,11 @@
                     ]
                 ],
                 "1": [
-                    "versions.yml:md5,04ac93fea9e0019536cfe1445ef15472"
+                    [
+                        "SEQKIT_SORT",
+                        "seqkit",
+                        "2.9.0"
+                    ]
                 ],
                 "fastx": [
                     [
@@ -21,16 +25,20 @@
                         "test.fasta:md5,d41d8cd98f00b204e9800998ecf8427e"
                     ]
                 ],
-                "versions": [
-                    "versions.yml:md5,04ac93fea9e0019536cfe1445ef15472"
+                "versions_seqkit": [
+                    [
+                        "SEQKIT_SORT",
+                        "seqkit",
+                        "2.9.0"
+                    ]
                 ]
             }
         ],
+        "timestamp": "2026-03-12T13:10:28.982308647",
         "meta": {
-            "nf-test": "0.8.4",
-            "nextflow": "23.10.1"
-        },
-        "timestamp": "2024-05-08T10:15:12.840547526"
+            "nf-test": "0.9.4",
+            "nextflow": "25.10.4"
+        }
     },
     "sarscov2-test_1_fastq_gz": {
         "content": [
@@ -44,7 +52,11 @@
                     ]
                 ],
                 "1": [
-                    "versions.yml:md5,04ac93fea9e0019536cfe1445ef15472"
+                    [
+                        "SEQKIT_SORT",
+                        "seqkit",
+                        "2.9.0"
+                    ]
                 ],
                 "fastx": [
                     [
@@ -54,16 +66,20 @@
                         "test.fastq.gz:md5,80d9fd1976648214f44e42bc3d705972"
                     ]
                 ],
-                "versions": [
-                    "versions.yml:md5,04ac93fea9e0019536cfe1445ef15472"
+                "versions_seqkit": [
+                    [
+                        "SEQKIT_SORT",
+                        "seqkit",
+                        "2.9.0"
+                    ]
                 ]
             }
         ],
+        "timestamp": "2026-03-12T13:10:15.097534361",
         "meta": {
-            "nf-test": "0.8.4",
-            "nextflow": "23.10.1"
-        },
-        "timestamp": "2024-05-08T10:14:53.190928013"
+            "nf-test": "0.9.4",
+            "nextflow": "25.10.4"
+        }
     },
     "sarscov2-genome_fasta": {
         "content": [
@@ -77,7 +93,11 @@
                     ]
                 ],
                 "1": [
-                    "versions.yml:md5,04ac93fea9e0019536cfe1445ef15472"
+                    [
+                        "SEQKIT_SORT",
+                        "seqkit",
+                        "2.9.0"
+                    ]
                 ],
                 "fastx": [
                     [
@@ -87,16 +107,20 @@
                         "test.fasta:md5,483f4a5dfe60171c86ee9b7e6dff908b"
                     ]
                 ],
-                "versions": [
-                    "versions.yml:md5,04ac93fea9e0019536cfe1445ef15472"
+                "versions_seqkit": [
+                    [
+                        "SEQKIT_SORT",
+                        "seqkit",
+                        "2.9.0"
+                    ]
                 ]
             }
         ],
+        "timestamp": "2026-03-12T13:10:00.80650106",
         "meta": {
-            "nf-test": "0.8.4",
-            "nextflow": "23.10.1"
-        },
-        "timestamp": "2024-05-08T10:14:29.745582222"
+            "nf-test": "0.9.4",
+            "nextflow": "25.10.4"
+        }
     },
     "sarscov2-genome_fasta_gz": {
         "content": [
@@ -110,7 +134,11 @@
                     ]
                 ],
                 "1": [
-                    "versions.yml:md5,04ac93fea9e0019536cfe1445ef15472"
+                    [
+                        "SEQKIT_SORT",
+                        "seqkit",
+                        "2.9.0"
+                    ]
                 ],
                 "fastx": [
                     [
@@ -120,15 +148,19 @@
                         "test.fasta.gz:md5,483f4a5dfe60171c86ee9b7e6dff908b"
                     ]
                 ],
-                "versions": [
-                    "versions.yml:md5,04ac93fea9e0019536cfe1445ef15472"
+                "versions_seqkit": [
+                    [
+                        "SEQKIT_SORT",
+                        "seqkit",
+                        "2.9.0"
+                    ]
                 ]
             }
         ],
+        "timestamp": "2026-03-12T13:10:08.084582784",
         "meta": {
-            "nf-test": "0.8.4",
-            "nextflow": "23.10.1"
-        },
-        "timestamp": "2024-05-08T10:14:41.460601093"
+            "nf-test": "0.9.4",
+            "nextflow": "25.10.4"
+        }
     }
 }
