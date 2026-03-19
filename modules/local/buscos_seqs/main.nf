@@ -10,7 +10,7 @@ process BUSCO_SEQS {
 
     output:
     tuple val(meta), path("*.tsv"), emit: table
-    path "versions.yml"           , emit: versions
+    tuple val("${task.process}"), val('python'), eval('python3 --version | sed "s/Python //g"'), emit: versions_python, topic: versions
 
     script:
     def args = task.ext.args ?: ''
@@ -21,9 +21,5 @@ process BUSCO_SEQS {
     -i $tables \\
     $args
 
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-    python: \$(python --version | sed 's/Python //g')
-    END_VERSIONS
     """
 }

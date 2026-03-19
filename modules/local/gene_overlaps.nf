@@ -9,7 +9,7 @@ process GENE_OVERLAPS {
     output:
     tuple val(meta), path("*.summary.tsv"), emit: overlap_detailed_summary
     tuple val(meta), path("*.counts.tsv") , emit: overlap_counts
-    tuple val("${task.process}"), val('rscript'), eval('    Rscript -e "cat(as.character(getRversion()))"'), emit: versions_rscript, topic: versions
+    tuple val("${task.process}"), val('r_base'), eval('Rscript -e "cat(as.character(getRversion()))"'), emit: versions_r_base, topic: versions
     tuple val("${task.process}"), val('genomicranges'), eval('Rscript -e "cat(as.character(packageVersion(\'GenomicRanges\')))"'), emit: versions_genomicranges, topic: versions
 
     when:
