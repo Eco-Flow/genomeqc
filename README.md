@@ -47,7 +47,7 @@ Depending on the inputs provided, there are two ways this pipeline can run:
       - [FCS-GX](https://github.com/ncbi/fcs/wiki/FCS-GX-quickstart): Detection and removal of foreign organism contamination.
       - [FCS-adaptor](https://github.com/ncbi/fcs/wiki/FCS-adaptor-quickstart): Detection and removal of adaptor and vector contamination.
       - [Tiara](https://ibe-uw.github.io/tiara/): DNA sequence classification.
-3. Plots a BUSCO marker-based phylogenetic tree with assembly summary statistics: **Tee Summary**.
+3. Plots a BUSCO marker-based phylogenetic tree with assembly summary statistics: **Tree Summary**.
 4. Summary with [MultiQC](http://multiqc.info).
 
 **2. Genome and Annotation:**
