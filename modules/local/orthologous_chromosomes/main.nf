@@ -15,7 +15,6 @@ process ORTHOLOGOUS_CHROMOSOMES {
     path "debug_gene_mapping.txt", emit: debug_info
     tuple val("${task.process}"), val('python'), eval('python --version | sed "s/Python //g"'), emit: versions_python, topic: versions
     tuple val("${task.process}"), val('pandas'), eval('python -c "import pandas as pd; print(pd.__version__)"'), emit: versions_pandas, topic: versions
-    path "versions.yml", emit: versions
 
     when:
     task.ext.when == null || task.ext.when
