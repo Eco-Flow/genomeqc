@@ -34,6 +34,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 - [BUSCO](#busco) - Genome completeness based on single copy markers
 - [Orthofinder](#orthofinder) - Phylogenetic orthology inference
 - [Tree summary](#tree-summary) - Phylogenetic summary plot
+- [Shiny app](#shiny-app) - Dynamic tree summary plot adjuster
 - [MultiQC](#multiqc) - Aggregate report describing results and QC from the whole pipeline
 - [Pipeline information](#pipeline-information) - Report metrics generated during the workflow execution
 
@@ -263,12 +264,33 @@ It output a rooted species tree which is later used to present the quality stats
 
 The idea of the tree summary is to give some phylogenetic context to the quality stats, which might help users when evaluating the integrity of the assemblies.
 
+<details markdown="1">
+<summary>Output files</summary>
+
 - `tree_summary/`
   - `tree_plot.pdf` Tree summary with quality statistics
 
 </details>
 
 ![output_example_tree](images/output_example/tree_plot.png)
+
+### Shiny App
+
+**The shiny app** module uses [Shiny](https://shiny.posit.co/), a package to build interactive web apps from R, to create a dynamic plot adjuster to modify the tree plot in real time. It allows to change plot parameters such as margins, branch length, text size, etc., as well as adding and removing summary statistics next to the tree tips. The modified plot can be saved as a png/svg.
+
+The app has two tabs, the **Plot Controls** tab to adjust the plot and remove/add features, and an **Export Settings** tab, that allows to preview the plot to export, change export settings, and save the plot as plot as png/svg.
+
+<details markdown="1">
+<summary>Output files</summary>
+
+- `shiny/app/`
+  - `shiny_app.sh`: excutable to run the shiny app. It can be executed it using `bash shiny_app.sh`.
+  - `shiny_app.R`: script containing the code to run the app.
+  - `tree_functions.R`: script containing the code with the functions used by the app.
+
+</details>
+
+![output_example_tree](images/output_example/shiny_app.png)
 
 ### MultiQC
 
