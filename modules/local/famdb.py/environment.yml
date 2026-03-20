@@ -1,5 +1,0 @@
-name: shiny_app
-channels:
-  - conda-forge
-  - bioconda
-  - defaults
