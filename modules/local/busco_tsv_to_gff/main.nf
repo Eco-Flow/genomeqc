@@ -11,7 +11,7 @@ process BUSCO_TSV_TO_GFF {
     output:
     tuple val(meta), path("${meta.id}_busco.gff"), emit: gff
     tuple val(meta), path("${meta.id}_busco_stats.json"), emit: stats
-    tuple val("${task.process}"), val('python'), eval('python3 --version | sed "s/Python //g"'), emit: versions_python, topic: versions
+    //tuple val("${task.process}"), val('python'), eval('python3 --version | sed "s/Python //g"'), emit: versions_python, topic: versions
 
     script:
     """

@@ -162,7 +162,6 @@ workflow GENOME_AND_ANNOTATION {
         },
         AGAT_SPKEEPLONGESTISOFORM.out.gff.map { meta, gff -> gff }.collect()
     )
-    ch_versions  = ch_versions.mix(ORTHOLOGOUS_CHROMOSOMES.out.versions)
     ch_tree_data = ch_tree_data.mix(ORTHOLOGOUS_CHROMOSOMES.out.species_summary)
 
     //
@@ -247,7 +246,6 @@ workflow GENOME_AND_ANNOTATION {
                         }
 
     GENOME_ANNOTATION_BUSCO_IDEOGRAM ( ch_plot_input )
-    ch_versions         = ch_versions.mix(GENOME_ANNOTATION_BUSCO_IDEOGRAM.out.versions.first())
 
     emit:
     orthofinder                = ORTHOFINDER.out.orthofinder         // channel: [ val(meta), [folder] ]

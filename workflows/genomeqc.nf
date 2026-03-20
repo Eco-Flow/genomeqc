@@ -298,23 +298,21 @@ workflow GENOMEQC {
             ch_busco_geno_anno.prot,
             ch_tree_genome_anno
         )
-        ch_versions      = ch_versions.mix(TREE_SUMMARY_GENO_ANNO.out.versions)
 
         // Run TREE SUMMARY for genome only
         TREE_SUMMARY_GENO (
             GENOME_ONLY.out.orthofinder,
-            [[],[]], // No busco for genome only
-            [[],[]], // No busco for genome only
+            [[],[]], // No busco for genome only (busco runs on genome)
+            [[],[]], // No busco for genome only (busco runs on genome)
             ch_tree_genome
         )
-        ch_versions      = ch_versions.mix(TREE_SUMMARY_GENO.out.versions)
 
         //
         // MODULE: Run SHINY APP
         //
         // Prepare script with functions channel
-        ch_functions = Channel.fromPath("$projectDir/bin/tree_functions.R", checkIfExists: true)
-        ch_app       = Channel.fromPath("$projectDir/bin/shiny_app.R", checkIfExists: true)
+        ch_functions = channel.fromPath("$projectDir/bin/tree_functions.R", checkIfExists: true)
+        ch_app       = channel.fromPath("$projectDir/bin/shiny_app.R", checkIfExists: true)
 
         // For genome and annotation
         SHINY_APP_GENOME_ANNO (
@@ -323,7 +321,6 @@ workflow GENOMEQC {
             ch_functions,
             ch_app
         )
-        ch_versions      = ch_versions.mix(SHINY_APP_GENOME_ANNO.out.versions)
 
         // For genome only
         SHINY_APP_GENOME (
@@ -332,7 +329,6 @@ workflow GENOMEQC {
             ch_functions,
             ch_app
         )
-        ch_versions      = ch_versions.mix(SHINY_APP_GENOME.out.versions)
     }
 
     //
