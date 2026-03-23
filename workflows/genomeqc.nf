@@ -55,7 +55,7 @@ workflow GENOMEQC {
     //
     // MODULE: Run create_path
     //
-    
+
     // ch_input.ncbi is now a 3-element tuple, last element is the fastq.
     // We need to remove it before CREATE_PATH
     ch_input.ncbi
