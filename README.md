@@ -100,10 +100,10 @@ species_3,/path/to/genome3.fasta,/path/to/annotation3.gff3
 
 ### 2. ncbi accessions
 
-Additionally, you can run the pipeline providing ncbi accessions (RefSeq or GenBank, depeding on the mode you wish to run) in the `refseq` field:
+Additionally, you can run the pipeline providing ncbi accessions (RefSeq or GenBank, depeding on the mode you wish to run) in the `ncbi` field:
 
 ```csv
-species,refseq
+species,ncbi
 species_1,GCF_000000001.1
 species_2,GCF_000000002.1
 species_3,GCF_000000003.1
@@ -114,7 +114,7 @@ species_3,GCF_000000003.1
 You can combine both input types in the same samplesheet:
 
 ```csv
-species,refseq,fasta,gff
+species,ncbi,fasta,gff
 species_1,GCF_000000001.1
 species_2,,/path/to/genome2.fasta,/path/to/annotation2.gff3
 species_3,GCF_000000003.1

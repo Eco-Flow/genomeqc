@@ -6,8 +6,6 @@ This document describes the output produced by the nf-core/genomeqc.
 
 The directories listed below will be created in the results directory after the pipeline has finished. All paths are relative to the top-level results directory.
 
-<!-- TODO nf-core: Write this documentation describing your workflow's output -->
-
 ## Pipeline overview
 
 The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes data using the following steps:
@@ -16,27 +14,27 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 <!-- [FastaValidator](#fastavalidator) Validate FASTA files -->
 <!-- [AGAT convert sp_GXF2GXF]() - Standataizes gff files -->
 
-- [NCBI genome download](#ncbi-genome-download) - Download genomes and their annotations from RefSeq
+- [NCBI genome download](#ncbi-genome-download) - Download genomes and their annotations from RefSeq and GenBank.
 - Genome quality metrics:
-  - [Quast](#quast) - Genome quality and contiguity metrics
-  - [tidk](#tidk) - Identify telomeric repeats
-  - [Merqury](#merqury) - Genome completeness and accuracy based on raw sequecing k-mer counts
+  - [Quast](#quast) - Genome quality and contiguity metrics.
+  - [tidk](#tidk) - Identify telomeric repeats.
+  - [Merqury](#merqury) - Genome completeness and accuracy based on raw sequecing k-mer counts.
 - Annotation quality metrics:
-  - [AGAT sp_statistics](#agat-sp_statistics) - Gene statistics
-  - [AGAT sp_keep_longest_isoform](#agat-sp_keep_longest_isoform) - Filter longest isoform from GXF file
-  - [Gene overlaps](#gene-overlaps) - Find overlapping genes (sense and antisense)
+  - [AGAT sp_statistics](#agat-sp_statistics) - Gene statistics.
+  - [AGAT sp_keep_longest_isoform](#agat-sp_keep_longest_isoform) - Filter longest isoform from GXF file.
+  - [Gene overlaps](#gene-overlaps) - Find overlapping genes (sense and antisense).
 - [Decontamination](#decontamination):
-  - [FCS-GX](#fcs-gx) - Foreign genome contamination screening
-  - [FCS-adaptor](#fcs-adaptor) - Adaptor and vector contamination screening
-  - [FCS-adaptor clean genome](#fcs-adaptor-clean-genome) Removal of contamination from assembly
-  - [Tiara](#tiara) - Sequence classification (domain and organelle level)
-- [GffRead](#gffread) - Extract longest isoform from FASTA file
-- [BUSCO](#busco) - Genome completeness based on single copy markers
-- [Orthofinder](#orthofinder) - Phylogenetic orthology inference
-- [Tree summary](#tree-summary) - Phylogenetic summary plot
-- [Shiny app](#shiny-app) - Dynamic tree summary plot adjuster
-- [MultiQC](#multiqc) - Aggregate report describing results and QC from the whole pipeline
-- [Pipeline information](#pipeline-information) - Report metrics generated during the workflow execution
+  - [FCS-GX](#fcs-gx) - Foreign genome contamination screening.
+  - [FCS-adaptor](#fcs-adaptor) - Adaptor and vector contamination screening.
+  - [FCS-adaptor clean genome](#fcs-adaptor-clean-genome) Removal of contamination from assembly.
+  - [Tiara](#tiara) - Sequence classification (domain and organelle level).
+- [GffRead](#gffread) - Extract longest isoform from FASTA file.
+- [BUSCO](#busco) - Genome completeness based on single copy markers.
+- [Orthofinder](#orthofinder) - Phylogenetic orthology inference.
+- [Tree summary](#tree-summary) - Phylogenetic summary plot.
+- [Shiny app](#shiny-app) - Dynamic tree summary plot adjuster.
+- [MultiQC](#multiqc) - Aggregate report describing results and QC from the whole pipeline.
+- [Pipeline information](#pipeline-information) - Report metrics generated during the workflow execution.
 
 <!--### Pigz Uncompress
 
@@ -113,14 +111,14 @@ It outputs a report with each sequence of the genome assembly labelled as Eukary
 
 [NCBI genome download](https://github.com/kblin/ncbi-genome-download) is a tool for downloading assemblies from the NCBI FTP site.
 
-It inputs RefSeq IDs and downloads the respective assembly and annotation in FASTA and GFF formats. If local files are provided, this step is skipped.
+It inputs RefSeq or GeneBank assembly accessions and downloads the respective assembly (RefSeq and GeneBank) and annotation (RefSeq only) in FASTA and GFF formats. If local files are provided, this step is skipped.
 
 <details markdown="1">
 <summary>Output files</summary>
 
 - `ncbigenomedownload/`
-  - `<assembly>.fa.gz`: Genome assembly in FASTA format.
-  - `<assembly>.gff3.gz`: Annotation in GFF format.
+  - `<assembly>.fa.gz`: Genome assembly in FASTA format (GeneBank and RefSeq outputs).
+  - `<assembly>.gff3.gz`: Annotation in GFF format (RefSeq output).
 
 </details>
 
