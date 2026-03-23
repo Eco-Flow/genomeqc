@@ -11,7 +11,7 @@
 [![nf-test](https://img.shields.io/badge/unit_tests-nf--test-337ab7.svg)](https://www.nf-test.com)
 
 [![Nextflow](https://img.shields.io/badge/version-%E2%89%A525.04.0-green?style=flat&logo=nextflow&logoColor=white&color=%230DC09D&link=https%3A%2F%2Fnextflow.io)](https://www.nextflow.io/)
-[![nf-core template version](https://img.shields.io/badge/nf--core_template-3.5.1-green?style=flat&logo=nfcore&logoColor=white&color=%2324B064&link=https%3A%2F%2Fnf-co.re)](https://github.com/nf-core/tools/releases/tag/3.5.1)
+[![nf-core template version](https://img.shields.io/badge/nf--core_template-3.5.2-green?style=flat&logo=nfcore&logoColor=white&color=%2324B064&link=https%3A%2F%2Fnf-co.re)](https://github.com/nf-core/tools/releases/tag/3.5.2)
 [![run with conda](http://img.shields.io/badge/run%20with-conda-3EB049?labelColor=000000&logo=anaconda)](https://docs.conda.io/en/latest/)
 [![run with docker](https://img.shields.io/badge/run%20with-docker-0db7ed?labelColor=000000&logo=docker)](https://www.docker.com/)
 [![run with singularity](https://img.shields.io/badge/run%20with-singularity-1d355c.svg?labelColor=000000)](https://sylabs.io/docs/)
@@ -25,34 +25,34 @@
 
 The pipeline takes a list of genomes and annotations (from local files or ncbi accessions), and runs commonly used tools to assess their quality.
 
-Depending on the provided inputs, there are two ways this pipeline can run:
+Depending on the inputs provided, there are two ways this pipeline can run:
 
 1.  Genome only (minmal run, only fasta files are supplied)
 2.  Genome and Annotation (both fasta and gtf/gff files are supplied)
 
-<!-- TODO nf-core:
-For an example, see https://github.com/nf-core/rnaseq/blob/master/README.md#introduction
--->
+<picture>
+   <source media="(prefers-color-scheme: dark)" srcset="docs/images/nf-core-genomeqc_metro_map_v3_logo_dark.png">
+   <img alt="nf-core/genomeqc" src="docs/images/nf-core-genomeqc_metro_map_v3.png">
+</picture>
 
-![pipeline_diagram](docs/images/nf-core-genomeqc_metro_map_v2.png)
+**1. Genome Only:**
 
-**2. Genome Only:**
-
-1. Downloads the genome files from NCBI: [NCBI genome download](https://github.com/kblin/ncbi-genome-download) - Or you provide your own genomes
+1. Downloads the genome files from NCBI: [NCBI genome download](https://github.com/kblin/ncbi-genome-download) - Or **provide your own genomes**.
 2. Describes genome assembly:
    1. [BUSCO](https://busco.ezlab.org/): Evaluates genome completeness based on **single copy markers**.
-   2. **BUSCO Ideogram**: Plots the location of markers on the assembly.
-   3. [tidk](https://github.com/tolkit/telomeric-identifier) (optional): Indetfies and visualises telomeric repeats.
-   4. [QUAST](https://github.com/ablab/quast): Computes contiguity and integrity statistics: N50, N90, GC%, number of sequences.
+   2. **BUSCO Ideogram**: Plots the location of BUSCO markers in the assembly.
+   3. [tidk](https://github.com/tolkit/telomeric-identifier) (optional): Identifies and visualises telomeric repeats.
+   4. [QUAST](https://github.com/ablab/quast): Computes contiguity and integrity statistics such as N50, N90, GC%, and the number of sequences.
    5. Contamination screening:
-      - [FCS-GX](https://github.com/ncbi/fcs/wiki/FCS-GX-quickstart): Detection and removal of foreign organisms contamination.
+      - [FCS-GX](https://github.com/ncbi/fcs/wiki/FCS-GX-quickstart): Detection and removal of foreign organism contamination.
       - [FCS-adaptor](https://github.com/ncbi/fcs/wiki/FCS-adaptor-quickstart): Detection and removal of adaptor and vector contamination.
       - [Tiara](https://ibe-uw.github.io/tiara/): DNA sequence classification.
-3. Summary with [MultiQC](http://multiqc.info).
+3. Plots a BUSCO marker-based phylogenetic tree with assembly summary statistics: **Tree Summary**.
+4. Summary with [MultiQC](http://multiqc.info).
 
-**1. Genome and Annotation:**
+**2. Genome and Annotation:**
 
-1. Downloads the genome and gene annotation files from NCBI: [NCBI genome download](https://github.com/kblin/ncbi-genome-download) - Or you provide your own genomes/annotations
+1. Downloads the genome and gene annotation files from NCBI: [NCBI genome download](https://github.com/kblin/ncbi-genome-download) - Or **provide your own genomes and annotations**.
 2. Describes genome assembly:
    1. [BUSCO](https://busco.ezlab.org/): Evaluates genome completeness based on **single copy markers**.
    2. **BUSCO Ideogram**: Plots the location of markers on the assembly.
@@ -67,20 +67,18 @@ For an example, see https://github.com/nf-core/rnaseq/blob/master/README.md#intr
 3. Describes annotation :
    1. [AGAT](https://agat.readthedocs.io/en/latest/): Number of genes, features, length...
    2. **Gene Overlaps**: Finds the number of overlapping genes.
-   3. More options...
 4. Extracts longest protein isoform: [GffRead](https://github.com/gpertea/gffread).
 5. Finds orthologous genes: [Orthofinder](https://github.com/davidemms/OrthoFinder).
-6. Plots an orthology-based phylogenetic tree : **Tee Summary**, as well as other relevant stats from the above steps.
+6. Plots an orthology-based phylogenetic tree with assembly and annotation summary statistics: **Tree Summary**.
 7. Summary with [MultiQC](http://multiqc.info).
+
+The pipeline outputs an executable that launches a shiny app with the tree plot and the summary statistics. The plot's parameters can be modified, and summary statistics can be added or removed in real time. Once the plot has been adjusted, it can be saved as png/svg.
 
 > [!WARNING]
 > We strongly suggest users to specify the lineage using the `--busco_lineage` parameter, as setting the lineage to `auto` (default value) might cause problems with `BUSCO` during the lineage determination step.
 
 > [!NOTE]
 > `BUSCO Ideogram` will only plot those chromosomes -or scaffolds- that contain at least one single copy marker.
-
-<!-- TODO nf-core: Include a figure that guides the user through the major workflow steps. Many nf-core
-     workflows use the "tube map" design for that. See https://nf-co.re/docs/guidelines/graphic_design/workflow_diagrams#examples for examples.   -->0
 
 ## Usage
 
@@ -94,28 +92,36 @@ First, prepare an input **samplesheet** in **csv format** (e.g. `samplesheet.csv
 Simply point out to your local genome assembly and annotation (in FASTA and GFF format, respectively) using the `fasta` and `gff` fields:
 
 ```csv
-species,refseq,fasta,gff,fastq
-species_1,,/path/to/genome.fasta,/path/to/annotation.gff3,
-species_2,,/path/to/genome.fasta,/path/to/annotation.gff3,
-species_3,,/path/to/genome.fasta,/path/to/annotation.gff3,
+species,fasta,gff
+species_1,/path/to/genome1.fasta,/path/to/annotation1.gff3
+species_2,/path/to/genome2.fasta,/path/to/annotation2.gff3
+species_3,/path/to/genome3.fasta,/path/to/annotation3.gff3
 ```
 
 ### 2. ncbi accessions
 
-Additionally, you can run the pipeline using providing ncbi accessions (RefSeq or GenBank, depeding on the mode you wish to run) in the `ncbi` field:
+Additionally, you can run the pipeline providing ncbi accessions (RefSeq or GenBank, depeding on the mode you wish to run) in the `refseq` field:
 
 ```csv
-species,refseq,fasta,gff,fastq
-species_1,GCF_000000001.1,,,
-species_2,GCF_000000002.1,,,
-species_3,GCF_000000003.1,,,
+species,refseq
+species_1,GCF_000000001.1
+species_2,GCF_000000002.1
+species_3,GCF_000000003.1
+```
+
+### 3. Both
+
+You can combine both input types in the same samplesheet:
+
+```csv
+species,refseq,fasta,gff
+species_1,GCF_000000001.1
+species_2,,/path/to/genome2.fasta,/path/to/annotation2.gff3
+species_3,GCF_000000003.1
+species_4,,/path/to/genome4.fasta,/path/to/annotation4.gff3
 ```
 
 ### Run the pipeline
-
-<!--
-You can mix the two input types **(in development)**.
--->
 
 Run the pipeline using:
 
@@ -132,18 +138,10 @@ You can run the pipeline using a test profile and docker:
 nextflow run nf-core/genomeqc -profile test,docker --outdir ./results
 ```
 
-<!-- TODO nf-core: update the following command to include all required parameters for a minimal example -->
-
 > [!WARNING]
 > Please provide pipeline parameters via the CLI or Nextflow `-params-file` option. Custom config files including those provided by the `-c` Nextflow option can be used to provide any configuration _**except for parameters**_; see [docs](https://nf-co.re/docs/usage/getting_started/configuration#custom-configuration-files).
 
 For more details and further functionality, please refer to the [usage documentation](https://nf-co.re/genomeqc/usage) and the [parameter documentation](https://nf-co.re/genomeqc/parameters).
-
-## Pipeline output
-
-To see the results of an example test run with a full size dataset refer to the [results](https://nf-co.re/genomeqc/results) tab on the nf-core website pipeline page.
-For more details about the output files and reports, please refer to the
-[output documentation](https://nf-co.re/genomeqc/output).
 
 ## Pipeline output
 

@@ -6,27 +6,25 @@
 
 ## Introduction
 
-<!-- TODO nf-core: Add documentation about anything specific to running your pipeline. For general topics, please point to (and add to) the main nf-core website. -->
-
-**nf-core/genomeqc** is a pipeline build to aid in the diagnosis of the quality of genome assemblies. It inputs several genomes and/or their annotations, and generates metrics such as completness, contiguity, GC% or number of overlapping genes, which can be later used to assess their quality. Additionally, if both genome and annotation are provided, it will output a phylogenetic tree with the summary metrics. The tree building method uses orthologous genes for a quick comparision of metrics among species/samples. This pipeline should not be used for phylogenetic inference.
+**nf-core/genomeqc** is a pipeline build to aid in the diagnosis of the quality of genome assemblies. It can input several genomes and/or their annotations, and generates metrics such as completeness, contiguity, GC% or number of overlapping genes, which can be later used to assess their quality. Additionally, it outputs a phylogenetic tree plot with the summary metrics. The tree building method uses orthologous genes/BUSCO markers for a quick comparision of metrics among species/samples. This pipeline should not be used for phylogenetic inference.
 
 ## Samplesheet input
 
-Before running the pipeline, you will need to create a samplesheet with information about the samples you would like to analyse. Use this parameter to specify its location. It has to be a comma-separated file with 5 columns, and a header row as shown in the examples below.
+Before running the pipeline, you will need to create a samplesheet with information about the assemblies you want to process. Use this parameter to specify its location. It has to be a comma-separated file with 5 columns, and a header row as shown in the examples below.
 
 ```bash
 --input '[path to samplesheet file]'
 ```
 
-The pipeline can be run using NCBI accessions (RefSeq or GenBank) or local files. It needs at least an **genome** (GenBank accession or local file in FASTA format) per species to run. If annotations (RefSeq accession or local file in GTF/GFF format) are added, the pipeline will on both **genomes and annotations**, and will use the sequences in the **annotation** to run BUSCO (this can be changed in the parameters). If you provide local FASTQ reads for an assembly, the pipeline will run Merqury. If you provide taxids in NCBI format, it will run the decontamination subworkflow.
+The pipeline can be run using NCBI accessions (RefSeq or GenBank) or local files. It needs at least a **genome** (GenBank accession or local file in FASTA format) per species to run. If annotations (RefSeq accession or local file in GTF/GFF format) are added, the pipeline will run on both **genomes and annotations**. If you provide local FASTQ reads for an assembly, the pipeline will run Merqury to evaluate completness (see [Running Merqury](#running-merqury)). If you provide taxids in NCBI format and an FCS-GX database, it will run the decontamination subworkflow (see [Running the Decontamination subworkflow](#running-the-decontamination-subworkflow)).
 
-If running the pipeline on **local** files, point to the location these files using the **fasta** and/or **gff** fields:
+If running the pipeline using **local** files, point to the location these files using the **fasta** and/or **gff** fields:
 
 ```csv title="samplesheet.csv"
 species,fasta,gff
-species_1,/path/to/genome.fasta,/path/to/annotation.gxf
-species_2,/path/to/genome.fasta,/path/to/annotation.gxf
-species_3,/path/to/genome.fasta,/path/to/annotation.gxf
+species_1,/path/to/genome1.fasta,/path/to/annotation1.gxf
+species_2,/path/to/genome2.fasta,/path/to/annotation2.gxf
+species_3,/path/to/genome3.fasta,/path/to/annotation3.gxf
 ```
 
 If running the pipeline using **ncbi accessions (GenBank and/or RefSeq)**, indicate the corresponding ID using the **refseq** field:
@@ -48,7 +46,7 @@ species_3,/path/to/genome.fasta,/path/to/annotation.gxf,/path/to/reads.fastq
 ```
 -->
 
-This is what the complete samplesheet would look like if using NCBI accessions:
+This is what the complete samplesheet would look like if using NCBI accessions, and adding FASTQ paths and tax IDs:
 
 ```csv title="samplesheet.csv"
 species,fasta,gff,fastq,taxid
@@ -57,7 +55,7 @@ species_2,/path/to/genome.fasta,/path/to/annotation.gxf,/path/to/reads.fastq,124
 species_3,/path/to/genome.fasta,/path/to/annotation.gxf,/path/to/reads.fastq,4321
 ```
 
-This is what the complete samplesheet would look like if using local files:
+This is what the complete samplesheet would look like if using local files, and adding FASTQ paths and tax IDs:
 
 ```csv title="samplesheet.csv"
 species,refseq,fastq,taxid
@@ -66,7 +64,7 @@ species_2,GCF_000000002.1,/path/to/reads.fastq,1245
 species_3,GCF_000000003.1,/path/to/reads.fastq,4321
 ```
 
-You can mix different input types in the same samplesheet. If a specific field doesn’t apply to a row, leave it empty (as shown below). The pipeline will automatically detect the input type for each species and run accordingly:
+You can mix different input types in the same samplesheet. If a specific field doesn’t apply to a row, leave it empty (as shown below). The pipeline will automatically detect the input type for each row and run the appropiate subworkflow:
 
 ```csv title="samplesheet.csv"
 species,refseq,fasta,gff,fastq,taxid
@@ -86,14 +84,14 @@ As for now, the pipeline doesn't support SRA accession for **Merqury**. We will 
 
 | Column    | Description                                                                                                                                            |
 | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `species` | Species name or custom sample name. Spaces in sample names are automatically converted to underscores (`_`) (not sure if this is an option right now). |
-| `refseq`  | ncbi acession. Can be GenBank (starts with "GCA") or RefSeq (starts with "GCF").                                                                       |
+| `species` | Species name or custom sample name. Spaces in sample names are automatically converted to underscores (`_`). |
+| `refseq`  | ncbi acession. Can be GenBank (starts with `GCA`) or RefSeq (starts with `GCF`).                                                                       |
 | `fasta`   | Full path to the genome fasta file. Can be compressed or uncompressed.                                                                                 |
 | `gff`     | Full path to the genome annotation gff/gtf file. Can be compressed or uncompressed.                                                                    |
 | `fastq`   | Full path to FastQ file for long reads (e.g. PacBio or ONT). File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                    |
 | `taxid`   | Species taxid for decontamination screening, must be a valid NCBI taxid (numeric string without spaces).                                               |
 
-An [example samplesheet](../assets/samplesheet.csv) has been provided with the pipeline.
+An [example samplesheet](../assets/samplesheet.csv) is provided with the pipeline.
 
 ## Running the pipeline
 
@@ -146,7 +144,7 @@ This is the minimal run. The pipeline will run on genome only mode if these inpu
 1. Path to **fasta** OR
 2. **ncbi** GenaBank accession.
 
-The pipeline will produce a tree plot summary alonside a MultiQC report with quality statistics.
+The pipeline will produce a tree plot summary that can be modified in real time using a packaged shiny app, as well as a MultiQC report with quality statistics.
 
 #### Genome and annotation
 
@@ -156,7 +154,7 @@ The pipeline will run on genome and annotation mode if these inputs are provided
 2. Path to **gff** OR
 3. **ncbi** RefSeq accession.
 
-The pipeline will produce a tree plot summary alonside a MultiQC report with quality statistics.
+The pipeline will produce a tree plot summary that can be modified in real time using a packaged shiny app, as well as a MultiQC report with quality statistics.
 
 ### Running Merqury
 
@@ -173,6 +171,18 @@ The decontamination subsworkflow consists of three modules:
 - [Tiara](https://ibe-uw.github.io/tiara/): For DNA sequence classification in two stages:
   1. The sequences are classified to either archaea, bacteria, prokarya, eukarya, organelle or unknown.
   2. The sequences labeled as organelle in the first stage are classified to either mitochondria, plastid or unknown.
+
+### The Shiny App
+
+The pipeline outputs an executable that will open a shiny app in your web browser once executed. The app allows the user to change the tree plot parameters (margins, ) in real time, as well as append and remove summary plot statistics. The modified plot can be saved as a png/svg file.
+
+To open the shiny app, do:
+
+```
+bash ./results_folder/shiny/app/shiny_app.sh
+```
+
+You will need docker to run the shiny app, as it comes packaged in a docker container.
 
 ### Running tests
 
