@@ -100,7 +100,6 @@ workflow GENOMEQC {
     // together so that all the uncompressed files are in channels
     UNCOMPRESS_FASTA ( gz_fasta )
     ch_fasta     = UNCOMPRESS_FASTA.out.file.mix(non_gz_fasta)
-    ch_versions  = ch_versions.mix(UNCOMPRESS_FASTA.out.versions.first())
 
     //
     // Perpare gxf channels
@@ -120,7 +119,6 @@ workflow GENOMEQC {
     // together so that all the uncompressed files are in channels
     UNCOMPRESS_GXF( gz_gxf )
     ch_gxf      = UNCOMPRESS_GXF.out.file.mix(non_gz_gxf)
-    ch_versions = ch_versions.mix(UNCOMPRESS_GXF.out.versions.first())
 
     //
     // Perpare gxf channels

@@ -102,7 +102,7 @@
                     },
                     "pigz/uncompress": {
                         "branch": "master",
-                        "git_sha": "f84336b7fa91a65aa61d215b8c109fbb8e4b4ac6",
+                        "git_sha": "145b0a6fb5e6b56bccd9a030a1baf75b207ac250",
                         "installed_by": ["modules"]
                     },
                     "quast": {

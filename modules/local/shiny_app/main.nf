@@ -23,7 +23,7 @@ process SHINY_APP {
     //def args   = task.ext.args ?: ''
     def prefix           = task.ext.prefix ?: "${meta.id}"
     def container_engine = params.container_engine ? "${params.container_engine}" : 'docker'
-    def docker_url       = "quay.io/fduarte001/genomeqc_tree:0.4"
+    def docker_url       = 'ecoflowucl/genomeqc_tree:v1.4'
     def results_path     = file(params.outdir).toAbsolutePath()
     """
     mkdir app
