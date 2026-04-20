@@ -9,7 +9,6 @@ include { GENOME_ANNOTATION_BUSCO_IDEOGRAM    } from '../../modules/local/genome
 include { GFFREAD                             } from '../../modules/nf-core/gffread/main'
 include { GFFREAD as GFFREAD_VALIDATE         } from '../../modules/nf-core/gffread/main'
 include { ORTHOFINDER                         } from '../../modules/nf-core/orthofinder/main'
-include { FASTAVALIDATOR                      } from '../../modules/nf-core/fastavalidator/main'
 include { GENE_OVERLAPS                       } from '../../modules/local/gene_overlaps'
 include { ORTHOLOGOUS_CHROMOSOMES             } from '../../modules/local/orthologous_chromosomes'
 include { GAWK as GAWK_GENO                   } from '../../modules/nf-core/gawk/main'
@@ -124,10 +123,9 @@ workflow GENOME_AND_ANNOTATION {
     //
 
     // Shoud we keep this?
-    FASTAVALIDATOR(
-        GFFREAD.out.gffread_fasta
-    )
-    ch_versions  = ch_versions.mix(FASTAVALIDATOR.out.versions.first())
+//    FASTAVALIDATOR(
+//        GFFREAD.out.gffread_fasta
+//    )
 
     //
     // MODULE: Run Orthofinder
@@ -256,5 +254,4 @@ workflow GENOME_AND_ANNOTATION {
     orthologous_chromosomes    = ORTHOLOGOUS_CHROMOSOMES.out.species_summary // channel: [ path(tsv) ]
     buscos_per_seqs            = GENOME_ANNOTATION_BUSCO_IDEOGRAM.out.busco_mappings.collect { meta, table -> table} // channel: [ val(meta), [csv] ]
 
-    versions                   = ch_versions                   // channel: [ versions.yml ]
 }

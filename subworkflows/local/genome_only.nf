@@ -97,7 +97,6 @@ workflow GENOME_ONLY {
     BUSCO_TSV_TO_GFF (
         BUSCO_BUSCO.out.busco_dir
     )
-    //ch_versions  = ch_versions.mix(BUSCO_TSV_TO_GFF.out.versions)
 
     //
     // MODULE: Run ORTHOLOGOUS_CHROMOSOMES
@@ -118,5 +117,4 @@ workflow GENOME_ONLY {
     busco_short_summaries   = BUSCO_BUSCO.out.short_summaries_txt // channel: [ val(meta), [txt] ]
     buscos_per_seqs         = GENOME_ONLY_BUSCO_IDEOGRAM.out.busco_mappings.collect { meta, table -> table} // channel: [ csv ]
 
-    versions = ch_versions                                      // channel: [ versions.yml ]
 }

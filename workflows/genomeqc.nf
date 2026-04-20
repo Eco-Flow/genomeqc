@@ -171,9 +171,8 @@ workflow GENOMEQC {
             ch_input_decon,
             params.ramdisk ?: [],
             params.gxdb ?: [],
-            params.gxdb_manifiest ?: []
+            file(params.gxdb_manifiest) ?: []
         )
-        ch_versions = ch_versions.mix(DECONTAMINATION.out.versions.first())
     }
 
     //
@@ -188,6 +187,7 @@ workflow GENOMEQC {
             ch_repeat
         )
     }
+    ch_versions      = ch_versions.mix(FASTA_EXPLORE_SEARCH_PLOT_TIDK.out.versions)
 
     // Merqury: Evaluate genome assemblies with k-mers and more
     // https://github.com/marbl/merqury
@@ -231,7 +231,6 @@ workflow GENOMEQC {
         ch_multiqc_files = ch_multiqc_files
                          | mix(GENOME_ONLY.out.quast_results.map { meta, results -> results })
                          | mix(GENOME_ONLY.out.busco_short_summaries.map { meta, txt -> txt })
-        ch_versions      = ch_versions.mix(GENOME_ONLY.out.versions)
     } else {
         GENOME_ONLY (
             ch_input_geno.fasta
@@ -243,7 +242,6 @@ workflow GENOMEQC {
         ch_multiqc_files = ch_multiqc_files
                          | mix(GENOME_AND_ANNOTATION.out.quast_results.map { meta, results -> results })
                          | mix(GENOME_AND_ANNOTATION.out.busco_short_summaries_prot.map { meta, txt -> txt })
-        ch_versions      = ch_versions.mix(GENOME_AND_ANNOTATION.out.versions)
 
         //
         // MODULE: run BUSCO SEQS
