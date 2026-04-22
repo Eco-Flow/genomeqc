@@ -23,6 +23,8 @@ include { BUSCO_SEQS as BUSCO_SEQS_GENOME        } from '../modules/local/buscos
 include { SHINY_APP as SHINY_APP_GENOME_ANNO     } from '../modules/local/shiny_app/main'
 include { SHINY_APP as SHINY_APP_GENOME          } from '../modules/local/shiny_app/main'
 include { HITE                                   } from '../modules/local/hite/main'
+include { RM_DOWNLOAD_DB                         } from '../modules/local/repeatmasker_download_db/main'
+//include { RM_CONCAT_DB                           } from '../modules/local/RM_concat_db/main'
 include { REPEATMASKER_REPEATMASKER              } from '../modules/nf-core/repeatmasker/repeatmasker/main'
 include { CDHIT_CDHITEST                         } from '../modules/nf-core/cdhit/cdhitest/main'
 include { FAMDB_PY                               } from '../modules/local/famdb.py/main'
@@ -232,41 +234,72 @@ workflow GENOMEQC {
     ch_versions                             = ch_versions.mix(MERQURY_MERQURY.out.versions.first())
 
     // Annotate TE
+    if (params.RM_download_db) {
+    RM_database = params.RM_db ? Channel.fromList(params.RM_db)
+                               .map { db -> tuple( [id: file(db).getBaseName() ], db ) }
+                               : Channel.empty()
 
-    ch_famdb_lib =  params.famdb_library ? Channel.fromPath(params.famdb_library)
-                    | map { path -> tuple( [id: 'famdb'], path )  }
-                    : Channel.empty()
+    RM_DOWNLOAD_DB (
+        RM_database ? RM_database : Channel.empty()
+    )
+    //RM_CONCAT_DB(
+    //RM_DOWNLOAD_DB.out.h5
+    //    .map { meta, h5 -> h5 }  
+    //    .collect()               
+    //)
+    }
 
+    //ch_famdb_lib =  params.famdb_library ? Channel.fromPath(params.famdb_library)
+    //                | map { path -> tuple( [id: 'famdb'], path )  }
+    //                : Channel.empty()
+    
+    ch_famdb_lib = RM_DOWNLOAD_DB.out.h5 ? RM_DOWNLOAD_DB.out.h5
+                                       | map { path -> tuple( path )  } 
+                                       | first()
+                                       : Channel.empty()
+
+    ch_famdb_lib.view()
     // Extract repeat library from famdb h5 partitions
     FAMDB_PY (
         ch_famdb_lib,
-        params.famdb_lineage ? params.famdb_lineage : Channel.empty()
+        params.famdb_lineage ? params.famdb_lineage : ''
     )
-
     // User RepeatModeler to build de novo repeat library
     //
     // MODULE: Run RepeatModeler BuildDatabase
     //
     REPEATMODELER_BUILDDATABASE (
-        params.famdb_library ? ch_fasta : Channel.empty() 
+        ch_fasta
+        //params.famdb_library ? ch_fasta : Channel.empty() 
     )
 
     //
     // MODULE: Run RepeatModuler
     //
+
     REPEATMODELER_REPEATMODELER (
         REPEATMODELER_BUILDDATABASE.out.db
     )
 
     // Create combined library
-    ch_combined_libs = FAMDB_PY.out.famdb_lib
-                     | map { meta, fasta -> fasta }
-                     | combine(REPEATMODELER_REPEATMODELER.out.fasta)
-                     | map { famdb_fasta, meta, modeler_fasta -> 
-                         tuple(meta, [famdb_fasta, modeler_fasta]) 
+    ch_famdb_combined = FAMDB_PY.out.famdb_lib
+                      | map { meta, fasta -> fasta }
+                      | combine(REPEATMODELER_REPEATMODELER.out.fasta)
+                      | map { famdb_fasta, meta, modeler_fasta -> 
+                          tuple(meta, [famdb_fasta, modeler_fasta]) 
+                      }
+
+    ch_modeler_only = REPEATMODELER_REPEATMODELER.out.fasta
+                    | map { meta, fasta -> tuple(meta, [fasta]) }
+
+    ch_combined_libs = ch_modeler_only
+                     | join(ch_famdb_combined, by: 0, remainder: true)
+                     | map { meta, modeler_files, combined_files ->
+                         combined_files != null ? tuple(meta, combined_files) : tuple(meta, modeler_files)
                      }
-    
+
     // Combine libraries with CAT
+    if ( ch_combined_libs ) {
     CAT_CAT (
         ch_combined_libs
     )
@@ -282,8 +315,9 @@ workflow GENOMEQC {
 
     REPEATMASKER_REPEATMASKER (
         ch_fasta,
-        CDHIT_CDHITEST.out.fasta
+        CDHIT_CDHITEST.out.fasta_lib
     ) 
+    }
 
     //
     // SUBWORKFLOWS: Run genome only or genome + annotation subworkflows
@@ -315,6 +349,7 @@ workflow GENOMEQC {
         //
         // Number of sequences with more than x complete single copy buscos
         // this should depend on whether protein mode was used or not
+        if(!params.skip_busco){
         BUSCO_SEQS_GENOME_ANNO(
             GENOME_AND_ANNOTATION.out.buscos_per_seqs.map { tables -> [[id:"tables"], tables] }
         )
@@ -322,7 +357,7 @@ workflow GENOMEQC {
         BUSCO_SEQS_GENOME(
             GENOME_ONLY.out.buscos_per_seqs.map { tables -> [[id:"tables"], tables] }
         )
-
+        
         // Prepare channels for tree plot
         ch_tree_genome_anno = GENOME_AND_ANNOTATION.out.tree_data
                             | concat(BUSCO_SEQS_GENOME_ANNO.out.table.map { meta, table -> table})
@@ -330,6 +365,8 @@ workflow GENOMEQC {
         ch_tree_genome      = GENOME_ONLY.out.tree_data
                             | concat(BUSCO_SEQS_GENOME.out.table.map { meta, table -> table})
                             | collect
+        }
+
 
         //
         // MODULE: Run HITE
@@ -362,10 +399,9 @@ workflow GENOMEQC {
                                     prot      : prot_files ? tuple( meta, prot_files ) : [[],[]]
                             }
         
-        ch_busco_geno_anno.geno.view()
-        ch_busco_geno_anno.prot.view()
 
         // Run TREE SUMMARY for genome and annotation
+        if(!params.skip_busco) {
         TREE_SUMMARY_GENO_ANNO (
             GENOME_AND_ANNOTATION.out.orthofinder,
             ch_busco_geno_anno.geno,
@@ -382,7 +418,7 @@ workflow GENOMEQC {
             ch_tree_genome
         )
         ch_versions      = ch_versions.mix(TREE_SUMMARY_GENO.out.versions)
-
+        
         //
         // MODULE: Run SHINY APP
         //
@@ -407,6 +443,7 @@ workflow GENOMEQC {
             ch_app
         )
         ch_versions      = ch_versions.mix(SHINY_APP_GENOME.out.versions)
+        }
     }
 
     //

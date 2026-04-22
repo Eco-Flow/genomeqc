@@ -11,7 +11,7 @@ process REPEATMASKER_REPEATMASKER_DFAM {
 
     input:
     tuple val(meta), path(fasta)
-    path(lib)
+    path(fasta_lib)
 
     output:
     tuple val(meta), path("${prefix}.masked")   , emit: masked
@@ -26,7 +26,7 @@ process REPEATMASKER_REPEATMASKER_DFAM {
     script:
     def args    = task.ext.args     ?: ''
     prefix      = task.ext.prefix   ?: "${meta.id}"
-    def lib_arg = lib               ? "-lib $lib"   : ''
+    def lib_arg = fasta_lib               ? "-lib $fasta_lib"   : ''
 
     def out_fasta    = fasta.getBaseName(fasta.name.endsWith('.gz') ? 1 : 0)
     def fasta_gz_cmd = fasta.name.endsWith('.gz') ? "gunzip -c ${fasta} > ${out_fasta}" : ""
