@@ -328,6 +328,57 @@
                     "default": "docker"
                 }
             }
+        },
+        "te_annotation_options": {
+            "title": "TE annotation options",
+            "type": "object",
+            "fa_icon": "fas fa-dna",
+            "description": "Options for transposable element annotation.",
+            "properties": {
+                "te": {
+                    "type": "string",
+                    "description": "TE annotation method to run. Use 'hite' for HiTE or 'repeatmasker' for the full RepeatModeler + RepeatMasker pipeline. Omit to skip TE annotation.",
+                    "enum": ["hite", "repeatmasker"],
+                    "fa_icon": "fas fa-dna"
+                },
+                "is_plant": {
+                    "type": "boolean",
+                    "description": "Set to true for plant genomes (passed to HiTE).",
+                    "default": false,
+                    "fa_icon": "fas fa-leaf"
+                },
+                "curated_lib": {
+                    "type": "string",
+                    "description": "Path to a curated repeat library for HiTE.",
+                    "format": "file-path",
+                    "fa_icon": "fas fa-file"
+                },
+                "famdb_library": {
+                    "type": "string",
+                    "description": "Path to pre-staged famdb h5 partition files. Alternative to downloading via RM_db.",
+                    "format": "file-path",
+                    "fa_icon": "fas fa-database"
+                },
+                "famdb_lineage": {
+                    "type": "string",
+                    "description": "Taxonomic lineage to filter repeat families from famdb (e.g. 'hymenoptera'). Omit to export all families.",
+                    "fa_icon": "fas fa-sitemap"
+                },
+                "RM_download_db": {
+                    "type": "boolean",
+                    "description": "Download h5 partition files from the URLs specified in RM_db.",
+                    "default": true,
+                    "fa_icon": "fas fa-download"
+                },
+                "RM_db": {
+                    "type": "array",
+                    "description": "List of URLs to DFAM h5 partition files to download.",
+                    "items": {
+                        "type": "string"
+                    },
+                    "fa_icon": "fas fa-link"
+                }
+            }
         }
     },
     "allOf": [
@@ -339,6 +390,9 @@
         },
         {
             "$ref": "#/$defs/generic_options"
+        },
+        {
+            "$ref": "#/$defs/te_annotation_options"
         }
     ]
 }
