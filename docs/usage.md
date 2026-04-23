@@ -172,6 +172,83 @@ The decontamination subsworkflow consists of three modules:
   1. The sequences are classified to either archaea, bacteria, prokarya, eukarya, organelle or unknown.
   2. The sequences labeled as organelle in the first stage are classified to either mitochondria, plastid or unknown.
 
+### Running TE annotation
+
+The pipeline supports two optional methods for transposable element (TE) annotation, selected with the `--te` parameter. TE annotation is skipped by default.
+
+#### `--te hite`
+
+Runs [HiTE](https://github.com/BioinformaticsToolsmith/HiTE), a fast alignment-free TE identification and masking tool. It is the recommended option for quick runs or plant genomes.
+
+```bash
+nextflow run nf-core/genomeqc \
+   --input samplesheet.csv \
+   --outdir results \
+   --te hite \
+   -profile docker
+```
+
+For plant genomes, also pass `--is_plant true`:
+
+```bash
+nextflow run nf-core/genomeqc \
+   --input samplesheet.csv \
+   --outdir results \
+   --te hite \
+   --is_plant true \
+   -profile docker
+```
+
+#### `--te repeatmasker`
+
+Runs the full de novo + curated masking pipeline:
+
+1. **RepeatModeler** – builds a de novo repeat library from the genome.
+2. **famdb.py** – extracts a curated repeat library from [DFAM](https://www.dfam.org) h5 partition files (downloaded automatically by default).
+3. **CAT + CD-HIT-EST** – merges and de-duplicates the two libraries.
+4. **RepeatMasker** – soft-masks the genome using the combined library.
+
+```bash
+nextflow run nf-core/genomeqc \
+   --input samplesheet.csv \
+   --outdir results \
+   --te repeatmasker \
+   -profile docker
+```
+
+By default, the pipeline downloads partition `0` of the DFAM full database. To download additional partitions (required for full taxonomic coverage beyond the root lineage), pass them via `--RM_db`:
+
+```bash
+--RM_db "['https://www.dfam.org/releases/current/families/FamDB/dfam39_full.0.h5.gz',\
+           'https://www.dfam.org/releases/current/families/FamDB/dfam39_full.1.h5.gz']"
+```
+
+To restrict the curated library to a specific lineage (strongly recommended for speed), use `--famdb_lineage`:
+
+```bash
+nextflow run nf-core/genomeqc \
+   --input samplesheet.csv \
+   --outdir results \
+   --te repeatmasker \
+   --famdb_lineage hymenoptera \
+   -profile docker
+```
+
+If you already have DFAM h5 partition files on disk, skip the download step by pointing to them with `--famdb_library` and setting `--RM_download_db false`:
+
+```bash
+nextflow run nf-core/genomeqc \
+   --input samplesheet.csv \
+   --outdir results \
+   --te repeatmasker \
+   --RM_download_db false \
+   --famdb_library /path/to/dfam39_full.0.h5 \
+   -profile docker
+```
+
+> [!NOTE]
+> The RepeatMasker path is compute-intensive. RepeatModeler requires ~24 CPUs and up to 48 hours per genome. Plan resource allocation accordingly.
+
 ### The Shiny App
 
 The pipeline outputs an executable that will open a shiny app in your web browser once executed. The app allows the user to change the tree plot parameters (margins, ) in real time, as well as append and remove summary plot statistics. The modified plot can be saved as a png/svg file.

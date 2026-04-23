@@ -30,7 +30,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
   - [Tiara](#tiara) - Sequence classification (domain and organelle level).
 - [GffRead](#gffread) - Extract longest isoform from FASTA file.
 - [BUSCO](#busco) - Genome completeness based on single copy markers.
-- [RepeatModeler](#repeatmodeler) - Summary of repeat content.
+- [TE annotation](#te-annotation) (optional) - Transposable element identification and masking.
 - [Orthofinder](#orthofinder) - Phylogenetic orthology inference.
 - [Tree summary](#tree-summary) - Phylogenetic summary plot.
 - [Shiny app](#shiny-app) - Dynamic tree summary plot adjuster.
@@ -251,19 +251,44 @@ It outputs a report with completness stats, a summarized table with these stats,
 
 ![output_example_busco](images/output_example/syngnathus_acus_ideogram.png)
 
-### RepeatModeler
+### TE annotation
 
-[REPEATMODELER](https://github.com/Dfam-consortium/RepeatModeler) is a de novo transposable element (TE) family identification and modeling package. At the heart of RepeatModeler are three de-novo repeat finding programs ( RECON, RepeatScout and LtrHarvest/Ltr_retriever ) which employ complementary computational methods for identifying repeat element boundaries and family relationships from sequence data.
+TE annotation is optional and is enabled with `--te hite` or `--te repeatmasker`. See [usage documentation](usage.md#running-te-annotation) for full details.
 
-It outputs a report table containing the number of elements and the percentage of the genome covereged by each category of elements.
+#### HiTE (`--te hite`)
+
+[HiTE](https://github.com/BioinformaticsToolsmith/HiTE) is a fast, alignment-free tool for TE identification and masking. It is the recommended option for quick runs or plant genomes (`--is_plant true`).
+
+<details markdown="1">
+<summary>Output files</summary>
+
+- `hite/<species_name>/`
+  - `<species_name>_hite_results/` directory containing all HiTE output files, including the masked genome and identified TE families.
+
+</details>
+
+#### RepeatMasker (`--te repeatmasker`)
+
+The RepeatMasker path runs a full de novo + curated TE masking pipeline:
+
+1. **RepeatModeler** – de novo TE family discovery from the genome.
+2. **famdb.py** – curated repeat library extracted from [DFAM](https://www.dfam.org) h5 partitions (downloaded automatically unless `--RM_download_db false`).
+3. **CAT + CD-HIT-EST** – merges and de-duplicates the two libraries.
+4. **RepeatMasker** – soft-masks the genome using the combined library.
+
+[RepeatModeler](https://github.com/Dfam-consortium/RepeatModeler) employs three complementary de-novo repeat-finding programs (RECON, RepeatScout and LtrHarvest/Ltr_retriever) to identify repeat element boundaries and family relationships from sequence data.
+
+[RepeatMasker](https://www.repeatmasker.org) screens DNA sequences for interspersed repeats and low complexity sequences, producing a soft-masked genome and summary statistics.
 
 <details markdown="1">
 <summary>Output files</summary>
 
 - `repeatmasker/<species_name>/`
-  - `<species_name>.masked` softmasked genome sequences (fasta)
-  - `<species_name>.out` detailed table containing repeat position and classification
-  - `<species_name>.tbl` table summarising repeat annotation result
+  - `<species_name>.masked` – soft-masked genome in FASTA format.
+  - `<species_name>.out` – detailed table of repeat positions and classifications.
+  - `<species_name>.tbl` – summary table of repeat annotation results.
+  - `<species_name>.gff` – repeat annotations in GFF format (if produced).
+
 </details>
 
 ### Orthofinder

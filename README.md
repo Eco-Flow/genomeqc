@@ -47,6 +47,9 @@ Depending on the inputs provided, there are two ways this pipeline can run:
       - [FCS-GX](https://github.com/ncbi/fcs/wiki/FCS-GX-quickstart): Detection and removal of foreign organism contamination.
       - [FCS-adaptor](https://github.com/ncbi/fcs/wiki/FCS-adaptor-quickstart): Detection and removal of adaptor and vector contamination.
       - [Tiara](https://ibe-uw.github.io/tiara/): DNA sequence classification.
+   6. TE annotation (optional, `--te`):
+      - [`--te hite`](https://github.com/BioinformaticsToolsmith/HiTE): Fast, alignment-free TE identification and masking.
+      - `--te repeatmasker`: Full de novo + curated masking pipeline ([RepeatModeler](https://www.repeatmasker.org/RepeatModeler/) + [DFAM famdb](https://www.dfam.org) + [RepeatMasker](https://www.repeatmasker.org)).
 3. Plots a BUSCO marker-based phylogenetic tree with assembly summary statistics: **Tree Summary**.
 4. Summary with [MultiQC](http://multiqc.info).
 
@@ -63,8 +66,10 @@ Depending on the inputs provided, there are two ways this pipeline can run:
       - [FCS-GX](https://github.com/ncbi/fcs/wiki/FCS-GX-quickstart): Detection and removal of foreign organisms contamination.
       - [FCS-adaptor](https://github.com/ncbi/fcs/wiki/FCS-adaptor-quickstart): Detection and removal of adaptor and vector contamination.
       - [Tiara](https://ibe-uw.github.io/tiara/): DNA sequence classification.
-   7. More options...
-3. Describes annotation :
+   7. TE annotation (optional, `--te`):
+      - [`--te hite`](https://github.com/BioinformaticsToolsmith/HiTE): Fast, alignment-free TE identification and masking.
+      - `--te repeatmasker`: Full de novo + curated masking pipeline ([RepeatModeler](https://www.repeatmasker.org/RepeatModeler/) + [DFAM famdb](https://www.dfam.org) + [RepeatMasker](https://www.repeatmasker.org)).
+3. Describes annotation:
    1. [AGAT](https://agat.readthedocs.io/en/latest/): Number of genes, features, length...
    2. **Gene Overlaps**: Finds the number of overlapping genes.
 4. Extracts longest protein isoform: [GffRead](https://github.com/gpertea/gffread).
