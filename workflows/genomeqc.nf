@@ -402,7 +402,6 @@ workflow GENOMEQC {
                             }
 
 
-
         // Run TREE SUMMARY for genome and annotation
         if(!params.skip_busco) {
         TREE_SUMMARY_GENO_ANNO (
