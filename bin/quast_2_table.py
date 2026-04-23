@@ -59,7 +59,7 @@ def main():
     with open(args.output, 'w') as f_out:
         # Write the header (with species column)
         f_out.write("\t".join(header) + "\n")
-        
+
         # Write the plot types row (with NA in the species column)
         f_out.write("\t".join(plot_type_row) + "\n")
 

@@ -119,7 +119,7 @@ for gff_file in gff_files:
             is_busco = True
             print(f"[INFO] Detected BUSCO file format for {gff_file}")
             debug_info.append(f"Detected BUSCO format for {gff_file}")
-    
+
     try:
         with open(gff_file, 'r') as f:
             for line_num, line in enumerate(f, 1):
@@ -140,7 +140,7 @@ for gff_file in gff_files:
 
                 # Extract gene ID from attributes
                 gene_id = None
-                
+
                 if is_busco:
                     # For BUSCO files, use name istead of ID
                     match = re.search(r'Name=([^;]+)', attributes)

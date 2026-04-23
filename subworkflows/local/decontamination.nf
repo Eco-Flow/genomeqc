@@ -51,7 +51,7 @@ workflow DECONTAMINATION {
     ch_fcsgx = FCSGX_CLEANADAPTOR.out.cleaned
              | map { meta, fasta -> tuple( meta, meta.taxid, fasta) }
 
-    FCSGX_RUNGX ( 
+    FCSGX_RUNGX (
         ch_fcsgx,
         ch_gxdb,
         ch_ramdisk

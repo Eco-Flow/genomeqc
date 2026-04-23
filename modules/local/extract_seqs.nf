@@ -21,7 +21,7 @@ process EXTRACT_SEQS {
     -g ${gff} \\
     -f ${fasta} \\
     -p -o ${prefix}.prot.fasta --clean_final_stop
-    
+
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

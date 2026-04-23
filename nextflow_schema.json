@@ -186,6 +186,18 @@
                     "description": "Suffix to add to the trace report filename. Default is the date and time in the format yyyy-MM-dd_HH-mm-ss.",
                     "hidden": true
                 },
+                "help": {
+                    "type": ["boolean", "string"],
+                    "description": "Display the help message."
+                },
+                "help_full": {
+                    "type": "boolean",
+                    "description": "Display the full detailed help message."
+                },
+                "show_hidden": {
+                    "type": "boolean",
+                    "description": "Display hidden parameters in the help message (only works when --help or --help_full are provided)."
+                },
                 "groups": {
                     "type": "string",
                     "default": "all",
@@ -261,7 +273,8 @@
                 },
                 "save_orthofinder_results": {
                     "type": "boolean",
-                    "description": "Publish orthofinder results."
+                    "description": "Publish orthofinder results.",
+                    "default": true
                 },
                 "save_longest_isoform": {
                     "type": "boolean",
@@ -287,7 +300,7 @@
                 },
                 "val_tool": {
                     "type": "string",
-                    "default": "gffread",
+                    "default": "agat",
                     "description": "Tool for gxf validation.",
                     "enum": ["agat", "gffread"]
                 },
@@ -298,6 +311,21 @@
                 "tree_margin": {
                     "type": "string",
                     "hidden": true
+                },
+                "repeat": {
+                    "type": "string",
+                    "description": "DNA string for tidk motif search"
+                },
+                "ramdisk": {
+                    "type": "string",
+                    "description": "Path to RAM-backed tmpfs or ramfs location to store FCS-GX database",
+                    "help_text": "This parameter is optional, but settinng this directory will make contamination screening significantly faster.",
+                    "format": "directory-path"
+                },
+                "container_engine": {
+                    "type": "string",
+                    "description": "Container engine to run shint app",
+                    "default": "docker"
                 }
             }
         }
