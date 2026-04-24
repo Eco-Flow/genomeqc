@@ -187,7 +187,6 @@ workflow GENOMEQC {
             ch_repeat
         )
     }
-    ch_versions      = ch_versions.mix(FASTA_EXPLORE_SEARCH_PLOT_TIDK.out.versions)
 
     // Merqury: Evaluate genome assemblies with k-mers and more
     // https://github.com/marbl/merqury
@@ -391,7 +390,7 @@ workflow GENOMEQC {
 
     emit:
     multiqc_report = MULTIQC.out.report.map { _meta, report -> [report] }.toList() // channel: /path/to/multiqc_report.html
-    versions       = ch_versions                 // channel: [ path(versions.yml) ]
+    versions       = ch_versions                 // channel: [ path(versions.yml) ] Keep it for now just in case
 
 }
 
