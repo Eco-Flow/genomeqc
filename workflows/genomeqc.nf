@@ -236,14 +236,19 @@ workflow GENOMEQC {
     }
 
     if (params.te == 'repeatmasker') {
-        ch_rm_db_input = params.RM_download_db && params.RM_db
+        // Skip download when a pre-staged famdb library is already provided
+        ch_rm_db_input = (params.RM_download_db && params.RM_db && !params.famdb_library)
                        ? Channel.fromList(params.RM_db)
                            .map { db -> tuple([id: file(db).getBaseName()], db) }
                        : Channel.empty()
 
+        // Accept either a directory of h5 partitions or a single h5 file / glob
         ch_famdb_lib_input = params.famdb_library
-                           ? Channel.fromPath(params.famdb_library)
-                               .map { path -> tuple([id: 'famdb'], path) }
+                           ? Channel.fromPath(
+                               file(params.famdb_library).isDirectory()
+                                   ? "${params.famdb_library}/*.h5"
+                                   : params.famdb_library
+                           ).map { path -> tuple([id: path.baseName], path) }
                            : Channel.empty()
 
         FASTA_ANNOTATE_TE (

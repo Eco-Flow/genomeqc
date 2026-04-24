@@ -233,17 +233,19 @@ By default, the pipeline downloads partition `0` of the DFAM full database. To d
            'https://www.dfam.org/releases/current/families/FamDB/dfam39_full.1.h5.gz']"
 ```
 
-If you already have DFAM h5 partition files on disk, skip the download step with `--RM_download_db false` and `--famdb_library`:
+If you already have DFAM h5 partition files on disk, point `--famdb_library` at the directory containing them. The download step is skipped automatically:
 
 ```bash
 nextflow run nf-core/genomeqc \
    --input samplesheet.csv \
    --outdir results \
    --te repeatmasker \
-   --RM_download_db false \
-   --famdb_library /path/to/dfam39_full.0.h5 \
+   --famdb_library /path/to/famdb_dir \
+   --famdb_lineage hymenoptera \
    -profile docker
 ```
+
+The directory is expected to contain one or more `*.h5` partition files (e.g. `dfam38_full.0.h5`, `dfam38_full.1.h5`, …). A path to a single h5 file is also accepted.
 
 #### Adding de novo repeat discovery with RepeatModeler
 
