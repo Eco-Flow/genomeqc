@@ -21,8 +21,15 @@ process FAMDB_PY {
     def term = lineage ?: 'root'
 
     """
+    # Derive the db prefix from the first staged .h5 file.
+    # famdb.py -i expects a prefix, not a directory:
+    #   dfam38-1_full.0.h5, dfam38-1_full.1.h5  →  prefix = ./dfam38-1_full
+    #   RepeatMaskerLib.h5                        →  prefix = ./RepeatMaskerLib
+    h5=\$(ls *.h5 | sort | head -1)
+    db_prefix=\$(echo "\${h5}" | sed 's/\\.[0-9]*\\.h5\$//' | sed 's/\\.h5\$//')
+
     python /usr/local/share/RepeatMasker/famdb.py \\
-        -i ./ \\
+        -i "./\${db_prefix}" \\
         families $term -f fasta_name \\
         $args \\
         > ${term}.fasta
