@@ -201,12 +201,11 @@ nextflow run nf-core/genomeqc \
 
 #### `--te repeatmasker`
 
-Runs the full de novo + curated masking pipeline:
+Runs a curated TE masking pipeline using the [DFAM](https://www.dfam.org) repeat library:
 
-1. **RepeatModeler** – builds a de novo repeat library from the genome.
-2. **famdb.py** – extracts a curated repeat library from [DFAM](https://www.dfam.org) h5 partition files (downloaded automatically by default).
-3. **CAT + CD-HIT-EST** – merges and de-duplicates the two libraries.
-4. **RepeatMasker** – soft-masks the genome using the combined library.
+1. **famdb.py** – extracts a curated repeat library from DFAM h5 partition files (downloaded automatically by default).
+2. **CAT + CD-HIT-EST** – deduplicates the library.
+3. **RepeatMasker** – soft-masks the genome.
 
 ```bash
 nextflow run nf-core/genomeqc \
@@ -216,14 +215,7 @@ nextflow run nf-core/genomeqc \
    -profile docker
 ```
 
-By default, the pipeline downloads partition `0` of the DFAM full database. To download additional partitions (required for full taxonomic coverage beyond the root lineage), pass them via `--RM_db`:
-
-```bash
---RM_db "['https://www.dfam.org/releases/current/families/FamDB/dfam39_full.0.h5.gz',\
-           'https://www.dfam.org/releases/current/families/FamDB/dfam39_full.1.h5.gz']"
-```
-
-To restrict the curated library to a specific lineage (strongly recommended for speed), use `--famdb_lineage`:
+To restrict the curated library to a specific taxonomic lineage (strongly recommended — speeds up both the extraction and the masking step), use `--famdb_lineage`:
 
 ```bash
 nextflow run nf-core/genomeqc \
@@ -234,7 +226,14 @@ nextflow run nf-core/genomeqc \
    -profile docker
 ```
 
-If you already have DFAM h5 partition files on disk, skip the download step by pointing to them with `--famdb_library` and setting `--RM_download_db false`:
+By default, the pipeline downloads partition `0` of the DFAM full database. To download additional partitions (required for full taxonomic coverage beyond the root lineage), pass them via `--RM_db`:
+
+```bash
+--RM_db "['https://www.dfam.org/releases/current/families/FamDB/dfam39_full.0.h5.gz',\
+           'https://www.dfam.org/releases/current/families/FamDB/dfam39_full.1.h5.gz']"
+```
+
+If you already have DFAM h5 partition files on disk, skip the download step with `--RM_download_db false` and `--famdb_library`:
 
 ```bash
 nextflow run nf-core/genomeqc \
@@ -246,8 +245,24 @@ nextflow run nf-core/genomeqc \
    -profile docker
 ```
 
-> [!NOTE]
-> The RepeatMasker path is compute-intensive. RepeatModeler requires ~24 CPUs and up to 48 hours per genome. Plan resource allocation accordingly.
+#### Adding de novo repeat discovery with RepeatModeler
+
+By default, `--te repeatmasker` only uses the curated DFAM library. To also run [RepeatModeler](https://www.repeatmasker.org/RepeatModeler/) for de novo discovery, add `--run_repeatmodeler`:
+
+```bash
+nextflow run nf-core/genomeqc \
+   --input samplesheet.csv \
+   --outdir results \
+   --te repeatmasker \
+   --run_repeatmodeler \
+   --famdb_lineage hymenoptera \
+   -profile docker
+```
+
+The RepeatModeler de novo library is merged with the famdb curated library before masking, giving broader coverage at the cost of significant runtime.
+
+> [!WARNING]
+> RepeatModeler is slow — it typically requires 24 CPUs and 24–48 hours per genome. Only enable it if you need de novo discovery beyond the curated DFAM families for your lineage.
 
 ### The Shiny App
 

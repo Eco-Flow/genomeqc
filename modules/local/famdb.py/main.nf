@@ -2,7 +2,6 @@ process FAMDB_PY {
     tag "$meta.id"
     label 'process_single'
 
-    //conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/repeatmasker:4.2.2--pl5321hdfd78af_0':
         'biocontainers/repeatmasker:4.2.2--pl5321hdfd78af_0' }"
@@ -13,7 +12,7 @@ process FAMDB_PY {
 
     output:
     tuple val(meta), path("*.fasta"), emit: famdb_lib
-    path "versions.yml"             , emit: versions
+    tuple val("${task.process}"), val('famdb.py'), eval("python /usr/local/share/RepeatMasker/famdb.py -h | grep version | cut -d' ' -f5 | sed 's/.\$//'"), emit: versions_famdb_py, topic: versions
 
     script:
     def args   = task.ext.args ?: ''
@@ -22,23 +21,17 @@ process FAMDB_PY {
     """
     if [ ! -z "$lineage" ]
     then
-      python /usr/local/share/RepeatMasker/famdb.py \
-      -i ./ \
-      families "" -f fasta_name \
-      $args \
-      -d \
-      $lineage > ${lineage}.fasta
+        python /usr/local/share/RepeatMasker/famdb.py \\
+            -i ./ \\
+            families $lineage -f fasta_name \\
+            $args \\
+            > ${lineage}.fasta
     else
-      python /usr/local/share/RepeatMasker/famdb.py \
-      -i ./ \
-      families "" -f fasta_name \
-      $args \
-      > famdb_db.fasta
+        python /usr/local/share/RepeatMasker/famdb.py \\
+            -i ./ \\
+            families -f fasta_name \\
+            $args \\
+            > famdb_db.fasta
     fi
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-    famdb.py: \$(python /usr/local/share/RepeatMasker/famdb.py -h | grep version | cut -d" " -f5 | sed 's/.\$//g')
-    END_VERSIONS
     """
 }

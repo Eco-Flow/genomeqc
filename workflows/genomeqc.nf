@@ -233,7 +233,6 @@ workflow GENOMEQC {
     //
     if (params.te == 'hite') {
         HITE ( ch_fasta )
-        ch_versions = ch_versions.mix(HITE.out.versions.first())
     }
 
     if (params.te == 'repeatmasker') {
@@ -251,9 +250,9 @@ workflow GENOMEQC {
             ch_fasta,
             ch_rm_db_input,
             ch_famdb_lib_input,
-            params.famdb_lineage ?: ''
+            params.famdb_lineage ?: '',
+            params.run_repeatmodeler
         )
-        ch_versions = ch_versions.mix(FASTA_ANNOTATE_TE.out.versions.first())
     }
 
     //

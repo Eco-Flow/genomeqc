@@ -269,14 +269,13 @@ TE annotation is optional and is enabled with `--te hite` or `--te repeatmasker`
 
 #### RepeatMasker (`--te repeatmasker`)
 
-The RepeatMasker path runs a full de novo + curated TE masking pipeline:
+The RepeatMasker path masks the genome against the [DFAM](https://www.dfam.org) curated repeat library:
 
-1. **RepeatModeler** – de novo TE family discovery from the genome.
-2. **famdb.py** – curated repeat library extracted from [DFAM](https://www.dfam.org) h5 partitions (downloaded automatically unless `--RM_download_db false`).
-3. **CAT + CD-HIT-EST** – merges and de-duplicates the two libraries.
-4. **RepeatMasker** – soft-masks the genome using the combined library.
+1. **famdb.py** – curated repeat library extracted from DFAM h5 partitions (downloaded automatically unless `--RM_download_db false`).
+2. **CAT + CD-HIT-EST** – deduplicates the library.
+3. **RepeatMasker** – soft-masks the genome.
 
-[RepeatModeler](https://github.com/Dfam-consortium/RepeatModeler) employs three complementary de-novo repeat-finding programs (RECON, RepeatScout and LtrHarvest/Ltr_retriever) to identify repeat element boundaries and family relationships from sequence data.
+With `--run_repeatmodeler`, [RepeatModeler](https://github.com/Dfam-consortium/RepeatModeler) is also run to build a de novo library from the genome, which is merged with the famdb library before masking. RepeatModeler employs RECON, RepeatScout and LtrHarvest/Ltr_retriever for complementary repeat boundary identification.
 
 [RepeatMasker](https://www.repeatmasker.org) screens DNA sequences for interspersed repeats and low complexity sequences, producing a soft-masked genome and summary statistics.
 

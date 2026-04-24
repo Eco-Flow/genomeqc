@@ -16,7 +16,6 @@ workflow FASTA_ANNOTATE_TE {
     val_famdb_lineage   // val: lineage string for famdb extraction (e.g. 'hymenoptera'), or ''
 
     main:
-    ch_versions = Channel.empty()
 
     // MODULE: RM_DOWNLOAD_DB
     // Download h5 partition files from DFAM — versions flow via Channel.topic('versions')
@@ -38,17 +37,14 @@ workflow FASTA_ANNOTATE_TE {
         ch_h5_files,
         val_famdb_lineage
     )
-    ch_versions = ch_versions.mix(FAMDB_PY.out.versions.first())
 
     // MODULE: REPEATMODELER_BUILDDATABASE
     // Build BLAST-format database for de novo repeat discovery
     REPEATMODELER_BUILDDATABASE ( ch_fasta )
-    ch_versions = ch_versions.mix(REPEATMODELER_BUILDDATABASE.out.versions.first())
 
     // MODULE: REPEATMODELER_REPEATMODELER
     // Perform de novo transposable element discovery
     REPEATMODELER_REPEATMODELER ( REPEATMODELER_BUILDDATABASE.out.db )
-    ch_versions = ch_versions.mix(REPEATMODELER_REPEATMODELER.out.versions.first())
 
     // Combine the curated famdb library with the de novo RepeatModeler library.
     // When FAMDB_PY did not run (no h5 input), ch_famdb_combined is empty and the
@@ -72,12 +68,10 @@ workflow FASTA_ANNOTATE_TE {
     // MODULE: CAT_CAT
     // Concatenate curated and de novo repeat libraries
     CAT_CAT ( ch_combined_libs )
-    ch_versions = ch_versions.mix(CAT_CAT.out.versions.first())
 
     // MODULE: CDHIT_CDHITEST
     // Cluster sequences and remove redundancy from the combined library
     CDHIT_CDHITEST ( CAT_CAT.out.file_out )
-    ch_versions = ch_versions.mix(CDHIT_CDHITEST.out.versions.first())
 
     // MODULE: REPEATMASKER_REPEATMASKER
     // Soft-mask repeat elements in the genome using the combined repeat library
@@ -85,7 +79,6 @@ workflow FASTA_ANNOTATE_TE {
         ch_fasta,
         CDHIT_CDHITEST.out.fasta_lib
     )
-    ch_versions = ch_versions.mix(REPEATMASKER_REPEATMASKER.out.versions.first())
 
     emit:
     masked          = REPEATMASKER_REPEATMASKER.out.masked  // channel: [ val(meta), path(masked) ]
@@ -93,5 +86,4 @@ workflow FASTA_ANNOTATE_TE {
     tbl             = REPEATMASKER_REPEATMASKER.out.tbl     // channel: [ val(meta), path(tbl) ]
     gff             = REPEATMASKER_REPEATMASKER.out.gff     // channel: [ val(meta), path(gff) ]
     repeat_library  = CDHIT_CDHITEST.out.fasta_lib          // channel: [ val(meta), path(fasta) ]
-    versions        = ch_versions                           // channel: [ versions.yml ]
 }

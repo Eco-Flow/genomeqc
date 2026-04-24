@@ -364,6 +364,12 @@
                     "description": "Taxonomic lineage to filter repeat families from famdb (e.g. 'hymenoptera'). Omit to export all families.",
                     "fa_icon": "fas fa-sitemap"
                 },
+                "run_repeatmodeler": {
+                    "type": "boolean",
+                    "description": "Run de novo repeat discovery with RepeatModeler before masking. Disabled by default — RepeatModeler typically requires 24 CPUs and 24–48 h per genome. When false, only the curated famdb library is used.",
+                    "default": false,
+                    "fa_icon": "fas fa-clock"
+                },
                 "RM_download_db": {
                     "type": "boolean",
                     "description": "Download h5 partition files from the URLs specified in RM_db.",
