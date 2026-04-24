@@ -242,13 +242,10 @@ workflow GENOMEQC {
                            .map { db -> tuple([id: file(db).getBaseName()], db) }
                        : Channel.empty()
 
-        // Accept either a directory of h5 partitions or a single h5 file / glob
+        // Accepts a single file path or a glob pattern (e.g. '/path/FamDB*')
         ch_famdb_lib_input = params.famdb_library
-                           ? Channel.fromPath(
-                               file(params.famdb_library).isDirectory()
-                                   ? "${params.famdb_library}/*.h5"
-                                   : params.famdb_library
-                           ).map { path -> tuple([id: path.baseName], path) }
+                           ? Channel.fromPath(params.famdb_library)
+                               .map { path -> tuple([id: path.baseName], path) }
                            : Channel.empty()
 
         FASTA_ANNOTATE_TE (
