@@ -355,8 +355,8 @@
                 },
                 "famdb_library": {
                     "type": "string",
-                    "description": "Path to pre-staged famdb h5 partition files. Alternative to downloading via RM_db.",
-                    "format": "file-path",
+                    "description": "Path to pre-staged famdb h5 partition file(s). Accepts a single file path or a glob pattern (e.g. '/path/FamDB*'). Alternative to downloading via RM_db.",
+                    "format": "file-path-pattern",
                     "fa_icon": "fas fa-database"
                 },
                 "famdb_lineage": {
