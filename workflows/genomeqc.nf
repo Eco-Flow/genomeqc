@@ -55,7 +55,7 @@ workflow GENOMEQC {
     //
     // MODULE: Run create_path
     //
-    
+
     // ch_input.ncbi is now a 3-element tuple, last element is the fastq.
     // We need to remove it before CREATE_PATH
     ch_input.ncbi
@@ -81,7 +81,6 @@ workflow GENOMEQC {
         [],
         params.groups
     )
-    ch_versions = ch_versions.mix(NCBIGENOMEDOWNLOAD.out.versions.first())
 
     //
     // Perpare fasta channels
@@ -101,7 +100,6 @@ workflow GENOMEQC {
     // together so that all the uncompressed files are in channels
     UNCOMPRESS_FASTA ( gz_fasta )
     ch_fasta     = UNCOMPRESS_FASTA.out.file.mix(non_gz_fasta)
-    ch_versions  = ch_versions.mix(UNCOMPRESS_FASTA.out.versions.first())
 
     //
     // Perpare gxf channels
@@ -121,7 +119,6 @@ workflow GENOMEQC {
     // together so that all the uncompressed files are in channels
     UNCOMPRESS_GXF( gz_gxf )
     ch_gxf      = UNCOMPRESS_GXF.out.file.mix(non_gz_gxf)
-    ch_versions = ch_versions.mix(UNCOMPRESS_GXF.out.versions.first())
 
     //
     // Perpare gxf channels
@@ -174,16 +171,15 @@ workflow GENOMEQC {
             ch_input_decon,
             params.ramdisk ?: [],
             params.gxdb ?: [],
-            params.gxdb_manifiest ?: []
+            file(params.gxdb_manifiest) ?: []
         )
-        ch_versions = ch_versions.mix(DECONTAMINATION.out.versions.first())
     }
 
     //
     // Run TIDK
     //
 
-    ch_repeat = params.repeat ? ch_fasta.map { meta, fasta -> [ meta, params.repeat ] } : Channel.empty()
+    ch_repeat = params.repeat ? ch_fasta.map { meta, fasta -> [ meta, params.repeat ] } : channel.empty()
 
     if (!params.skip_tidk) {
         FASTA_EXPLORE_SEARCH_PLOT_TIDK (
@@ -201,14 +197,12 @@ workflow GENOMEQC {
         params.kvalue
     )
     ch_meryl_db = MERYL_COUNT.out.meryl_db
-    ch_versions = ch_versions.mix(MERYL_COUNT.out.versions.first())
     // MODULE: MERYL_UNIONSUM
     MERYL_UNIONSUM(
         ch_meryl_db,
         params.kvalue
     )
     ch_meryl_union = MERYL_UNIONSUM.out.meryl_db
-    ch_versions    = ch_versions.mix(MERYL_UNIONSUM.out.versions.first())
     // MODULE: MERQURY_MERQURY
     ch_merqury_inputs = ch_meryl_union.join(ch_input_merq.fasta)
 
@@ -224,7 +218,6 @@ workflow GENOMEQC {
                                             | mix(ch_merqury_spectra_asm_fl_png)
                                             | mix(ch_hapmers_blob_png)
                                             | flatMap { meta, data -> data }
-    ch_versions                             = ch_versions.mix(MERQURY_MERQURY.out.versions.first())
 
     //
     // SUBWORKFLOWS: Run genome only or genome + annotation subworkflows
@@ -237,7 +230,6 @@ workflow GENOMEQC {
         ch_multiqc_files = ch_multiqc_files
                          | mix(GENOME_ONLY.out.quast_results.map { meta, results -> results })
                          | mix(GENOME_ONLY.out.busco_short_summaries.map { meta, txt -> txt })
-        ch_versions      = ch_versions.mix(GENOME_ONLY.out.versions)
     } else {
         GENOME_ONLY (
             ch_input_geno.fasta
@@ -249,7 +241,6 @@ workflow GENOMEQC {
         ch_multiqc_files = ch_multiqc_files
                          | mix(GENOME_AND_ANNOTATION.out.quast_results.map { meta, results -> results })
                          | mix(GENOME_AND_ANNOTATION.out.busco_short_summaries_prot.map { meta, txt -> txt })
-        ch_versions      = ch_versions.mix(GENOME_AND_ANNOTATION.out.versions)
 
         //
         // MODULE: run BUSCO SEQS
@@ -304,23 +295,21 @@ workflow GENOMEQC {
             ch_busco_geno_anno.prot,
             ch_tree_genome_anno
         )
-        ch_versions      = ch_versions.mix(TREE_SUMMARY_GENO_ANNO.out.versions)
 
         // Run TREE SUMMARY for genome only
         TREE_SUMMARY_GENO (
             GENOME_ONLY.out.orthofinder,
-            [[],[]], // No busco for genome only
-            [[],[]], // No busco for genome only
+            [[],[]], // No busco for genome only (busco runs on genome)
+            [[],[]], // No busco for genome only (busco runs on genome)
             ch_tree_genome
         )
-        ch_versions      = ch_versions.mix(TREE_SUMMARY_GENO.out.versions)
 
         //
         // MODULE: Run SHINY APP
         //
         // Prepare script with functions channel
-        ch_functions = Channel.fromPath("$projectDir/bin/tree_functions.R", checkIfExists: true)
-        ch_app       = Channel.fromPath("$projectDir/bin/shiny_app.R", checkIfExists: true)
+        ch_functions = channel.fromPath("$projectDir/bin/tree_functions.R", checkIfExists: true)
+        ch_app       = channel.fromPath("$projectDir/bin/shiny_app.R", checkIfExists: true)
 
         // For genome and annotation
         SHINY_APP_GENOME_ANNO (
@@ -329,7 +318,6 @@ workflow GENOMEQC {
             ch_functions,
             ch_app
         )
-        ch_versions      = ch_versions.mix(SHINY_APP_GENOME_ANNO.out.versions)
 
         // For genome only
         SHINY_APP_GENOME (
@@ -338,13 +326,12 @@ workflow GENOMEQC {
             ch_functions,
             ch_app
         )
-        ch_versions      = ch_versions.mix(SHINY_APP_GENOME.out.versions)
     }
 
     //
     // Collate and save software versions
     //
-    def topic_versions = Channel.topic("versions")
+    def topic_versions = channel.topic("versions")
         .distinct()
         .branch { entry ->
             versions_file: entry instanceof Path
@@ -374,53 +361,36 @@ workflow GENOMEQC {
     //
     // MODULE: MultiQC
     //
-    ch_multiqc_config        = channel.fromPath(
-        "$projectDir/assets/multiqc_config.yml", checkIfExists: true)
-
-    ch_multiqc_custom_config = params.multiqc_config ?
-        channel.fromPath(params.multiqc_config, checkIfExists: true) :
-        channel.empty()
-
-    ch_multiqc_logo          = params.multiqc_logo ?
-        channel.fromPath(params.multiqc_logo, checkIfExists: true) :
-        channel.empty()
-
-    summary_params      = paramsSummaryMap(
-        workflow, parameters_schema: "nextflow_schema.json")
-    ch_workflow_summary = channel.value(paramsSummaryMultiqc(summary_params))
-
-    ch_multiqc_files = ch_multiqc_files.mix(
-        ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
-    ch_multiqc_custom_methods_description = params.multiqc_methods_description ?
-        file(params.multiqc_methods_description, checkIfExists: true) :
-        file("$projectDir/assets/methods_description_template.yml", checkIfExists: true)
-
-    ch_methods_description                = channel.value(
-        methodsDescriptionText(ch_multiqc_custom_methods_description))
-
-    ch_multiqc_files = ch_multiqc_files.mix(
-        ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
-
     ch_multiqc_files = ch_multiqc_files.mix(ch_collated_versions)
 
-    ch_multiqc_files = ch_multiqc_files.mix(
-        ch_methods_description.collectFile(
-            name: 'methods_description_mqc.yaml',
-            sort: true
-        )
+    def ch_summary_params = paramsSummaryMap(workflow, parameters_schema: "nextflow_schema.json")
+    def ch_workflow_summary = channel.value(paramsSummaryMultiqc(ch_summary_params))
+    ch_multiqc_files = ch_multiqc_files.mix(ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
+
+    def ch_multiqc_custom_methods_description = params.multiqc_methods_description
+        ? file(params.multiqc_methods_description, checkIfExists: true)
+        : file("${projectDir}/assets/methods_description_template.yml", checkIfExists: true)
+    def ch_methods_description = channel.value(methodsDescriptionText(ch_multiqc_custom_methods_description))
+    ch_multiqc_files = ch_multiqc_files.mix(ch_methods_description.collectFile(name: 'methods_description_mqc.yaml', sort: true))
+
+    MULTIQC(
+        ch_multiqc_files.flatten().collect().map { files ->
+            [
+                [id: 'genomeqc'],
+                files,
+                params.multiqc_config
+                    ? file(params.multiqc_config, checkIfExists: true)
+                    : file("${projectDir}/assets/multiqc_config.yml", checkIfExists: true),
+                params.multiqc_logo ? file(params.multiqc_logo, checkIfExists: true) : [],
+                [],
+                [],
+            ]
+        }
     )
 
-    MULTIQC (
-        ch_multiqc_files.collect(),
-        ch_multiqc_config.toList(),
-        ch_multiqc_custom_config.toList(),
-        ch_multiqc_logo.toList(),
-        [],
-        []
-    )
-
-    emit:multiqc_report = MULTIQC.out.report.toList() // channel: /path/to/multiqc_report.html
-    versions       = ch_versions                 // channel: [ path(versions.yml) ]
+    emit:
+    multiqc_report = MULTIQC.out.report.map { _meta, report -> [report] }.toList() // channel: /path/to/multiqc_report.html
+    versions       = ch_versions                 // channel: [ path(versions.yml) ] Keep it for now just in case
 
 }
 

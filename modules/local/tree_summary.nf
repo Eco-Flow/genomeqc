@@ -16,7 +16,16 @@ process TREE_SUMMARY {
     path( "*.svg"          ),                 emit: figure_svg
     tuple val(meta), path("*.tsv"),           emit: tables
     tuple val(meta), path("tree.nw"),         emit: tree
-    path( "versions.yml"    ),                emit: versions
+    tuple val("${task.process}"), val('r_base'), eval('Rscript -e "cat(as.character(getRversion()))"'), emit: versions_r_base, topic: versions
+    tuple val("${task.process}"), val('python'), eval('python3 --version | sed "s/Python //g"'), emit: versions_python, topic: versions
+    tuple val("${task.process}"), val('ggtree'), eval('Rscript -e "cat(as.character(packageVersion(\'ggtree\')))"'), emit: versions_ggtree, topic: versions
+    tuple val("${task.process}"), val('ggplot2'), eval('Rscript -e "cat(as.character(packageVersion(\'ggplot2\')))"'), emit: versions_ggplot2, topic: versions
+    tuple val("${task.process}"), val('patchwork'), eval('Rscript -e "cat(as.character(packageVersion(\'patchwork\')))"'), emit: versions_patchwork, topic: versions
+    tuple val("${task.process}"), val('argparse'), eval('Rscript -e "cat(as.character(packageVersion(\'argparse\')))"'), emit: versions_argparse, topic: versions
+    tuple val("${task.process}"), val('dplyr'), eval('Rscript -e "cat(as.character(packageVersion(\'dplyr\')))"'), emit: versions_dplyr, topic: versions
+    tuple val("${task.process}"), val('tidyr'), eval('Rscript -e "cat(as.character(packageVersion(\'tidyr\')))"'), emit: versions_tidyr, topic: versions
+    tuple val("${task.process}"), val('scatterpie'), eval('Rscript -e "cat(as.character(packageVersion(\'scatterpie\')))"'), emit: versions_scatterpie, topic: versions
+    tuple val("${task.process}"), val('scales'), eval('Rscript -e "cat(as.character(packageVersion(\'scales\')))"'), emit: versions_scales, topic: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -74,13 +83,6 @@ process TREE_SUMMARY {
         cp species_orthologous_chromosomes.tsv species_orthologous_chromosomes_output.tsv
     fi
 
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        Perl version: \$(perl --version | grep "version" | sed 's/.*(//g' | sed 's/[)].*//')
-        Python version: \$(python3 --version | sed 's/Python //g')
-        R version: \$(R --version | head -1 | cut -d" " -f3)
-    END_VERSIONS
     """
 
 }

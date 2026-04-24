@@ -17,13 +17,13 @@ process SHINY_APP {
     output:
     tuple val(meta), path("app/shiny_app.sh"), emit: shiny_app
     path("app"), emit: shiny_app_files
-    path "versions.yml"           , emit: versions
+    tuple val("${task.process}"), val("cat"), eval("cat --version 2>&1 | head -n 1 | sed 's/^.*coreutils) //; s/ .*\$//'"), emit: versions_shiny, topic: versions
 
     script:
     //def args   = task.ext.args ?: ''
     def prefix           = task.ext.prefix ?: "${meta.id}"
     def container_engine = params.container_engine ? "${params.container_engine}" : 'docker'
-    def docker_url       = "quay.io/fduarte001/genomeqc_tree:0.4"
+    def docker_url       = 'ecoflowucl/genomeqc_tree:v1.4'
     def results_path     = file(params.outdir).toAbsolutePath()
     """
     mkdir app
@@ -72,9 +72,5 @@ process SHINY_APP {
     mv *.R app/
     mv shiny_app.sh app/
 
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-    python: \$(bash --version | head -n1 | cut -d" " -f4)
-    END_VERSIONS
     """
 }

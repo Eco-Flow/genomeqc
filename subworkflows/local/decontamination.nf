@@ -19,14 +19,11 @@ workflow DECONTAMINATION {
 
     main:
 
-    ch_versions        = Channel.empty()
-
     // Run module FCS_Adaptor find contamination
 
     FCS_FCSADAPTOR (
         ch_fasta
     )
-    ch_versions        = ch_versions.mix(FCS_FCSADAPTOR.out.versions.first())
 
     //
     // Run Module Clean adaptor contamination
@@ -37,7 +34,6 @@ workflow DECONTAMINATION {
                        | map { meta, fasta, adaptor_report -> tuple(meta, fasta, adaptor_report) }
 
     FCSGX_CLEANADAPTOR (ch_cleanadaptor_in)
-    //ch_versions = ch_versions.mix(FCS_CLEANADAPTOR.out.versions.first())
 
     // Run Module fetch database
     FCSGX_FETCHDB(
@@ -56,7 +52,6 @@ workflow DECONTAMINATION {
         ch_gxdb,
         ch_ramdisk
     )
-    ch_versions        = ch_versions.mix(FCSGX_RUNGX.out.versions.first())
 
     ch_cleangenome_in  = ch_fasta
                        | join(FCSGX_RUNGX.out.fcsgx_report, by: 0)
@@ -65,7 +60,6 @@ workflow DECONTAMINATION {
     FCSGX_CLEANGENOME(
         ch_cleangenome_in
     )
-    //ch_versions = ch_versions.mix(FCSGX_CLEANGENOME.out.versions.first())
 
     // Not cleaned
     TIARA_RAW(
@@ -76,14 +70,12 @@ workflow DECONTAMINATION {
     TIARA_CLEANED(
         FCSGX_CLEANGENOME.out.cleaned
     )
-    //ch_versions = ch_versions.mix(TIARA_TIARA.out.versions.first())
 
-    emit:
+//    emit:
     // TODO nf-core: edit emitted channels
     //clean_fasta      = FCS_CLEANADAPTOR.out.clean_fasta           // channel: [ val(meta), [ clean_fasta ] ]
     //fcs_gx_report    = FCS_FCSGX.out.fcs_gx_report          // channel: [ val(meta), [ fcs_gx_report ] ]
     //adaptor_report   = FCS_FCSADAPTOR.out.adaptor_report          // channel: [ val(meta), [ adaptor_report ] ]
     //cleaned          = FCSGX_CLEANGENOME.out.cleaned            // channel: [val(meta),    [cleaned]
 
-    versions = ch_versions                     // channel: [ versions.yml ]
 }

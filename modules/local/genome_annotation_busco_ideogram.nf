@@ -12,7 +12,8 @@ process GENOME_ANNOTATION_BUSCO_IDEOGRAM {
     tuple val(genusspeci), val(lineage), path("*.svg"), emit: svg
     tuple val(genusspeci), val(lineage), path("*.png"), emit: png
     tuple val(genusspeci), path("*.csv"), emit: busco_mappings
-    path "versions.yml"           , emit: versions
+    tuple val("${task.process}"), val('r_base'), eval('Rscript -e "cat(as.character(getRversion()))"'), emit: versions_r_base, topic: versions
+    tuple val("${task.process}"), val('r_rideogram'), eval('Rscript -e "cat(as.character(packageVersion(\'RIdeogram\')))"'), emit: versions_rideogram, topic: versions
 
     script:
     def args = task.ext.args ?: ''

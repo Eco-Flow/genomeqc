@@ -12,7 +12,8 @@ process GENOME_ONLY_BUSCO_IDEOGRAM {
     tuple val(meta), path("*.svg"), emit: svg
     tuple val(meta), path("*.png"), emit: png
     tuple val(meta), path("*.csv"), emit: busco_mappings
-    path "versions.yml"           , emit: versions
+    tuple val("${task.process}"), val('r_base'), eval('Rscript -e "cat(as.character(getRversion()))"'), emit: versions_r_base, topic: versions
+    tuple val("${task.process}"), val('r_rideogram'), eval('Rscript -e "cat(as.character(packageVersion(\'RIdeogram\')))"'), emit: versions_rideogram, topic: versions
 
     script:
     def args   = task.ext.args ?: ''
@@ -33,10 +34,5 @@ process GENOME_ONLY_BUSCO_IDEOGRAM {
         --prefix ${prefix} \\
         $args
 
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        r-base: \$(Rscript -e "cat(as.character(getRversion()))")
-        r-rideogram: \$(Rscript -e "cat(as.character(packageVersion('RIdeogram')))")
-    END_VERSIONS
     """
 }

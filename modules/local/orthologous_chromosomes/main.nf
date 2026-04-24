@@ -13,7 +13,8 @@ process ORTHOLOGOUS_CHROMOSOMES {
     path "species_orthologous_chromosomes.tsv", emit: species_summary
     path "pairwise_chromosome_orthology.tsv", emit: pairwise_summary
     path "debug_gene_mapping.txt", emit: debug_info
-    path "versions.yml", emit: versions
+    tuple val("${task.process}"), val('python'), eval('python --version | sed "s/Python //g"'), emit: versions_python, topic: versions
+    tuple val("${task.process}"), val('pandas'), eval('python -c "import pandas as pd; print(pd.__version__)"'), emit: versions_pandas, topic: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -295,10 +296,5 @@ print("\\n[INFO] Species orthologous chromosome counts:")
 print(species_chr_count)
 EOF
 
-    cat <<-END_VERSIONS > versions.yml
-"ECOFLOW_GENOMEQC:GENOMEQC:GENOME_AND_ANNOTATION:ORTHOLOGOUS_CHROMOSOMES":
-    python: \$(python --version | sed 's/Python //g')
-    pandas: \$(python -c "import pandas; print(pandas.__version__)")
-END_VERSIONS
     """
 }
