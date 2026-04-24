@@ -233,22 +233,26 @@ By default, the pipeline downloads partition `0` of the DFAM full database. To d
            'https://www.dfam.org/releases/current/families/FamDB/dfam39_full.1.h5.gz']"
 ```
 
-If you already have DFAM h5 partition files on disk, use `--famdb_library` to point at them. The download step is skipped automatically. Accepts a single file path or a glob pattern to include multiple partitions:
+If you already have DFAM h5 partition files on disk, use `--famdb_library` to point at them. The download step is skipped automatically.
+
+`--famdb_library` expects **decompressed `.h5` files** — `.h5.gz` files must be extracted first. Only decompress the partitions relevant to your lineage; decompressing the entire database is unnecessary and expensive (each partition is 10–30 GB uncompressed).
+
+Partition 0 always contains the taxonomy metadata and is required. For most lineages, partitions 0 and 1 are sufficient — check the [DFAM partition guide](https://www.dfam.org/releases/current/families/FamDB/) if you need to identify which partition covers your clade.
 
 ```bash
-# Single partition
---famdb_library /path/to/FamDB
-
-# Multiple partitions via glob (recommended for full lineage coverage)
---famdb_library "/path/to/FamDB*"
+# Decompress only the partitions you need (once, on the cluster)
+gunzip -k /path/to/dfam38-1_full.0.h5.gz
+gunzip -k /path/to/dfam38-1_full.1.h5.gz
 ```
+
+Then pass them via a glob:
 
 ```bash
 nextflow run nf-core/genomeqc \
    --input samplesheet.csv \
    --outdir results \
    --te repeatmasker \
-   --famdb_library "/path/to/FamDB*" \
+   --famdb_library "/path/to/dfam38-1_full.*.h5" \
    --famdb_lineage hymenoptera \
    -profile docker
 ```
