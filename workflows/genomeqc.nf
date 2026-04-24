@@ -146,8 +146,8 @@ workflow GENOMEQC {
     // Check multimapChannel function below
 
     ch_input       = ch_fasta // channel: [ val(meta), val(fasta), val(gxf), val(fastq) ]
-                   | join(ch_gxf, remainder: true) // reminder: if gxf is null (only necessary for ncbi genomes)
-                   | join(ch_fastq, remainder: true)
+                   | join(ch_gxf, remainder: true)           // full outer: gxf is optional
+                   | join(ch_fastq, remainder: [true, false]) // left outer: fastq is optional, drop fastq-only entries
 
     // Split into two channels according to the presence/absence of an annotation
     ch_input_anno  = ch_input.filter { meta, fasta, gxf, fastq ->  gxf } // gxf is present. Channel will run on genome and annotation

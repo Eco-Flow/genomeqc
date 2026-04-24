@@ -169,6 +169,7 @@ workflow PIPELINE_COMPLETION {
 def validateInputParameters() {
     //genomeExistsError()
     // Add ways of validating input parameters, e.g. for groups in ncbigenomedownload
+
 }
 
 //

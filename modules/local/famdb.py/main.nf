@@ -18,20 +18,13 @@ process FAMDB_PY {
     def args   = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
 
+    def term = lineage ?: 'root'
+
     """
-    if [ ! -z "$lineage" ]
-    then
-        python /usr/local/share/RepeatMasker/famdb.py \\
-            -i ./ \\
-            families $lineage -f fasta_name \\
-            $args \\
-            > ${lineage}.fasta
-    else
-        python /usr/local/share/RepeatMasker/famdb.py \\
-            -i ./ \\
-            families -f fasta_name \\
-            $args \\
-            > famdb_db.fasta
-    fi
+    python /usr/local/share/RepeatMasker/famdb.py \\
+        -i ./ \\
+        families $term -f fasta_name \\
+        $args \\
+        > ${term}.fasta
     """
 }
