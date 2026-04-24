@@ -1,11 +1,10 @@
-include { RM_DOWNLOAD_DB                          } from '../../../modules/local/repeatmasker_download_db/main'
-include { FAMDB_PY                                } from '../../../modules/local/famdb.py/main'
-include { PIGZ_UNCOMPRESS as PIGZ_UNCOMPRESS_H5   } from '../../../modules/nf-core/pigz/uncompress/main'
-include { REPEATMODELER_BUILDDATABASE             } from '../../../modules/nf-core/repeatmodeler/builddatabase/main'
-include { REPEATMODELER_REPEATMODELER             } from '../../../modules/nf-core/repeatmodeler/repeatmodeler/main'
-include { CAT_CAT                                 } from '../../../modules/nf-core/cat/cat/main'
-include { CDHIT_CDHITEST                          } from '../../../modules/nf-core/cdhit/cdhitest/main'
-include { REPEATMASKER_REPEATMASKER               } from '../../../modules/nf-core/repeatmasker/repeatmasker/main'
+include { RM_DOWNLOAD_DB              } from '../../../modules/local/repeatmasker_download_db/main'
+include { FAMDB_PY                    } from '../../../modules/local/famdb.py/main'
+include { REPEATMODELER_BUILDDATABASE } from '../../../modules/nf-core/repeatmodeler/builddatabase/main'
+include { REPEATMODELER_REPEATMODELER } from '../../../modules/nf-core/repeatmodeler/repeatmodeler/main'
+include { CAT_CAT                     } from '../../../modules/nf-core/cat/cat/main'
+include { CDHIT_CDHITEST              } from '../../../modules/nf-core/cdhit/cdhitest/main'
+include { REPEATMASKER_REPEATMASKER   } from '../../../modules/nf-core/repeatmasker/repeatmasker/main'
 
 
 workflow FASTA_ANNOTATE_TE {
@@ -23,18 +22,12 @@ workflow FASTA_ANNOTATE_TE {
     // Download h5 partition files from DFAM — versions flow via Channel.topic('versions')
     RM_DOWNLOAD_DB ( ch_rm_db )
 
-    // Decompress any .h5.gz files supplied via --famdb_library
-    ch_famdb_lib_gz    = ch_famdb_lib | filter { meta, h5 -> h5.name.endsWith('.gz') }
-    ch_famdb_lib_plain = ch_famdb_lib | filter { meta, h5 -> !h5.name.endsWith('.gz') }
-    PIGZ_UNCOMPRESS_H5 ( ch_famdb_lib_gz )
-    ch_famdb_lib_h5 = PIGZ_UNCOMPRESS_H5.out.file | mix(ch_famdb_lib_plain)
-
     // Collect all h5 partitions (downloaded + any pre-staged) for famdb.py.
     // famdb.py uses '-i ./' so all files must be staged in the same work directory.
     // If both ch_rm_db and ch_famdb_lib are empty this channel never emits,
     // FAMDB_PY does not run, and the pipeline falls back to RepeatModeler alone.
     ch_h5_files = RM_DOWNLOAD_DB.out.h5
-                | mix(ch_famdb_lib_h5)
+                | mix(ch_famdb_lib)
                 | map { meta, h5 -> h5 }
                 | collect
                 | map { h5_files -> tuple([id: 'famdb'], h5_files) }
