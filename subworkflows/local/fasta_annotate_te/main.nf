@@ -10,10 +10,11 @@ include { REPEATMASKER_REPEATMASKER   } from '../../../modules/nf-core/repeatmas
 workflow FASTA_ANNOTATE_TE {
 
     take:
-    ch_fasta            // channel: [ val(meta), path(fasta) ]
-    ch_rm_db            // channel: [ val(meta), val(db_url) ] ; Channel.empty() if not downloading
-    ch_famdb_lib        // channel: [ val(meta), path(h5) ]   ; Channel.empty() if not pre-staged
-    val_famdb_lineage   // val: lineage string for famdb extraction (e.g. 'hymenoptera'), or ''
+    ch_fasta              // channel: [ val(meta), path(fasta) ]
+    ch_rm_db              // channel: [ val(meta), val(db_url) ] ; Channel.empty() if not downloading
+    ch_famdb_lib          // channel: [ val(meta), path(h5) ]   ; Channel.empty() if not pre-staged
+    val_famdb_lineage     // val: lineage string for famdb extraction (e.g. 'hymenoptera'), or ''
+    val_run_repeatmodeler // val: boolean – run de novo RepeatModeler (slow, adds 24-48 h per genome)
 
     main:
 
@@ -38,32 +39,38 @@ workflow FASTA_ANNOTATE_TE {
         val_famdb_lineage
     )
 
-    // MODULE: REPEATMODELER_BUILDDATABASE
-    // Build BLAST-format database for de novo repeat discovery
-    REPEATMODELER_BUILDDATABASE ( ch_fasta )
+    // Optional de novo repeat discovery (gated by val_run_repeatmodeler)
+    if (val_run_repeatmodeler) {
+        REPEATMODELER_BUILDDATABASE ( ch_fasta )
+        REPEATMODELER_REPEATMODELER ( REPEATMODELER_BUILDDATABASE.out.db )
+        ch_modeler_fasta = REPEATMODELER_REPEATMODELER.out.fasta
+    } else {
+        ch_modeler_fasta = Channel.empty()
+    }
 
-    // MODULE: REPEATMODELER_REPEATMODELER
-    // Perform de novo transposable element discovery
-    REPEATMODELER_REPEATMODELER ( REPEATMODELER_BUILDDATABASE.out.db )
+    // Single shared famdb fasta (broadcast across genomes via combine)
+    ch_famdb_fasta = FAMDB_PY.out.famdb_lib | map { meta, fasta -> fasta }
 
-    // Combine the curated famdb library with the de novo RepeatModeler library.
-    // When FAMDB_PY did not run (no h5 input), ch_famdb_combined is empty and the
-    // join with remainder: true falls back to the RepeatModeler-only channel.
-    // Build per-genome repeat library list: [famdb.fa, rm.fa] when FAMDB_PY ran,
-    // or [rm.fa] alone when no h5 input was provided (ch_famdb_combined is empty).
-    ch_famdb_combined = FAMDB_PY.out.famdb_lib
-                      | map { meta, fasta -> fasta }
-                      | combine(REPEATMODELER_REPEATMODELER.out.fasta)
-                      | map { famdb_fasta, meta, modeler_fasta ->
-                          tuple(meta, [famdb_fasta, modeler_fasta])
-                      }
+    // Build per-genome library list depending on which sources are available
+    if (val_run_repeatmodeler) {
+        // [famdb, modeler] when both ran; [modeler] when famdb was skipped
+        ch_famdb_with_modeler = ch_modeler_fasta
+                              | combine(ch_famdb_fasta)
+                              | map { meta, modeler, famdb -> tuple(meta, [famdb, modeler]) }
 
-    ch_combined_libs  = REPEATMODELER_REPEATMODELER.out.fasta
-                      | map { meta, fasta -> tuple(meta, [fasta]) }
-                      | join(ch_famdb_combined, by: 0, remainder: true)
-                      | map { meta, modeler_files, combined_files ->
-                          tuple(meta, combined_files ?: modeler_files)
-                      }
+        ch_combined_libs = ch_modeler_fasta
+                         | map { meta, fasta -> tuple(meta, [fasta]) }
+                         | join(ch_famdb_with_modeler, by: 0, remainder: true)
+                         | map { meta, modeler_list, both_list ->
+                             tuple(meta, both_list ?: modeler_list)
+                         }
+    } else {
+        // famdb only: broadcast the single famdb fasta to each genome
+        ch_combined_libs = ch_fasta
+                         | map { meta, fasta -> meta }
+                         | combine(ch_famdb_fasta)
+                         | map { meta, famdb -> tuple(meta, [famdb]) }
+    }
 
     // MODULE: CAT_CAT
     // Concatenate curated and de novo repeat libraries
