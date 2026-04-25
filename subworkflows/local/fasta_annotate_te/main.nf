@@ -4,6 +4,8 @@ include { REPEATMODELER_BUILDDATABASE } from '../../../modules/nf-core/repeatmod
 include { REPEATMODELER_REPEATMODELER } from '../../../modules/nf-core/repeatmodeler/repeatmodeler/main'
 include { CAT_CAT                     } from '../../../modules/nf-core/cat/cat/main'
 include { CDHIT_CDHITEST              } from '../../../modules/nf-core/cdhit/cdhitest/main'
+include { MMSEQS_EASYCLUSTER          } from '../../../modules/nf-core/mmseqs/easycluster/main'
+include { MMSEQS_EASYLINCLUST         } from '../../../modules/local/mmseqs_easylinclust/main'
 include { REPEATMASKER_REPEATMASKER   } from '../../../modules/nf-core/repeatmasker/repeatmasker/main'
 
 
@@ -15,6 +17,7 @@ workflow FASTA_ANNOTATE_TE {
     ch_famdb_lib          // channel: [ val(meta), path(h5) ]   ; Channel.empty() if not pre-staged
     val_famdb_lineage     // val: lineage string for famdb extraction (e.g. 'hymenoptera'), or ''
     val_run_repeatmodeler // val: boolean – run de novo RepeatModeler (slow, adds 24-48 h per genome)
+    val_te_clusterer      // val: clustering tool – 'mmseqs' (default) or 'cdhit'
 
     main:
 
@@ -76,15 +79,23 @@ workflow FASTA_ANNOTATE_TE {
     // Concatenate curated and de novo repeat libraries
     CAT_CAT ( ch_combined_libs )
 
-    // MODULE: CDHIT_CDHITEST
     // Cluster sequences and remove redundancy from the combined library
-    CDHIT_CDHITEST ( CAT_CAT.out.file_out )
+    if (val_te_clusterer == 'cdhit') {
+        CDHIT_CDHITEST ( CAT_CAT.out.file_out )
+        ch_clustered_lib = CDHIT_CDHITEST.out.fasta_lib
+    } else if (val_te_clusterer == 'linclust') {
+        MMSEQS_EASYLINCLUST ( CAT_CAT.out.file_out )
+        ch_clustered_lib = MMSEQS_EASYLINCLUST.out.representatives
+    } else {
+        MMSEQS_EASYCLUSTER ( CAT_CAT.out.file_out )
+        ch_clustered_lib = MMSEQS_EASYCLUSTER.out.representatives
+    }
 
     // MODULE: REPEATMASKER_REPEATMASKER
     // Soft-mask repeat elements in the genome using the combined repeat library
     REPEATMASKER_REPEATMASKER (
         ch_fasta,
-        CDHIT_CDHITEST.out.fasta_lib
+        ch_clustered_lib
     )
 
     emit:
@@ -92,5 +103,5 @@ workflow FASTA_ANNOTATE_TE {
     out             = REPEATMASKER_REPEATMASKER.out.out     // channel: [ val(meta), path(out) ]
     tbl             = REPEATMASKER_REPEATMASKER.out.tbl     // channel: [ val(meta), path(tbl) ]
     gff             = REPEATMASKER_REPEATMASKER.out.gff     // channel: [ val(meta), path(gff) ]
-    repeat_library  = CDHIT_CDHITEST.out.fasta_lib          // channel: [ val(meta), path(fasta) ]
+    repeat_library  = ch_clustered_lib                      // channel: [ val(meta), path(fasta) ]
 }

@@ -49,7 +49,7 @@ Depending on the inputs provided, there are two ways this pipeline can run:
       - [Tiara](https://ibe-uw.github.io/tiara/): DNA sequence classification.
    6. TE annotation (optional, `--te`):
       - [`--te hite`](https://github.com/BioinformaticsToolsmith/HiTE): Fast, alignment-free TE identification and masking.
-      - `--te repeatmasker`: Curated TE masking using [DFAM famdb](https://www.dfam.org) + [RepeatMasker](https://www.repeatmasker.org). Add `--run_repeatmodeler` to also build a de novo library with [RepeatModeler](https://www.repeatmasker.org/RepeatModeler/) (slow — 24–48 h per genome).
+      - `--te repeatmasker`: Curated TE masking using [DFAM famdb](https://www.dfam.org) + [RepeatMasker](https://www.repeatmasker.org). Add `--run_repeatmodeler` to also build a de novo library with [RepeatModeler](https://www.repeatmasker.org/RepeatModeler/) (slow — 24–48 h per genome). The repeat library is dereplicated before masking using [MMseqs2](https://github.com/soedinglab/MMseqs2) `easy-linclust` by default (linear-time, fastest); use `--te_clusterer mmseqs` for MMseqs2 `easy-cluster` or `--te_clusterer cdhit` for [CD-HIT-EST](https://github.com/weizhongli/cdhit).
 3. Plots a BUSCO marker-based phylogenetic tree with assembly summary statistics: **Tree Summary**.
 4. Summary with [MultiQC](http://multiqc.info).
 
@@ -68,7 +68,7 @@ Depending on the inputs provided, there are two ways this pipeline can run:
       - [Tiara](https://ibe-uw.github.io/tiara/): DNA sequence classification.
    7. TE annotation (optional, `--te`):
       - [`--te hite`](https://github.com/BioinformaticsToolsmith/HiTE): Fast, alignment-free TE identification and masking.
-      - `--te repeatmasker`: Curated TE masking using [DFAM famdb](https://www.dfam.org) + [RepeatMasker](https://www.repeatmasker.org). Add `--run_repeatmodeler` to also build a de novo library with [RepeatModeler](https://www.repeatmasker.org/RepeatModeler/) (slow — 24–48 h per genome).
+      - `--te repeatmasker`: Curated TE masking using [DFAM famdb](https://www.dfam.org) + [RepeatMasker](https://www.repeatmasker.org). Add `--run_repeatmodeler` to also build a de novo library with [RepeatModeler](https://www.repeatmasker.org/RepeatModeler/) (slow — 24–48 h per genome). The repeat library is dereplicated before masking using [MMseqs2](https://github.com/soedinglab/MMseqs2) `easy-linclust` by default (linear-time, fastest); use `--te_clusterer mmseqs` for MMseqs2 `easy-cluster` or `--te_clusterer cdhit` for [CD-HIT-EST](https://github.com/weizhongli/cdhit).
 3. Describes annotation:
    1. [AGAT](https://agat.readthedocs.io/en/latest/): Number of genes, features, length...
    2. **Gene Overlaps**: Finds the number of overlapping genes.

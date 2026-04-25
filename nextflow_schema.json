@@ -383,6 +383,29 @@
                         "type": "string"
                     },
                     "fa_icon": "fas fa-link"
+                },
+                "te_clusterer": {
+                    "type": "string",
+                    "description": "Clustering tool used to dereplicate the repeat library before RepeatMasker. 'mmseqs' (default) uses MMseqs2 easy-cluster; 'linclust' uses MMseqs2 easy-linclust (linear time, less sensitive); 'cdhit' uses CD-HIT-EST.",
+                    "default": "linclust",
+                    "enum": ["mmseqs", "linclust", "cdhit"],
+                    "fa_icon": "fas fa-object-group"
+                },
+                "te_cluster_identity": {
+                    "type": "number",
+                    "default": 0.8,
+                    "minimum": 0.0,
+                    "maximum": 1.0,
+                    "description": "Minimum sequence identity threshold (0.0–1.0) for repeat library clustering. Passed as -c to CD-HIT-EST and --min-seq-id to MMseqs2.",
+                    "fa_icon": "fas fa-percentage"
+                },
+                "te_cluster_coverage": {
+                    "type": "number",
+                    "default": 0.8,
+                    "minimum": 0.0,
+                    "maximum": 1.0,
+                    "description": "Minimum alignment coverage threshold (0.0–1.0) for repeat library clustering. Passed as -aS to CD-HIT-EST and -c (with --cov-mode 1) to MMseqs2.",
+                    "fa_icon": "fas fa-ruler-horizontal"
                 }
             }
         }

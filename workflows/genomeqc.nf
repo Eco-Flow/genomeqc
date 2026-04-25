@@ -253,7 +253,8 @@ workflow GENOMEQC {
             ch_rm_db_input,
             ch_famdb_lib_input,
             params.famdb_lineage ?: '',
-            params.run_repeatmodeler
+            params.run_repeatmodeler,
+            params.te_clusterer ?: 'linclust'
         )
     }
 
