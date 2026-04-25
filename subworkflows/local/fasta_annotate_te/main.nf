@@ -17,7 +17,7 @@ workflow FASTA_ANNOTATE_TE {
     ch_famdb_lib          // channel: [ val(meta), path(h5) ]   ; Channel.empty() if not pre-staged
     val_famdb_lineage     // val: lineage string for famdb extraction (e.g. 'hymenoptera'), or ''
     val_run_repeatmodeler // val: boolean – run de novo RepeatModeler (slow, adds 24-48 h per genome)
-    val_te_clusterer      // val: clustering tool – 'mmseqs' (default) or 'cdhit'
+    val_te_clusterer      // val: clustering tool – 'linclust' (default), 'mmseqs', or 'cdhit'
 
     main:
 
@@ -36,27 +36,23 @@ workflow FASTA_ANNOTATE_TE {
                 | map { h5_files -> tuple([id: 'famdb'], h5_files) }
 
     // MODULE: FAMDB_PY
-    // Extract curated repeat library from collected h5 partitions
+    // Extract curated repeat library from collected h5 partitions — runs once per lineage
     FAMDB_PY (
         ch_h5_files,
         val_famdb_lineage
     )
 
-    // Optional de novo repeat discovery (gated by val_run_repeatmodeler)
     if (val_run_repeatmodeler) {
+        // Per-genome path: RepeatModeler produces a genome-specific de novo library,
+        // which is merged with the shared famdb library before clustering.
+
         REPEATMODELER_BUILDDATABASE ( ch_fasta )
         REPEATMODELER_REPEATMODELER ( REPEATMODELER_BUILDDATABASE.out.db )
         ch_modeler_fasta = REPEATMODELER_REPEATMODELER.out.fasta
-    } else {
-        ch_modeler_fasta = Channel.empty()
-    }
 
-    // Single shared famdb fasta (broadcast across genomes via combine)
-    ch_famdb_fasta = FAMDB_PY.out.famdb_lib | map { meta, fasta -> fasta }
+        ch_famdb_fasta = FAMDB_PY.out.famdb_lib | map { meta, fasta -> fasta }
 
-    // Build per-genome library list depending on which sources are available
-    if (val_run_repeatmodeler) {
-        // [famdb, modeler] when both ran; [modeler] when famdb was skipped
+        // [famdb, modeler] when both are available; [modeler] when famdb was skipped
         ch_famdb_with_modeler = ch_modeler_fasta
                               | combine(ch_famdb_fasta)
                               | map { meta, modeler, famdb -> tuple(meta, [famdb, modeler]) }
@@ -67,32 +63,45 @@ workflow FASTA_ANNOTATE_TE {
                          | map { meta, modeler_list, both_list ->
                              tuple(meta, both_list ?: modeler_list)
                          }
+
+        // MODULE: CAT_CAT — concatenate famdb and de novo libraries (per genome)
+        CAT_CAT ( ch_combined_libs )
+
+        if (val_te_clusterer == 'cdhit') {
+            CDHIT_CDHITEST ( CAT_CAT.out.file_out )
+            ch_clustered_lib = CDHIT_CDHITEST.out.fasta_lib
+        } else if (val_te_clusterer == 'linclust') {
+            MMSEQS_EASYLINCLUST ( CAT_CAT.out.file_out )
+            ch_clustered_lib = MMSEQS_EASYLINCLUST.out.representatives
+        } else {
+            MMSEQS_EASYCLUSTER ( CAT_CAT.out.file_out )
+            ch_clustered_lib = MMSEQS_EASYCLUSTER.out.representatives
+        }
+
     } else {
-        // famdb only: broadcast the single famdb fasta to each genome
-        ch_combined_libs = ch_fasta
+        // Shared path: cluster the famdb library once, then broadcast to every genome.
+        // CAT_CAT is not needed — there is only one input library.
+
+        if (val_te_clusterer == 'cdhit') {
+            CDHIT_CDHITEST ( FAMDB_PY.out.famdb_lib )
+            ch_shared_lib = CDHIT_CDHITEST.out.fasta_lib | map { meta, fasta -> fasta }
+        } else if (val_te_clusterer == 'linclust') {
+            MMSEQS_EASYLINCLUST ( FAMDB_PY.out.famdb_lib )
+            ch_shared_lib = MMSEQS_EASYLINCLUST.out.representatives | map { meta, fasta -> fasta }
+        } else {
+            MMSEQS_EASYCLUSTER ( FAMDB_PY.out.famdb_lib )
+            ch_shared_lib = MMSEQS_EASYCLUSTER.out.representatives | map { meta, fasta -> fasta }
+        }
+
+        // Pair each genome's meta with the single shared library
+        ch_clustered_lib = ch_fasta
                          | map { meta, fasta -> meta }
-                         | combine(ch_famdb_fasta)
-                         | map { meta, famdb -> tuple(meta, [famdb]) }
-    }
-
-    // MODULE: CAT_CAT
-    // Concatenate curated and de novo repeat libraries
-    CAT_CAT ( ch_combined_libs )
-
-    // Cluster sequences and remove redundancy from the combined library
-    if (val_te_clusterer == 'cdhit') {
-        CDHIT_CDHITEST ( CAT_CAT.out.file_out )
-        ch_clustered_lib = CDHIT_CDHITEST.out.fasta_lib
-    } else if (val_te_clusterer == 'linclust') {
-        MMSEQS_EASYLINCLUST ( CAT_CAT.out.file_out )
-        ch_clustered_lib = MMSEQS_EASYLINCLUST.out.representatives
-    } else {
-        MMSEQS_EASYCLUSTER ( CAT_CAT.out.file_out )
-        ch_clustered_lib = MMSEQS_EASYCLUSTER.out.representatives
+                         | combine(ch_shared_lib)
+                         | map { meta, lib -> tuple(meta, lib) }
     }
 
     // MODULE: REPEATMASKER_REPEATMASKER
-    // Soft-mask repeat elements in the genome using the combined repeat library
+    // Soft-mask repeat elements in each genome using its paired repeat library
     REPEATMASKER_REPEATMASKER (
         ch_fasta,
         ch_clustered_lib
