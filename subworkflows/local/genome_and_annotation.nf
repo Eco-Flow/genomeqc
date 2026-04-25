@@ -49,19 +49,6 @@ workflow GENOME_AND_ANNOTATION {
         ch_versions  = ch_versions.mix(GFFREAD_VALIDATE.out.versions.first())
     }
 
-    //AGAT_CONVERTSPGXF2GXF(
-    //    ch_gxf
-    //)
-    //ch_gxf_agat  = AGAT_CONVERTSPGXF2GXF.out.output_gff
-    //ch_versions  = ch_versions.mix(AGAT_CONVERTSPGXF2GXF.out.versions.first())
-
-    //GFFREAD_VALIDATE (
-    //    ch_gxf,
-    //    []
-    //)
-    //ch_gxf_agat  = GFFREAD_VALIDATE.out.gffread_gff
-
-
     //
     // MODULE: Run AGAT longest isoform
     //
@@ -142,8 +129,7 @@ workflow GENOME_AND_ANNOTATION {
     // MODULE: Run fasta validator
     //
 
-    // Shoud we keep this?
-    FASTAVALIDATOR(
+    FASTAVALIDATOR (
         GFFREAD.out.gffread_fasta
     )
     ch_versions  = ch_versions.mix(FASTAVALIDATOR.out.versions.first())
@@ -188,6 +174,7 @@ workflow GENOME_AND_ANNOTATION {
     //
     // MODULE: Run BUSCO for genome annotation
     //
+    
     if(!params.skip_busco) {
     BUSCO_GENOME (
         ch_fasta,
