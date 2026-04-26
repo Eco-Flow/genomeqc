@@ -370,6 +370,13 @@
                     "default": false,
                     "fa_icon": "fas fa-clock"
                 },
+                "repeatmasker_speed": {
+                    "type": "string",
+                    "description": "RepeatMasker sensitivity/speed mode. 'default' is most sensitive; 'q' (quick) is ~5x faster; 'qq' (rush) is fastest with lowest sensitivity.",
+                    "default": "qq",
+                    "enum": ["default", "q", "qq"],
+                    "fa_icon": "fas fa-tachometer-alt"
+                },
                 "RM_download_db": {
                     "type": "boolean",
                     "description": "Download h5 partition files from the URLs specified in RM_db.",

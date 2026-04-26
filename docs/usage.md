@@ -204,8 +204,8 @@ nextflow run nf-core/genomeqc \
 Runs a curated TE masking pipeline using the [DFAM](https://www.dfam.org) repeat library:
 
 1. **famdb.py** – extracts a curated repeat library from DFAM h5 partition files (downloaded automatically by default).
-2. **CAT + CD-HIT-EST** – deduplicates the library.
-3. **RepeatMasker** – soft-masks the genome.
+2. **Clustering** – deduplicates the library using MMseqs2 `easy-linclust` by default (see [Clustering options](#repeat-library-clustering-options) below).
+3. **RepeatMasker** – masks the genome. Runs in rush mode (`-qq`) by default for speed (see [RepeatMasker speed](#repeatmasker-speed) below).
 
 ```bash
 nextflow run nf-core/genomeqc \
@@ -275,6 +275,36 @@ The RepeatModeler de novo library is merged with the famdb curated library befor
 
 > [!WARNING]
 > RepeatModeler is slow — it typically requires 24 CPUs and 24–48 hours per genome. Only enable it if you need de novo discovery beyond the curated DFAM families for your lineage.
+
+#### Repeat library clustering options
+
+Before RepeatMasker runs, the repeat library is deduplicated by a clustering step. Three tools are available via `--te_clusterer`:
+
+| Value | Tool | Notes |
+|-------|------|-------|
+| `linclust` | MMseqs2 `easy-linclust` | **Default.** Linear-time, fastest. |
+| `mmseqs` | MMseqs2 `easy-cluster` | Slower than linclust, more sensitive. |
+| `cdhit` | CD-HIT-EST | Traditional approach. |
+
+Two thresholds can be tuned:
+
+- `--te_cluster_identity` – minimum sequence identity (default `0.8`). Passed as `-c` to CD-HIT-EST and `--min-seq-id` to MMseqs2.
+- `--te_cluster_coverage` – minimum alignment coverage of the shorter sequence (default `0.8`). Passed as `-aS` to CD-HIT-EST and `-c --cov-mode 1` to MMseqs2.
+
+> [!NOTE]
+> When running without `--run_repeatmodeler`, clustering runs **once** for the whole lineage library and the result is shared across all genomes. When RepeatModeler is enabled, clustering runs per genome (each genome has a unique de novo library merged in).
+
+#### RepeatMasker speed
+
+RepeatMasker sensitivity can be controlled with `--repeatmasker_speed`:
+
+| Value | Flag | Notes |
+|-------|------|-------|
+| `qq` | `-qq` | **Default.** Rush mode — fastest, lowest sensitivity. |
+| `q` | `-q` | Quick mode — ~5× faster than default, slightly reduced sensitivity. |
+| `default` | *(none)* | Full sensitivity — slowest. |
+
+For TE quantification in a comparative genomics context, `qq` is usually sufficient. Use `default` if you need a publication-quality masked assembly.
 
 ### The Shiny App
 
