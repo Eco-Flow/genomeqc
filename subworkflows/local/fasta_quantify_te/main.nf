@@ -1,9 +1,10 @@
-include { RM_DOWNLOAD_DB            } from '../../../modules/local/repeatmasker_download_db/main'
-include { FAMDB_PY                  } from '../../../modules/local/famdb.py/main'
-include { CDHIT_CDHITEST            } from '../../../modules/nf-core/cdhit/cdhitest/main'
-include { MMSEQS_EASYCLUSTER        } from '../../../modules/nf-core/mmseqs/easycluster/main'
-include { MMSEQS_EASYLINCLUST       } from '../../../modules/local/mmseqs_easylinclust/main'
-include { MINIMAP2_QUANTIFY_TE      } from '../../../modules/local/minimap2_quantify_te/main'
+include { RM_DOWNLOAD_DB                      } from '../../../modules/local/repeatmasker_download_db/main'
+include { FAMDB_PY                            } from '../../../modules/local/famdb.py/main'
+include { CDHIT_CDHITEST                      } from '../../../modules/nf-core/cdhit/cdhitest/main'
+include { MMSEQS_EASYCLUSTER                  } from '../../../modules/nf-core/mmseqs/easycluster/main'
+include { MMSEQS_EASYLINCLUST                 } from '../../../modules/local/mmseqs_easylinclust/main'
+include { MINIMAP2_TE                         } from '../../../modules/local/minimap2_te/main'
+include { TE_TBL                              } from '../../../modules/local/te_tbl/main'
 
 
 workflow FASTA_QUANTIFY_TE {
@@ -42,13 +43,13 @@ workflow FASTA_QUANTIFY_TE {
         ch_shared_lib = MMSEQS_EASYLINCLUST.out.representatives | map { meta, fasta -> fasta }
     }
 
-    // Broadcast the single clustered library to each genome and align
-    MINIMAP2_QUANTIFY_TE (
-        ch_fasta,
-        ch_shared_lib
-    )
+    // MODULE: MINIMAP2_TE — align repeat library to each genome
+    MINIMAP2_TE ( ch_fasta, ch_shared_lib )
+
+    // MODULE: TE_TBL — parse PAF and generate .tbl-like summary
+    TE_TBL ( MINIMAP2_TE.out.paf, ch_fasta )
 
     emit:
-    tbl            = MINIMAP2_QUANTIFY_TE.out.tbl  // channel: [ val(meta), path(tbl) ]
-    repeat_library = FAMDB_PY.out.famdb_lib         // channel: [ val(meta), path(fasta) ]
+    tbl            = TE_TBL.out.tbl        // channel: [ val(meta), path(tbl) ]
+    repeat_library = FAMDB_PY.out.famdb_lib // channel: [ val(meta), path(fasta) ]
 }
