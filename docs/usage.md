@@ -199,6 +199,25 @@ nextflow run nf-core/genomeqc \
    -profile docker
 ```
 
+#### `--te minimap2`
+
+Fast TE quantification using [minimap2](https://github.com/lh3/minimap2). Shares the same DFAM library preparation steps as `--te repeatmasker` but replaces RepeatMasker with a minimap2 alignment + Python summary step. Runs in minutes rather than hours and produces a `.tbl`-like output file per genome. **The genome is not masked** — use this option when you only need TE composition statistics.
+
+```bash
+nextflow run nf-core/genomeqc \
+   --input samplesheet.csv \
+   --outdir results \
+   --te minimap2 \
+   --famdb_library "/path/to/dfam39_full.*.h5" \
+   --famdb_lineage hymenoptera \
+   -profile docker
+```
+
+The repeat library is aligned to each genome using `minimap2 -x asm20` (suitable for repeat elements diverged up to ~20%). Hits are parsed by TE class/family from the DFAM sequence headers and coverage is summed per category, merging overlapping alignments to avoid double-counting.
+
+> [!NOTE]
+> `--run_repeatmodeler` is not supported with `--te minimap2`. Only the curated DFAM library is used.
+
 #### `--te repeatmasker`
 
 Runs a curated TE masking pipeline using the [DFAM](https://www.dfam.org) repeat library:

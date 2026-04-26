@@ -24,6 +24,7 @@ include { SHINY_APP as SHINY_APP_GENOME_ANNO     } from '../modules/local/shiny_
 include { SHINY_APP as SHINY_APP_GENOME          } from '../modules/local/shiny_app/main'
 include { HITE                                   } from '../modules/local/hite/main'
 include { FASTA_ANNOTATE_TE                      } from '../subworkflows/local/fasta_annotate_te/main'
+include { FASTA_QUANTIFY_TE                      } from '../subworkflows/local/fasta_quantify_te/main'
 include { MULTIQC                                } from '../modules/nf-core/multiqc/main'
 include { paramsSummaryMap                       } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc                   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -235,7 +236,7 @@ workflow GENOMEQC {
         HITE ( ch_fasta )
     }
 
-    if (params.te == 'repeatmasker') {
+    if (params.te == 'repeatmasker' || params.te == 'minimap2') {
         // Skip download when a pre-staged famdb library is already provided
         ch_rm_db_input = (params.RM_download_db && params.RM_db && !params.famdb_library)
                        ? Channel.fromList(params.RM_db)
@@ -248,14 +249,24 @@ workflow GENOMEQC {
                                .map { path -> tuple([id: path.baseName], path) }
                            : Channel.empty()
 
-        FASTA_ANNOTATE_TE (
-            ch_fasta,
-            ch_rm_db_input,
-            ch_famdb_lib_input,
-            params.famdb_lineage ?: '',
-            params.run_repeatmodeler,
-            params.te_clusterer
-        )
+        if (params.te == 'repeatmasker') {
+            FASTA_ANNOTATE_TE (
+                ch_fasta,
+                ch_rm_db_input,
+                ch_famdb_lib_input,
+                params.famdb_lineage ?: '',
+                params.run_repeatmodeler,
+                params.te_clusterer
+            )
+        } else {
+            FASTA_QUANTIFY_TE (
+                ch_fasta,
+                ch_rm_db_input,
+                ch_famdb_lib_input,
+                params.famdb_lineage ?: '',
+                params.te_clusterer
+            )
+        }
     }
 
     //

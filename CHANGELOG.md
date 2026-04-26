@@ -13,6 +13,7 @@ Initial release of nf-core/genomeqc, created with the [nf-core](https://nf-co.re
 - Added `--te_cluster_identity` parameter (default `0.8`) to set the sequence identity threshold for repeat library clustering, applied across all three tools.
 - Added `--te_cluster_coverage` parameter (default `0.8`) to set the alignment coverage threshold for repeat library clustering, applied across all three tools.
 - Added `--repeatmasker_speed` parameter to control RepeatMasker sensitivity: `qq` (rush, default), `q` (quick), or `default` (most sensitive).
+- Added `--te minimap2` mode: fast TE quantification using minimap2 (`asm20` preset) + a custom Python summary script. Produces a RepeatMasker `.tbl`-like table per genome without masking the assembly.
 
 ### `Fixed`
 

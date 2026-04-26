@@ -337,8 +337,8 @@
             "properties": {
                 "te": {
                     "type": "string",
-                    "description": "TE annotation method to run. Use 'hite' for HiTE or 'repeatmasker' for the full RepeatModeler + RepeatMasker pipeline. Omit to skip TE annotation.",
-                    "enum": ["hite", "repeatmasker"],
+                    "description": "TE annotation method to run. Use 'hite' for HiTE, 'repeatmasker' for the full RepeatMasker pipeline, or 'minimap2' for fast minimap2-based TE quantification (no genome masking). Omit to skip TE annotation.",
+                    "enum": ["hite", "repeatmasker", "minimap2"],
                     "fa_icon": "fas fa-dna"
                 },
                 "is_plant": {
