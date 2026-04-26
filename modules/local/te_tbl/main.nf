@@ -4,8 +4,8 @@ process TE_TBL {
 
     conda "${moduleDir}/environment.yml"
     container "${workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container
-        ? 'https://depot.galaxyproject.org/singularity/python:3.11--h2585f93_0_cpython'
-        : 'quay.io/biocontainers/python:3.11--py311h4e6e33_0'}"
+        ? 'https://depot.galaxyproject.org/singularity/minimap2:2.28--he4a0461_1'
+        : 'biocontainers/minimap2:2.28--he4a0461_1'}"
 
     input:
     tuple val(meta), path(paf)
