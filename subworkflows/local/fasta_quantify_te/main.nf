@@ -1,5 +1,5 @@
 include { RM_DOWNLOAD_DB                      } from '../../../modules/local/repeatmasker_download_db/main'
-include { FAMDB_PY                            } from '../../../modules/local/famdb.py/main'
+include { FAMDB_PY_EMBL                       } from '../../../modules/local/famdb_py_embl/main'
 include { CDHIT_CDHITEST                      } from '../../../modules/nf-core/cdhit/cdhitest/main'
 include { MMSEQS_EASYCLUSTER                  } from '../../../modules/nf-core/mmseqs/easycluster/main'
 include { MMSEQS_EASYLINCLUST                 } from '../../../modules/local/mmseqs_easylinclust/main'
@@ -28,28 +28,35 @@ workflow FASTA_QUANTIFY_TE {
                 | collect
                 | map { h5_files -> tuple([id: 'famdb'], h5_files) }
 
-    // MODULE: FAMDB_PY — extract curated repeat library once for the lineage
-    FAMDB_PY ( ch_h5_files, val_famdb_lineage )
+    // MODULE: FAMDB_PY_EMBL — extract repeat library with #Type/SubType headers for minimap2 classification
+    FAMDB_PY_EMBL ( ch_h5_files, val_famdb_lineage )
 
     // Cluster the shared library once, broadcast to every genome
     if (val_te_clusterer == 'cdhit') {
-        CDHIT_CDHITEST ( FAMDB_PY.out.famdb_lib )
+        CDHIT_CDHITEST ( FAMDB_PY_EMBL.out.famdb_lib )
         ch_shared_lib = CDHIT_CDHITEST.out.fasta_lib | map { meta, fasta -> fasta }
     } else if (val_te_clusterer == 'mmseqs') {
-        MMSEQS_EASYCLUSTER ( FAMDB_PY.out.famdb_lib )
+        MMSEQS_EASYCLUSTER ( FAMDB_PY_EMBL.out.famdb_lib )
         ch_shared_lib = MMSEQS_EASYCLUSTER.out.representatives | map { meta, fasta -> fasta }
     } else {
-        MMSEQS_EASYLINCLUST ( FAMDB_PY.out.famdb_lib )
+        MMSEQS_EASYLINCLUST ( FAMDB_PY_EMBL.out.famdb_lib )
         ch_shared_lib = MMSEQS_EASYLINCLUST.out.representatives | map { meta, fasta -> fasta }
     }
 
     // MODULE: MINIMAP2_TE — align repeat library to each genome
     MINIMAP2_TE ( ch_fasta, ch_shared_lib )
 
+    // Join PAF back to its originating genome by meta.id to guarantee correct pairing
+    ch_paf_fasta = MINIMAP2_TE.out.paf
+                 | join( ch_fasta, by: 0 )
+
     // MODULE: TE_TBL — parse PAF and generate .tbl-like summary
-    TE_TBL ( MINIMAP2_TE.out.paf, ch_fasta )
+    TE_TBL (
+        ch_paf_fasta.map { meta, paf, fasta -> tuple(meta, paf) },
+        ch_paf_fasta.map { meta, paf, fasta -> tuple(meta, fasta) }
+    )
 
     emit:
     tbl            = TE_TBL.out.tbl        // channel: [ val(meta), path(tbl) ]
-    repeat_library = FAMDB_PY.out.famdb_lib // channel: [ val(meta), path(fasta) ]
+    repeat_library = FAMDB_PY_EMBL.out.famdb_lib // channel: [ val(meta), path(fasta) ]
 }

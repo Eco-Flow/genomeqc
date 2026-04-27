@@ -1,4 +1,4 @@
-process FAMDB_PY {
+process FAMDB_PY_EMBL {
     tag "$meta.id"
     label 'process_single'
 
@@ -12,19 +12,26 @@ process FAMDB_PY {
 
     output:
     tuple val(meta), path("*.fasta"), emit: famdb_lib
-    tuple val("${task.process}"), val('famdb.py'), eval("python /usr/local/share/RepeatMasker/famdb.py -h | grep version | cut -d' ' -f5 | sed 's/.\$//'"), emit: versions_famdb_py, topic: versions
+
+    when:
+    task.ext.when == null || task.ext.when
 
     script:
-    def args   = task.ext.args ?: ''
-    def prefix = task.ext.prefix ?: "${meta.id}"
-
+    def args = task.ext.args ?: ''
     def term = lineage ?: 'root'
 
     """
     python /usr/local/share/RepeatMasker/famdb.py \\
         -i ./ \\
-        families --descendants --curated $term -f fasta_name \\
+        families --descendants $term -f embl \\
         $args \\
+        | famdb_embl_to_fasta.py \\
         > ${term}.fasta
+    """
+
+    stub:
+    def term = lineage ?: 'root'
+    """
+    touch ${term}.fasta
     """
 }
