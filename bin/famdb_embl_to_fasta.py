@@ -58,7 +58,10 @@ def convert(fh, out):
 
 
 def main():
-    convert(sys.stdin, sys.stdout)
+    try:
+        convert(sys.stdin, sys.stdout)
+    except BrokenPipeError:
+        sys.stderr.close()
 
 
 if __name__ == '__main__':
