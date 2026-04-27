@@ -213,10 +213,28 @@ nextflow run nf-core/genomeqc \
    -profile docker
 ```
 
-The repeat library is aligned to each genome using `minimap2 -x asm20` (suitable for repeat elements diverged up to ~20%). Hits are parsed by TE class/family from the DFAM sequence headers and coverage is summed per category, merging overlapping alignments to avoid double-counting.
+The repeat library is aligned to each genome using `minimap2 -x asm20`. Hits are parsed by TE class/family from the DFAM sequence headers and coverage is summed per category, merging overlapping alignments to avoid double-counting.
+
+##### minimap2 sensitivity (`--te_minimap_args`)
+
+By default the pipeline adds `-k 13 -s 40` on top of the `asm20` preset. This lowers the k-mer seed size from 19 to 13 and the minimum alignment score from 200 to 40, allowing detection of older, more diverged TE copies at the cost of slightly longer run time — comparable in sensitivity to RepeatMasker.
+
+| Value | Effect |
+|-------|--------|
+| `"-k 13 -s 40"` | Default. Sensitive — detects TEs up to ~35% diverged. |
+| `""` | asm20 preset defaults. Faster but misses older/diverged copies. |
+| `"-k 11 -s 25"` | Maximum sensitivity. Slowest, most false positives. |
+
+```bash
+# Use stricter asm20 defaults (faster):
+--te_minimap_args ''
+
+# Push sensitivity further:
+--te_minimap_args '-k 11 -s 25'
+```
 
 > [!NOTE]
-> `--run_repeatmodeler` is not supported with `--te minimap2`. Only the curated DFAM library is used.
+> `--run_repeatmodeler` is not supported with `--te minimap2`. Only the DFAM library is used.
 
 #### `--te repeatmasker`
 

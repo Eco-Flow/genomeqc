@@ -14,6 +14,7 @@ Initial release of nf-core/genomeqc, created with the [nf-core](https://nf-co.re
 - Added `--te_cluster_coverage` parameter (default `0.8`) to set the alignment coverage threshold for repeat library clustering, applied across all three tools.
 - Added `--repeatmasker_speed` parameter to control RepeatMasker sensitivity: `qq` (rush, default), `q` (quick), or `default` (most sensitive).
 - Added `--te minimap2` mode: fast TE quantification using minimap2 (`asm20` preset) + a custom Python summary script. Produces a RepeatMasker `.tbl`-like table per genome without masking the assembly.
+- Added `--te_minimap_args` parameter (default `"-k 13 -s 40"`) to control minimap2 sensitivity in `--te minimap2` mode. The default lowers the k-mer seed size and minimum alignment score relative to the `asm20` preset, giving sensitivity comparable to RepeatMasker for diverged TE copies. Pass `''` to revert to strict `asm20` defaults.
 
 ### `Fixed`
 

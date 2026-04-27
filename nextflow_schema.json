@@ -413,6 +413,12 @@
                     "maximum": 1.0,
                     "description": "Minimum alignment coverage threshold (0.0–1.0) for repeat library clustering. Passed as -aS to CD-HIT-EST and -c (with --cov-mode 1) to MMseqs2.",
                     "fa_icon": "fas fa-ruler-horizontal"
+                },
+                "te_minimap_args": {
+                    "type": "string",
+                    "default": "-k 13 -s 40",
+                    "description": "Extra minimap2 arguments for TE alignment (--te minimap2 mode). The default '-k 13 -s 40' uses a 13-mer seed and minimum score of 40, giving sensitivity comparable to RepeatMasker for diverged copies. Pass '' to use the asm20 preset defaults (-k 19 -s 200, faster but misses older TEs).",
+                    "fa_icon": "fas fa-sliders-h"
                 }
             }
         }
