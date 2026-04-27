@@ -23,7 +23,7 @@ process FAMDB_PY {
     """
     python /usr/local/share/RepeatMasker/famdb.py \\
         -i ./ \\
-        families --ancestors --descendants $term -f fasta_name \\
+        families --ancestors --descendants --curated $term -f fasta_name \\
         $args \\
         > ${term}.fasta
     """
