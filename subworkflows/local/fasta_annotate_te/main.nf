@@ -1,5 +1,5 @@
 include { RM_DOWNLOAD_DB              } from '../../../modules/local/repeatmasker_download_db/main'
-include { FAMDB_PY                    } from '../../../modules/local/famdb.py/main'
+include { FAMDB_PY_EMBL               } from '../../../modules/local/famdb_py_embl/main'
 include { REPEATMODELER_BUILDDATABASE } from '../../../modules/nf-core/repeatmodeler/builddatabase/main'
 include { REPEATMODELER_REPEATMODELER } from '../../../modules/nf-core/repeatmodeler/repeatmodeler/main'
 include { CAT_CAT                     } from '../../../modules/nf-core/cat/cat/main'
@@ -35,9 +35,9 @@ workflow FASTA_ANNOTATE_TE {
                 | collect
                 | map { h5_files -> tuple([id: 'famdb'], h5_files) }
 
-    // MODULE: FAMDB_PY
-    // Extract curated repeat library from collected h5 partitions — runs once per lineage
-    FAMDB_PY (
+    // MODULE: FAMDB_PY_EMBL
+    // Extract repeat library with #Type/SubType headers — runs once per lineage
+    FAMDB_PY_EMBL (
         ch_h5_files,
         val_famdb_lineage
     )
@@ -50,7 +50,7 @@ workflow FASTA_ANNOTATE_TE {
         REPEATMODELER_REPEATMODELER ( REPEATMODELER_BUILDDATABASE.out.db )
         ch_modeler_fasta = REPEATMODELER_REPEATMODELER.out.fasta
 
-        ch_famdb_fasta = FAMDB_PY.out.famdb_lib | map { meta, fasta -> fasta }
+        ch_famdb_fasta = FAMDB_PY_EMBL.out.famdb_lib | map { meta, fasta -> fasta }
 
         // [famdb, modeler] when both are available; [modeler] when famdb was skipped
         ch_famdb_with_modeler = ch_modeler_fasta
@@ -83,13 +83,13 @@ workflow FASTA_ANNOTATE_TE {
         // CAT_CAT is not needed — there is only one input library.
 
         if (val_te_clusterer == 'cdhit') {
-            CDHIT_CDHITEST ( FAMDB_PY.out.famdb_lib )
+            CDHIT_CDHITEST ( FAMDB_PY_EMBL.out.famdb_lib )
             ch_shared_lib = CDHIT_CDHITEST.out.fasta_lib | map { meta, fasta -> fasta }
         } else if (val_te_clusterer == 'linclust') {
-            MMSEQS_EASYLINCLUST ( FAMDB_PY.out.famdb_lib )
+            MMSEQS_EASYLINCLUST ( FAMDB_PY_EMBL.out.famdb_lib )
             ch_shared_lib = MMSEQS_EASYLINCLUST.out.representatives | map { meta, fasta -> fasta }
         } else {
-            MMSEQS_EASYCLUSTER ( FAMDB_PY.out.famdb_lib )
+            MMSEQS_EASYCLUSTER ( FAMDB_PY_EMBL.out.famdb_lib )
             ch_shared_lib = MMSEQS_EASYCLUSTER.out.representatives | map { meta, fasta -> fasta }
         }
 
