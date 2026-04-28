@@ -4,6 +4,8 @@ include { CDHIT_CDHITEST                      } from '../../../modules/nf-core/c
 include { MMSEQS_EASYCLUSTER                  } from '../../../modules/nf-core/mmseqs/easycluster/main'
 include { MMSEQS_EASYLINCLUST                 } from '../../../modules/local/mmseqs_easylinclust/main'
 include { MINIMAP2_TE                         } from '../../../modules/local/minimap2_te/main'
+include { MDUST                               } from '../../../modules/nf-core/mdust/main'
+include { TRF                                 } from '../../../modules/local/trf/main'
 include { TE_TBL                              } from '../../../modules/local/te_tbl/main'
 
 
@@ -46,14 +48,24 @@ workflow FASTA_QUANTIFY_TE {
     // MODULE: MINIMAP2_TE — align repeat library to each genome
     MINIMAP2_TE ( ch_fasta, ch_shared_lib )
 
-    // Join PAF back to its originating genome by meta.id to guarantee correct pairing
-    ch_paf_fasta = MINIMAP2_TE.out.paf
-                 | join( ch_fasta, by: 0 )
+    // MODULE: MDUST — soft-mask low complexity regions per genome
+    MDUST ( ch_fasta )
 
-    // MODULE: TE_TBL — parse PAF and generate .tbl-like summary
+    // MODULE: TRF — find simple/tandem repeats per genome
+    TRF ( ch_fasta )
+
+    // Join PAF, genome, dust FASTA, and TRF dat by meta.id to guarantee correct pairing
+    ch_for_tbl = MINIMAP2_TE.out.paf
+               | join( ch_fasta,        by: 0 )
+               | join( MDUST.out.fasta, by: 0 )
+               | join( TRF.out.dat,     by: 0 )
+
+    // MODULE: TE_TBL — parse PAF + dust + TRF intervals and generate .tbl-like summary
     TE_TBL (
-        ch_paf_fasta.map { meta, paf, fasta -> tuple(meta, paf) },
-        ch_paf_fasta.map { meta, paf, fasta -> tuple(meta, fasta) }
+        ch_for_tbl.map { meta, paf, fasta, dust, trf -> tuple(meta, paf) },
+        ch_for_tbl.map { meta, paf, fasta, dust, trf -> tuple(meta, fasta) },
+        ch_for_tbl.map { meta, paf, fasta, dust, trf -> tuple(meta, dust) },
+        ch_for_tbl.map { meta, paf, fasta, dust, trf -> tuple(meta, trf) }
     )
 
     emit:

@@ -50,7 +50,7 @@ Depending on the inputs provided, there are two ways this pipeline can run:
    6. TE annotation (optional, `--te`):
       - [`--te hite`](https://github.com/BioinformaticsToolsmith/HiTE): Fast, alignment-free TE identification and masking.
       - `--te repeatmasker`: Curated TE masking using [DFAM famdb](https://www.dfam.org) + [RepeatMasker](https://www.repeatmasker.org). Add `--run_repeatmodeler` to also build a de novo library with [RepeatModeler](https://www.repeatmasker.org/RepeatModeler/) (slow — 24–48 h per genome). The repeat library is dereplicated using [MMseqs2](https://github.com/soedinglab/MMseqs2) `easy-linclust` by default; use `--te_clusterer` to switch tools and `--te_cluster_identity`/`--te_cluster_coverage` to tune thresholds. RepeatMasker runs in rush mode (`-qq`) by default; use `--repeatmasker_speed` to adjust.
-      - `--te minimap2`: Fast TE quantification using [minimap2](https://github.com/lh3/minimap2) (`asm20` preset) against the DFAM library. Produces a `.tbl`-like summary table per genome in minutes. Does not mask the genome.
+      - `--te minimap2`: Fast TE quantification using [minimap2](https://github.com/lh3/minimap2) (`asm20` preset) against the DFAM library, with low-complexity detection via [mdust](https://github.com/lh3/mdust) (DUST algorithm) and simple/tandem repeat detection via [TRF](https://tandem.bu.edu/trf/trf.html). Produces a `.tbl`-like summary table per genome in minutes. Does not mask the genome.
 3. Plots a BUSCO marker-based phylogenetic tree with assembly summary statistics: **Tree Summary**.
 4. Summary with [MultiQC](http://multiqc.info).
 

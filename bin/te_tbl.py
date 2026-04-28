@@ -65,6 +65,77 @@ def covered(intervals):
 
 
 # ---------------------------------------------------------------------------
+# Simple repeat intervals from TRF -ngs output
+# ---------------------------------------------------------------------------
+
+def parse_trf_dat(path):
+    """Parse TRF output (produced with -ngs flag) to get simple repeat intervals.
+
+    The -ngs format has @seqname header lines followed by one hit per line:
+      start end period_size copy_number consensus_size pct_match pct_indel score A C G T entropy consensus sequence
+
+    Positions are 1-based; we return 0-based half-open intervals.
+    Returns: {chrom: [(start, end), ...]}
+    """
+    intervals = defaultdict(list)
+    chrom = None
+    with open(path) as fh:
+        for line in fh:
+            line = line.rstrip()
+            if not line:
+                continue
+            if line.startswith('@'):
+                chrom = line[1:].split()[0]
+            elif chrom is not None:
+                parts = line.split()
+                if len(parts) >= 2:
+                    intervals[chrom].append((int(parts[0]) - 1, int(parts[1])))
+    return intervals
+
+
+# ---------------------------------------------------------------------------
+# Low-complexity intervals from mdust soft-masked FASTA
+# ---------------------------------------------------------------------------
+
+def parse_dust_fasta(path):
+    """Extract low-complexity intervals from a soft-masked FASTA (mdust output).
+
+    mdust lowercases low-complexity bases in-place.  We scan each sequence for
+    runs of lowercase characters and return them as 0-based half-open intervals.
+
+    Returns: {chrom: [(start, end), ...]}
+    """
+    opener = gzip.open if path.endswith('.gz') else open
+    intervals = defaultdict(list)
+    chrom = None
+    pos = 0
+    in_lc = False
+    lc_start = 0
+    with opener(path, 'rt') as fh:
+        for line in fh:
+            line = line.rstrip('\n')
+            if line.startswith('>'):
+                if in_lc and chrom is not None:
+                    intervals[chrom].append((lc_start, pos))
+                chrom = line[1:].split()[0]
+                pos = 0
+                in_lc = False
+            else:
+                for ch in line:
+                    is_lc = ch.islower()
+                    if is_lc and not in_lc:
+                        lc_start = pos
+                        in_lc = True
+                    elif not is_lc and in_lc:
+                        intervals[chrom].append((lc_start, pos))
+                        in_lc = False
+                    pos += 1
+    if in_lc and chrom is not None:
+        intervals[chrom].append((lc_start, pos))
+    return intervals
+
+
+# ---------------------------------------------------------------------------
 # Genome FASTA stats
 # ---------------------------------------------------------------------------
 
@@ -179,11 +250,33 @@ def row(label, n, bp, total_bp):
     return ROW.format(label=label, n=n, bp=bp, pct=pct(bp, total_bp))
 
 
-def write_tbl(out, fname, gs, by_chrom):
+def write_tbl(out, fname, gs, by_chrom, dust_intervals=None, trf_intervals=None):
     n_seqs, total_bp, nx_bp, gc_bp = gs
     excl_bp    = total_bp - nx_bp
     gc_pct     = pct(gc_bp, excl_bp)
-    masked     = total_masked_bp(by_chrom)
+
+    # Low complexity from mdust (DUST algorithm) or fall back to library hits
+    if dust_intervals is not None:
+        all_dust     = [iv for ivs in dust_intervals.values() for iv in ivs]
+        lowc_bp_dust = covered(all_dust)
+        lowc_n_dust  = sum(len(merge(ivs)) for ivs in dust_intervals.values())
+    else:
+        lowc_bp_dust = None
+
+    # Simple repeats from TRF or fall back to library hits
+    if trf_intervals is not None:
+        all_trf     = [iv for ivs in trf_intervals.values() for iv in ivs]
+        simp_bp_trf = covered(all_trf)
+        simp_n_trf  = sum(len(merge(ivs)) for ivs in trf_intervals.values())
+    else:
+        simp_bp_trf = None
+
+    # Total masked = TE hits + dust low-complexity + TRF simple repeats
+    masked = total_masked_bp(by_chrom)
+    if lowc_bp_dust is not None:
+        masked += lowc_bp_dust
+    if simp_bp_trf is not None:
+        masked += simp_bp_trf
     masked_pct = pct(masked, total_bp)
 
     print(HEADER.format(
@@ -238,12 +331,22 @@ def write_tbl(out, fname, gs, by_chrom):
     # Other categories
     srna_bp  = cov_for(by_chrom, 'Small_RNA')
     sat_bp   = cov_for(by_chrom, 'Satellite')
-    simp_bp  = cov_for(by_chrom, 'Simple_repeat')
-    lowc_bp  = cov_for(by_chrom, 'Low_complexity')
     srna_n   = elem_for(by_chrom, 'Small_RNA')
     sat_n    = elem_for(by_chrom, 'Satellite')
-    simp_n   = elem_for(by_chrom, 'Simple_repeat')
-    lowc_n   = elem_for(by_chrom, 'Low_complexity')
+
+    # Simple repeats: use TRF if available, else fall back to library hits
+    if simp_bp_trf is not None:
+        simp_bp, simp_n = simp_bp_trf, simp_n_trf
+    else:
+        simp_bp = cov_for(by_chrom, 'Simple_repeat')
+        simp_n  = elem_for(by_chrom, 'Simple_repeat')
+
+    # Low complexity: use mdust if available, else fall back to library hits
+    if lowc_bp_dust is not None:
+        lowc_bp, lowc_n = lowc_bp_dust, lowc_n_dust
+    else:
+        lowc_bp = cov_for(by_chrom, 'Low_complexity')
+        lowc_n  = elem_for(by_chrom, 'Low_complexity')
 
     print(row("Small RNA",      srna_n, srna_bp, total_bp), file=out)
     print(row("Satellites",     sat_n,  sat_bp,  total_bp), file=out)
@@ -260,15 +363,19 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument('paf',    help='minimap2 PAF file')
     ap.add_argument('genome', help='genome FASTA (gzipped ok)')
+    ap.add_argument('--dust-fasta', default=None, help='mdust soft-masked FASTA for low-complexity detection')
+    ap.add_argument('--trf-dat',   default=None, help='TRF -ngs output for simple/tandem repeat detection')
     ap.add_argument('--prefix',   default=None, help='sample name for header')
     ap.add_argument('--min-mapq', type=int, default=0,  help='minimum mapping quality (default: 0)')
     ap.add_argument('--min-aln',  type=int, default=50, help='minimum alignment length bp (default: 50)')
     args = ap.parse_args()
 
-    fname    = args.prefix or args.genome
-    gs       = fasta_stats(args.genome)
-    by_chrom = parse_paf(args.paf, min_mapq=args.min_mapq, min_aln=args.min_aln)
-    write_tbl(sys.stdout, fname, gs, by_chrom)
+    fname          = args.prefix or args.genome
+    gs             = fasta_stats(args.genome)
+    by_chrom       = parse_paf(args.paf, min_mapq=args.min_mapq, min_aln=args.min_aln)
+    dust_intervals = parse_dust_fasta(args.dust_fasta) if args.dust_fasta else None
+    trf_intervals  = parse_trf_dat(args.trf_dat)       if args.trf_dat   else None
+    write_tbl(sys.stdout, fname, gs, by_chrom, dust_intervals, trf_intervals)
 
 
 if __name__ == '__main__':

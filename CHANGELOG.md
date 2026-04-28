@@ -15,6 +15,8 @@ Initial release of nf-core/genomeqc, created with the [nf-core](https://nf-co.re
 - Added `--repeatmasker_speed` parameter to control RepeatMasker sensitivity: `qq` (rush, default), `q` (quick), or `default` (most sensitive).
 - Added `--te minimap2` mode: fast TE quantification using minimap2 (`asm20` preset) + a custom Python summary script. Produces a RepeatMasker `.tbl`-like table per genome without masking the assembly.
 - Added `--te_minimap_args` parameter (default `"-k 13 -s 40"`) to control minimap2 sensitivity in `--te minimap2` mode. The default lowers the k-mer seed size and minimum alignment score relative to the `asm20` preset, giving sensitivity comparable to RepeatMasker for diverged TE copies. Pass `''` to revert to strict `asm20` defaults.
+- Added [mdust](https://github.com/lh3/mdust) (DUST algorithm) to the `--te minimap2` subworkflow. Each genome is soft-masked with mdust and the resulting low-complexity intervals are used to populate the "Low complexity" row in the `.tbl` output, replacing the previous library-based (and substantially underestimated) values.
+- Added a local [TRF](https://tandem.bu.edu/trf/trf.html) (Tandem Repeat Finder) module to the `--te minimap2` subworkflow. TRF is run with RepeatMasker-compatible parameters (`2 7 7 80 10 50 500 -ngs`) and the resulting tandem repeat intervals populate the "Simple repeats" row in the `.tbl` output, replacing the previous library-based values.
 
 ### `Fixed`
 

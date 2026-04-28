@@ -237,7 +237,13 @@ By default the pipeline adds `-k 13 -s 40` on top of the `asm20` preset. This lo
 > `--run_repeatmodeler` is not supported with `--te minimap2`. Only the DFAM library is used.
 
 > [!WARNING]
-> minimap2-based TE quantification is an approximation. Unlike RepeatMasker, which uses profile HMMs and is specifically tuned for repetitive element detection, minimap2 uses DNA-level k-mer seeding and will underestimate TE content for highly degraded or ancient insertions even with sensitive parameters. Results are suitable for rapid comparative surveys, but should not be treated as equivalent to a full RepeatMasker annotation when precision matters. For publication-quality TE composition tables, use `--te repeatmasker`.
+> minimap2-based TE quantification is an approximation with one known limitation compared to RepeatMasker:
+>
+> 1. **Diverged copies**: minimap2 uses DNA k-mer seeding and will underestimate TE content for highly degraded or ancient insertions, even with sensitive parameters (`-k 13 -s 40`). RepeatMasker uses profile HMMs tuned specifically for repetitive element detection.
+>
+> Low complexity and simple repeat content are handled separately from the TE library: [mdust](https://github.com/lh3/mdust) (DUST algorithm) populates the "Low complexity" row, and [Tandem Repeat Finder](https://tandem.bu.edu/trf/trf.html) (TRF) populates the "Simple repeats" row — matching the approach used by RepeatMasker.
+>
+> Results are suitable for rapid comparative surveys of interspersed repeat content, but should not be treated as equivalent to a full RepeatMasker annotation. For publication-quality TE composition tables, use `--te repeatmasker`.
 
 #### `--te repeatmasker`
 

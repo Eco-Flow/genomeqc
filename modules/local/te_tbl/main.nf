@@ -10,6 +10,8 @@ process TE_TBL {
     input:
     tuple val(meta), path(paf)
     tuple val(meta2), path(genome)
+    tuple val(meta3), path(dust_fasta)
+    tuple val(meta4), path(trf_dat)
 
     output:
     tuple val(meta), path("*.tbl"), emit: tbl
@@ -25,6 +27,8 @@ process TE_TBL {
     te_tbl.py \\
         ${paf} \\
         ${genome} \\
+        --dust-fasta ${dust_fasta} \\
+        --trf-dat    ${trf_dat} \\
         --prefix ${prefix} \\
         --min-mapq ${min_mapq} \\
         --min-aln  ${min_aln} \\
