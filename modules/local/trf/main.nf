@@ -25,18 +25,52 @@ process TRF {
     """
     $decompress
 
-    # Run TRF per sequence so output is written incrementally.
-    # With -ngs, TRF buffers output until a whole sequence is done; a single
-    # large chromosome can stall the job for hours with nothing written.
+    # Split genome into 250 kb chunks (mirroring RepeatMasker's internal TRF batching).
+    # Each chunk header embeds the parent sequence name and chunk offset so that
+    # reported coordinates can be shifted back to genome space after TRF runs.
     mkdir -p trf_split
 
-    awk '/^>/ { if (f) close(f); n++; f = sprintf("trf_split/seq_%06d.fa", n) } f { print > f }' \\
-        ${fasta_input}
+    awk -v chunk=250000 '
+    BEGIN { n=0; off=0; buf=""; hdr="" }
+    /^>/ {
+        if (hdr != "" && buf != "") {
+            n++; f = sprintf("trf_split/%07d.fa", n)
+            print ">" hdr "__OFF__" off > f; print buf > f; close(f)
+        }
+        hdr = substr(\$0,2); split(hdr,a," "); hdr=a[1]
+        off=0; buf=""; next
+    }
+    {
+        buf = buf \$0
+        while (length(buf) >= chunk) {
+            n++; f = sprintf("trf_split/%07d.fa", n)
+            print ">" hdr "__OFF__" off > f
+            print substr(buf,1,chunk) > f; close(f)
+            off += chunk; buf = substr(buf, chunk+1)
+        }
+    }
+    END {
+        if (hdr != "" && buf != "") {
+            n++; f = sprintf("trf_split/%07d.fa", n)
+            print ">" hdr "__OFF__" off > f; print buf > f; close(f)
+        }
+    }' ${fasta_input}
 
+    # Run TRF on each chunk; strip the __OFF__ marker from the header and
+    # shift start/end coordinates by the chunk offset before appending.
     touch ${prefix}.trf.dat
-    for seq_fa in trf_split/seq_*.fa; do
-        trf "\${seq_fa}" 2 7 7 80 10 50 500 -ngs -h $args \\
-            >> ${prefix}.trf.dat 2>/dev/null || true
+    for fa in trf_split/*.fa; do
+        trf "\${fa}" 2 7 7 80 10 50 500 -ngs -h $args 2>/dev/null \\
+        | awk '
+            /^@/ {
+                name = substr(\$0,2)
+                n = split(name, a, "__OFF__")
+                seqname = a[1]; off = (n>1) ? a[2]+0 : 0
+                print "@" seqname; next
+            }
+            NF >= 2 { \$1 += off; \$2 += off; print; next }
+            { print }
+        ' >> ${prefix}.trf.dat || true
     done
 
     rm -rf trf_split
