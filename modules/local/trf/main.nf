@@ -25,12 +25,43 @@ process TRF {
     """
     $decompress
 
-    trf \\
-        ${fasta_input} \\
-        2 7 7 80 10 50 500 \\
-        -ngs -h \\
-        $args \\
-        > ${prefix}.trf.dat || true
+    # Run TRF per sequence so output is written incrementally.
+    # With -ngs, TRF buffers output until a whole sequence is done; a single
+    # large chromosome can stall the job for hours with nothing written.
+    python3 - << 'PYEOF'
+import subprocess, os, tempfile, sys
+
+fasta_in = "${fasta_input}"
+dat_out  = "${prefix}.trf.dat"
+args     = "${args}".split()
+
+with open(fasta_in) as fh, open(dat_out, 'w') as out:
+    name = None
+    seq_lines = []
+    def run_trf(name, seq_lines):
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.fa', delete=False) as tmp:
+            tmp.write('>' + name + '\\n')
+            tmp.writelines(seq_lines)
+            tmpname = tmp.name
+        try:
+            r = subprocess.run(
+                ['trf', tmpname, '2', '7', '7', '80', '10', '50', '500', '-ngs', '-h'] + args,
+                stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True
+            )
+            out.write(r.stdout)
+        finally:
+            os.unlink(tmpname)
+    for line in fh:
+        if line.startswith('>'):
+            if name:
+                run_trf(name, seq_lines)
+            name = line[1:].split()[0]
+            seq_lines = []
+        else:
+            seq_lines.append(line)
+    if name:
+        run_trf(name, seq_lines)
+PYEOF
     """
 
     stub:
