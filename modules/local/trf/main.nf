@@ -28,7 +28,7 @@ process TRF {
     trf \\
         ${fasta_input} \\
         2 7 7 80 10 50 500 \\
-        -ngs \\
+        -ngs -h \\
         $args \\
         > ${prefix}.trf.dat || true
     """
