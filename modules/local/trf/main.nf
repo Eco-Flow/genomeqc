@@ -25,39 +25,38 @@ process TRF {
     """
     $decompress
 
-    # Split genome into 250 kb chunks (mirroring RepeatMasker's internal TRF batching).
-    # Each chunk header embeds the parent sequence name and chunk offset so that
-    # reported coordinates can be shifted back to genome space after TRF runs.
+    # Split genome into ~250 kb chunks at line boundaries (mirroring RepeatMasker's
+    # internal TRF batching).  We track a running length counter rather than
+    # accumulating the sequence string, keeping memory and CPU use O(n).
+    # Each chunk header embeds the parent name and chunk offset so coordinates
+    # can be shifted back to genome space after TRF runs.
     mkdir -p trf_split
 
     awk -v chunk=250000 '
-    BEGIN { n=0; off=0; buf=""; hdr="" }
+    BEGIN { n=0; cumlen=0; cstart=0; hdr=""; f="" }
     /^>/ {
-        if (hdr != "" && buf != "") {
-            n++; f = sprintf("trf_split/%07d.fa", n)
-            print ">" hdr "__OFF__" off > f; print buf > f; close(f)
-        }
+        if (f != "") close(f)
         hdr = substr(\$0,2); split(hdr,a," "); hdr=a[1]
-        off=0; buf=""; next
+        cumlen=0; cstart=0; n++
+        f = sprintf("trf_split/%07d.fa", n)
+        print ">" hdr "__OFF__" cstart > f
+        next
     }
     {
-        buf = buf \$0
-        while (length(buf) >= chunk) {
-            n++; f = sprintf("trf_split/%07d.fa", n)
-            print ">" hdr "__OFF__" off > f
-            print substr(buf,1,chunk) > f; close(f)
-            off += chunk; buf = substr(buf, chunk+1)
+        print > f
+        cumlen += length(\$0)
+        if (cumlen - cstart >= chunk) {
+            close(f)
+            cstart = cumlen; n++
+            f = sprintf("trf_split/%07d.fa", n)
+            print ">" hdr "__OFF__" cstart > f
         }
     }
-    END {
-        if (hdr != "" && buf != "") {
-            n++; f = sprintf("trf_split/%07d.fa", n)
-            print ">" hdr "__OFF__" off > f; print buf > f; close(f)
-        }
-    }' ${fasta_input}
+    END { if (f != "") close(f) }
+    ' ${fasta_input}
 
-    # Run TRF on each chunk; strip the __OFF__ marker from the header and
-    # shift start/end coordinates by the chunk offset before appending.
+    # Run TRF on each chunk; strip __OFF__ from the header line and add the
+    # offset to start/end coordinates so te_tbl.py sees genome-space intervals.
     touch ${prefix}.trf.dat
     for fa in trf_split/*.fa; do
         trf "\${fa}" 2 7 7 80 10 50 500 -ngs -h $args 2>/dev/null \\
