@@ -21,48 +21,121 @@
 
 ## Introduction
 
-**nf-core/genomeqc** is a bioinformatics pipeline that ...
+**nf-core/genomeqc** is a bioinformatics pipeline that compares the quality of multiple genomes, along with their annotations.
 
-<!-- TODO nf-core:
-   Complete this sentence with a 2-3 sentence summary of what types of data the pipeline ingests, a brief overview of the
-   major pipeline sections and the types of output it produces. You're giving an overview to someone new
-   to nf-core here, in 15-20 seconds. For an example, see https://github.com/nf-core/rnaseq/blob/master/README.md#introduction
--->
+The pipeline takes a list of genomes and annotations (from local files or ncbi accessions), and runs commonly used tools to assess their quality.
 
-<!-- TODO nf-core: Include a figure that guides the user through the major workflow steps. Many nf-core
-     workflows use the "tube map" design for that. See https://nf-co.re/docs/community/brand/workflow-schematics#examples for examples.   -->
-<!-- TODO nf-core: Fill in short bullet-pointed list of the default steps in the pipeline -->1. Read QC ([`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/))2. Present QC for raw reads ([`MultiQC`](http://multiqc.info/))
+Depending on the inputs provided, there are two ways this pipeline can run:
+
+1.  Genome only (minmal run, only fasta files are supplied)
+2.  Genome and Annotation (both fasta and gtf/gff files are supplied)
+
+<picture>
+   <source media="(prefers-color-scheme: dark)" srcset="docs/images/nf-core-genomeqc_metro_map_v3_logo_dark.png">
+   <img alt="nf-core/genomeqc" src="docs/images/nf-core-genomeqc_metro_map_v3.png">
+</picture>
+
+**1. Genome Only:**
+
+1. Downloads the genome files from NCBI: [NCBI genome download](https://github.com/kblin/ncbi-genome-download) - Or **provide your own genomes**.
+2. Describes genome assembly:
+   1. [BUSCO](https://busco.ezlab.org/): Evaluates genome completeness based on **single copy markers**.
+   2. **BUSCO Ideogram**: Plots the location of BUSCO markers in the assembly.
+   3. [tidk](https://github.com/tolkit/telomeric-identifier) (optional): Identifies and visualises telomeric repeats.
+   4. [QUAST](https://github.com/ablab/quast): Computes contiguity and integrity statistics such as N50, N90, GC%, and the number of sequences.
+   5. Contamination screening:
+      - [FCS-GX](https://github.com/ncbi/fcs/wiki/FCS-GX-quickstart): Detection and removal of foreign organism contamination.
+      - [FCS-adaptor](https://github.com/ncbi/fcs/wiki/FCS-adaptor-quickstart): Detection and removal of adaptor and vector contamination.
+      - [Tiara](https://ibe-uw.github.io/tiara/): DNA sequence classification.
+3. Plots a BUSCO marker-based phylogenetic tree with assembly summary statistics: **Tree Summary**.
+4. Summary with [MultiQC](http://multiqc.info).
+
+**2. Genome and Annotation:**
+
+1. Downloads the genome and gene annotation files from NCBI: [NCBI genome download](https://github.com/kblin/ncbi-genome-download) - Or **provide your own genomes and annotations**.
+2. Describes genome assembly:
+   1. [BUSCO](https://busco.ezlab.org/): Evaluates genome completeness based on **single copy markers**.
+   2. **BUSCO Ideogram**: Plots the location of markers on the assembly.
+   3. [Merqury](https://github.com/marbl/merqury) (optional): Evaluates genome completeness based on sequencing reads.
+   4. [tidk](https://github.com/tolkit/telomeric-identifier) (optional): Identifies and visualises telomeric repeats.
+   5. [QUAST](https://github.com/ablab/quast): Computes contiguity and integrity statistics: N50, N90, GC%, number of sequences.
+   6. Contamination screening:
+      - [FCS-GX](https://github.com/ncbi/fcs/wiki/FCS-GX-quickstart): Detection and removal of foreign organisms contamination.
+      - [FCS-adaptor](https://github.com/ncbi/fcs/wiki/FCS-adaptor-quickstart): Detection and removal of adaptor and vector contamination.
+      - [Tiara](https://ibe-uw.github.io/tiara/): DNA sequence classification.
+   7. More options...
+3. Describes annotation :
+   1. [AGAT](https://agat.readthedocs.io/en/latest/): Number of genes, features, length...
+   2. **Gene Overlaps**: Finds the number of overlapping genes.
+4. Extracts longest protein isoform: [GffRead](https://github.com/gpertea/gffread).
+5. Finds orthologous genes: [Orthofinder](https://github.com/davidemms/OrthoFinder).
+6. Plots an orthology-based phylogenetic tree with assembly and annotation summary statistics: **Tree Summary**.
+7. Summary with [MultiQC](http://multiqc.info).
+
+The pipeline outputs an executable that launches a shiny app with the tree plot and the summary statistics. The plot's parameters can be modified, and summary statistics can be added or removed in real time. Once the plot has been adjusted, it can be saved as png/svg.
+
+> [!WARNING]
+> We strongly suggest users to specify the lineage using the `--busco_lineage` parameter, as setting the lineage to `auto` (default value) might cause problems with `BUSCO` during the lineage determination step.
+
+> [!NOTE]
+> `BUSCO Ideogram` will only plot those chromosomes -or scaffolds- that contain at least one single copy marker.
 
 ## Usage
 
 > [!NOTE]
 > If you are new to Nextflow and nf-core, please refer to [this page](https://nf-co.re/docs/get_started/environment_setup/overview) on how to set-up Nextflow. Make sure to [test your setup](https://nf-co.re/docs/get_started/run-your-first-pipeline) with `-profile test` before running the workflow on actual data.
 
-<!-- TODO nf-core: Describe the minimum required steps to execute the pipeline, e.g. how to prepare samplesheets.
-     Explain what rows and columns represent. For instance (please edit as appropriate):
+First, prepare an input **samplesheet** in **csv format** (e.g. `samplesheet.csv`). You can prepare your sampplesheet using:
 
-First, prepare a samplesheet with your input data that looks as follows:
+### 1. Local files
 
-`samplesheet.csv`:
+Simply point out to your local genome assembly and annotation (in FASTA and GFF format, respectively) using the `fasta` and `gff` fields:
 
 ```csv
-sample,fastq_1,fastq_2
-CONTROL_REP1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz
+species,fasta,gff
+species_1,/path/to/genome1.fasta,/path/to/annotation1.gff3
+species_2,/path/to/genome2.fasta,/path/to/annotation2.gff3
+species_3,/path/to/genome3.fasta,/path/to/annotation3.gff3
 ```
 
-Each row represents a fastq file (single-end) or a pair of fastq files (paired end).
+### 2. ncbi accessions
 
--->
+Additionally, you can run the pipeline providing ncbi accessions (RefSeq or GenBank, depeding on the mode you wish to run) in the `ncbi` field:
 
-Now, you can run the pipeline using:
+```csv
+species,ncbi
+species_1,GCF_000000001.1
+species_2,GCF_000000002.1
+species_3,GCF_000000003.1
+```
 
-<!-- TODO nf-core: update the following command to include all required parameters for a minimal example -->
+### 3. Both
+
+You can combine both input types in the same samplesheet:
+
+```csv
+species,ncbi,fasta,gff
+species_1,GCF_000000001.1
+species_2,,/path/to/genome2.fasta,/path/to/annotation2.gff3
+species_3,GCF_000000003.1
+species_4,,/path/to/genome4.fasta,/path/to/annotation4.gff3
+```
+
+### Run the pipeline
+
+Run the pipeline using:
 
 ```bash
 nextflow run nf-core/genomeqc \
    -profile <docker/singularity/.../institute> \
    --input samplesheet.csv \
    --outdir <OUTDIR>
+```
+
+You can run the pipeline using a test profile and docker:
+
+```bash
+nextflow run nf-core/genomeqc -profile test,docker --outdir ./results
 ```
 
 > [!WARNING]
@@ -78,9 +151,16 @@ For more details about the output files and reports, please refer to the
 
 ## Credits
 
-nf-core/genomeqc was originally written by Chris Wyatt, Fernando Duarte.
+nf-core/genomeqc was originally written by [Chris Wyatt](https://github.com/chriswyatt1) and [Fernando Duarte](https://github.com/FernandoDuarteF) at the University College London.
 
 We thank the following people for their extensive assistance in the development of this pipeline:
+
+- [Mahesh Binzer-Panchal](https://github.com/mahesh-panchal) ([National Bioinformatics Infrastructure Sweden](https://nbis.se/))
+- [Usman Rashid](https://github.com/GallVp) ([The New Zealand Institute for Plant and Food Research](https://www.plantandfood.com/en-nz/))
+- [Lauren Huet](https://github.com/LaurenHuet) ([Schmidt Ocean Institute](https://schmidtocean.org/))
+- [Stephen Turner](https://github.com/stephenturner/) ([Colossal Biosciences](https://colossal.com/))
+- [Felipe Perez Cobos](https://github.com/fperezcobos) ([Institute of Agrifood Research and Technology](https://www.irta.cat/en/))
+- [Simon Murray](https://github.com/SimonDMurray) ([Nextflow Ambassador](https://www.nextflow.io/our_ambassadors.html))
 
 <!-- TODO nf-core: If applicable, make list of people who have also contributed -->
 

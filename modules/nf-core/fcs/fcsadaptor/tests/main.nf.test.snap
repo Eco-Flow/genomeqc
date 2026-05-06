@@ -1,0 +1,120 @@
+{
+    "sarscov2-genome_fasta-pacbio_adapters": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.cleaned_sequences.fa.gz:md5,9a922a4dbd72360cdf97fedf4538983b"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.skipped_trims.jsonl:md5,cbcdf071a7f61519e34d6b60c1aa9f51"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.fcs_adaptor_report.txt:md5,f515b272a270b63a059d74060a773d76"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.pipeline_args.yaml:md5,4a748f51e82fa0639cb06242bc3df318"
+                ]
+            ],
+            {
+                "versions_fcsadaptor": [
+                    [
+                        "FCS_FCSADAPTOR",
+                        "fcsadaptor",
+                        "0.5.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-03-31T21:05:13.258959029",
+        "meta": {
+            "nf-test": "0.9.4",
+            "nextflow": "25.10.4"
+        }
+    },
+    "bacteroides_fragilis-genome_fna_gz": {
+        "content": [
+            "test.skipped_trims.jsonl",
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.fcs_adaptor_report.txt:md5,27375be4671e01d2d2674ddd1d44414a"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.pipeline_args.yaml:md5,4a748f51e82fa0639cb06242bc3df318"
+                ]
+            ],
+            {
+                "versions_fcsadaptor": [
+                    [
+                        "FCS_FCSADAPTOR",
+                        "fcsadaptor",
+                        "0.5.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-03-31T21:04:35.23509446",
+        "meta": {
+            "nf-test": "0.9.4",
+            "nextflow": "25.10.4"
+        }
+    },
+    "bacteroides_fragilis-genome_fna_gz-stub": {
+        "content": [
+            [
+                "test.fcs_adaptor_report.txt",
+                "test.fcs_adaptor.log",
+                "test.pipeline_args.yaml",
+                "test.skipped_trims.jsonl"
+            ]
+        ],
+        "timestamp": "2024-05-09T11:51:58.777173",
+        "meta": {
+            "nf-test": "0.8.4",
+            "nextflow": "23.10.1"
+        }
+    },
+    "stub_versions": {
+        "content": [
+            {
+                "versions_fcsadaptor": [
+                    [
+                        "FCS_FCSADAPTOR",
+                        "fcsadaptor",
+                        "0.5.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-03-31T21:05:20.888508081",
+        "meta": {
+            "nf-test": "0.9.4",
+            "nextflow": "25.10.4"
+        }
+    }
+}
