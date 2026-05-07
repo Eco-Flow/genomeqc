@@ -93,7 +93,7 @@ workflow GENOME_AND_ANNOTATION {
     GENE_OVERLAPS {
         ch_input.gxf_filt
     }
-    ch_tree_data = ch_tree_data.mix(GENE_OVERLAPS.out.overlap_counts.collect { meta, file -> file })
+    ch_tree_data = ch_tree_data.mix(GENE_OVERLAPS.out.overlap_counts.collect { _meta, file -> file })
 
     //
     // MODULE: Run Quast
@@ -115,7 +115,7 @@ workflow GENOME_AND_ANNOTATION {
 
     GFFREAD (
         ch_input.gxf_filt,
-        ch_input.fasta.map { meta, fasta -> fasta}
+        ch_input.fasta.map { _meta, fasta -> fasta}
     )
 
     //
@@ -133,7 +133,7 @@ workflow GENOME_AND_ANNOTATION {
 
     // Prepare orthofinder input channel
     ortho_ch     = GFFREAD.out.gffread_fasta
-        | map { meta, fasta ->
+        | map { _meta, fasta ->
             fasta // We only need the fastas
         }
         | collect // Collect all fasta in a single tuple
@@ -155,10 +155,10 @@ workflow GENOME_AND_ANNOTATION {
     //
 
     ORTHOLOGOUS_CHROMOSOMES (
-        ORTHOFINDER.out.orthofinder.map { meta, folder ->
+        ORTHOFINDER.out.orthofinder.map { _meta, folder ->
             file("${folder}/Orthogroups/Orthogroups.tsv")
         },
-        AGAT_SPKEEPLONGESTISOFORM.out.gff.map { meta, gff -> gff }.collect()
+        AGAT_SPKEEPLONGESTISOFORM.out.gff.map { _meta, gff -> gff }.collect()
     )
     ch_tree_data = ch_tree_data.mix(ORTHOLOGOUS_CHROMOSOMES.out.species_summary)
 
@@ -252,6 +252,6 @@ workflow GENOME_AND_ANNOTATION {
     busco_short_summaries_geno = GAWK_GENO.out.output
     busco_short_summaries_prot = GAWK_PROT.out.output
     orthologous_chromosomes    = ORTHOLOGOUS_CHROMOSOMES.out.species_summary // channel: [ path(tsv) ]
-    buscos_per_seqs            = GENOME_ANNOTATION_BUSCO_IDEOGRAM.out.busco_mappings.collect { meta, table -> table} // channel: [ val(meta), [csv] ]
+    buscos_per_seqs            = GENOME_ANNOTATION_BUSCO_IDEOGRAM.out.busco_mappings.collect { _meta, table -> table} // channel: [ val(meta), [csv] ]
 
 }
