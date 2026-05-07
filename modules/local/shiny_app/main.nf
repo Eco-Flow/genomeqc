@@ -8,8 +8,7 @@ process SHINY_APP {
     'nf-core/ubuntu:22.04' }"
 
     input:
-    tuple val(meta), path(tables)
-    tuple val(meta), path(tree)
+    tuple val(meta), path(tables), path(tree)
     path(functions)
     path(app)
 

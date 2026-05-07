@@ -195,6 +195,21 @@ def validateInputSamplesheet(input) {
         error("You are running genomeqc on default mode. Please check input samplesheet -> Incorrect samplesheet format")
     }
 }
+
+// MultiMap channel to split the input samplesheet into multiple channels for different processes.
+// This is necessary since some processes only require a subset of the input files
+// (e.g. fasta and gff for annotation-based QC, while fasta only for genome-only QC)
+def multimapChannel(input) {
+   def multi_ch = input
+            .multiMap {
+                meta, fasta, gxf, fq ->
+                    fasta : fasta ? tuple( meta, file(fasta) ) : null
+                    gxf   : gxf   ? tuple( meta, file(gxf) )   : null
+                    fq    : fq    ? tuple( meta, file(fq) )    : null // Only this one is necessary
+            }
+    return multi_ch
+}
+
 //
 // Get attribute from genome config file e.g. fasta
 //

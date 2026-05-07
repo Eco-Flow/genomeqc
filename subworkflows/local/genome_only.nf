@@ -50,7 +50,7 @@ workflow GENOME_ONLY {
         [],
         false
     )
-    ch_tree_data  = ch_tree_data.mix(GAWK.out.output.collect { meta, file -> file })
+    ch_tree_data  = ch_tree_data.mix(GAWK.out.output.collect { _meta, file -> file })
 
     //
     // BUSCO Ideogram
@@ -103,10 +103,10 @@ workflow GENOME_ONLY {
     //
 
     ORTHOLOGOUS_CHROMOSOMES (
-        ORTHOFINDER.out.orthofinder.map { meta, folder ->
+        ORTHOFINDER.out.orthofinder.map { _meta, folder ->
             file("${folder}/Orthogroups/Orthogroups.tsv")
         },
-        BUSCO_TSV_TO_GFF.out.gff.map { meta, gff -> gff }.collect()
+        BUSCO_TSV_TO_GFF.out.gff.map { _meta, gff -> gff }.collect()
     )
     ch_tree_data = ch_tree_data.mix(ORTHOLOGOUS_CHROMOSOMES.out.species_summary)
 
@@ -115,6 +115,6 @@ workflow GENOME_ONLY {
     tree_data               = ch_tree_data.flatten().collect()
     quast_results           = QUAST.out.results                   // channel: [ val(meta), [tsv] ]
     busco_short_summaries   = BUSCO_BUSCO.out.short_summaries_txt // channel: [ val(meta), [txt] ]
-    buscos_per_seqs         = GENOME_ONLY_BUSCO_IDEOGRAM.out.busco_mappings.collect { meta, table -> table} // channel: [ csv ]
+    buscos_per_seqs         = GENOME_ONLY_BUSCO_IDEOGRAM.out.busco_mappings.collect { _meta, table -> table} // channel: [ csv ]
 
 }

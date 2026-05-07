@@ -34,12 +34,5 @@ process GENOME_ANNOTATION_BUSCO_IDEOGRAM {
         --prefix ${genusspeci} \\
         $args
 
-
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        r-base: \$(Rscript -e "cat(as.character(getRversion()))")
-        r-rideogram: \$(Rscript -e "cat(as.character(packageVersion('RIdeogram')))")
-    END_VERSIONS
     """
 }

@@ -27,6 +27,7 @@ include { paramsSummaryMap                       } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc                   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML                 } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { methodsDescriptionText                 } from '../subworkflows/local/utils_nfcore_genomeqc_pipeline'
+include { multimapChannel                        } from '../subworkflows/local/utils_nfcore_genomeqc_pipeline'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -49,8 +50,8 @@ workflow GENOMEQC {
     def ch_multiqc_files = channel.empty()
 
     ch_input = ch_samplesheet
-                | map {
-                    validateInputSamplesheet(it) // Input validation (check local subworkflow for how function works)
+                | map { samplesheet ->
+                    validateInputSamplesheet(samplesheet) // Input validation (check local subworkflow for how function works)
                 }
                 | branch { rows ->
                     ncbi  : rows.size == 3 // channel: [ val(meta), val(refseq), val(fastq) ]
@@ -64,7 +65,7 @@ workflow GENOMEQC {
     // ch_input.ncbi is now a 3-element tuple, last element is the fastq.
     // We need to remove it before CREATE_PATH
     ch_input.ncbi
-        | map { meta, refseq, fq -> tuple( meta, refseq ) }
+        | map { meta, refseq, _fq -> tuple( meta, refseq ) }
         | CREATE_PATH
 
     // For NCBIGENOMEDOWNLOAD
@@ -94,12 +95,12 @@ workflow GENOMEQC {
     // fasta. We use mix() here becuase when local files are present,
     // then RefSeq IDs should be missing, and viceversa
     fasta        = ch_input.local
-                 | map { meta, fasta, gxf, fq -> tuple( meta, fasta) }
+                 | map { meta, fasta, _gxf, _fq -> tuple( meta, fasta) }
                  | mix ( NCBIGENOMEDOWNLOAD.out.fna )
 
     // Filter fasta files by extension and create channels for each file type
-    gz_fasta     = fasta.filter { meta, fasta -> fasta.name.endsWith(".gz") }
-    non_gz_fasta = fasta.filter { meta, fasta -> !fasta.name.endsWith(".gz") }
+    gz_fasta     = fasta.filter { _meta, fasta_compressed -> fasta_compressed.name.endsWith(".gz") }
+    non_gz_fasta = fasta.filter { _meta, fasta_uncompressed -> !fasta_uncompressed.name.endsWith(".gz") }
 
     // Run module uncompress_fasta and combine channels back
     // together so that all the uncompressed files are in channels
@@ -113,12 +114,12 @@ workflow GENOMEQC {
     // gxf. We use mix() here becuase when local files are present,
     // then RefSeq IDs should be missing, and viceversa
     gxf         = ch_input.local
-                | map { meta, fasta, gxf, fq ->  tuple( meta,  gxf) }
+                | map { meta, _fasta, gxf, _fq ->  tuple( meta,  gxf) }
                 | mix ( NCBIGENOMEDOWNLOAD.out.gff )
 
     // Filter gxf files by extension and create channels for each file type
-    gz_gxf      = gxf.filter { meta, gxf -> gxf  && gxf.name.endsWith(".gz")  } // Filter non empty and compressed gxf (channel to be uncompressed)
-    non_gz_gxf  = gxf.filter { meta, gxf -> !gxf || !gxf.name.endsWith(".gz") } // Filter empty and uncompressed gxf (not uncompressed)
+    gz_gxf      = gxf.filter { _meta, gxf_compressed -> gxf_compressed  && gxf_compressed.name.endsWith(".gz")  } // Filter non empty and compressed gxf (channel to be uncompressed)
+    non_gz_gxf  = gxf.filter { _meta, gxf_uncompressed -> !gxf_uncompressed || !gxf_uncompressed.name.endsWith(".gz") } // Filter empty and uncompressed gxf (not uncompressed)
 
     // Run module uncompress_GXF and combine channels back
     // together so that all the uncompressed files are in channels
@@ -133,8 +134,8 @@ workflow GENOMEQC {
     // First, get it like you do for gxf and fasta
 
     ch_fastq = ch_input.ncbi
-                | map{ meta, refseq, fq -> tuple( meta, fq ) }
-                | mix( ch_input.local.map { meta, fasta, gxf, fq -> tuple( meta, fq ) } )
+                | map{ meta, _refseq, fq -> tuple( meta, fq ) }
+                | mix( ch_input.local.map { meta, _fasta_local, _gxf_local, fq -> tuple( meta, fq ) } )
 
     //
     // Define multi-channel objects for every process/subworkflow
@@ -150,17 +151,17 @@ workflow GENOMEQC {
                    | join(ch_fastq, remainder: true)
 
     // Split into two channels according to the presence/absence of an annotation
-    ch_input_anno  = ch_input.filter { meta, fasta, gxf, fastq ->  gxf } // gxf is present. Channel will run on genome and annotation
+    ch_input_anno  = ch_input.filter { _meta, _fasta_annotation, gxf_annotation, _fastq ->  gxf_annotation } // gxf is present. Channel will run on genome and annotation
                    | multimapChannel // Notice only fasta channel and gxf are necessary here
-    ch_input_geno  = ch_input.filter { meta, fasta, gxf, fastq ->  !gxf }// gxf is missing. Channel will run on genome only
+    ch_input_geno  = ch_input.filter { _meta, _fasta_genome, gxf_genome, _fastq ->  !gxf_genome }// gxf is missing. Channel will run on genome only
                    | multimapChannel // Notice only fasta channel is necessary here
 
     // Merqury
-    ch_input_merq  = ch_input.filter { meta, fasta, gxf, fastq -> fastq } // filter rows where fastq is present
+    ch_input_merq  = ch_input.filter { _meta, _fasta_merqury, _gxf_merqury, fastq -> fastq } // filter rows where fastq is present
                    | multimapChannel // Notice only fasta and fastq channels are necessary here
 
     // Decontamination subworkflow
-    ch_input_decon = ch_fasta.filter { meta, fasta -> meta.taxid } // filter rows where taxid is present. Run decon on those
+    ch_input_decon = ch_fasta.filter { meta, _fasta_decon -> meta.taxid } // filter rows where taxid is present. Run decon on those
 
     // For TIDK the ch_fasta channel will work
 
@@ -184,7 +185,7 @@ workflow GENOMEQC {
     // Run TIDK
     //
 
-    ch_repeat = params.repeat ? ch_fasta.map { meta, fasta -> [ meta, params.repeat ] } : channel.empty()
+    ch_repeat = params.repeat ? ch_fasta.map { meta, _fasta_repeat -> [ meta, params.repeat ] } : channel.empty()
 
     if (!params.skip_tidk) {
         FASTA_EXPLORE_SEARCH_PLOT_TIDK (
@@ -222,7 +223,7 @@ workflow GENOMEQC {
                                             | mix(ch_merqury_spectra_cn_fl_png)
                                             | mix(ch_merqury_spectra_asm_fl_png)
                                             | mix(ch_hapmers_blob_png)
-                                            | flatMap { meta, data -> data }
+                                            | flatMap { _meta, data -> data }
 
     //
     // SUBWORKFLOWS: Run genome only or genome + annotation subworkflows
@@ -233,8 +234,8 @@ workflow GENOMEQC {
             ch_input_anno.fasta.mix(ch_input_geno.fasta)
         )
         ch_multiqc_files = ch_multiqc_files
-                         | mix(GENOME_ONLY.out.quast_results.map { meta, results -> results })
-                         | mix(GENOME_ONLY.out.busco_short_summaries.map { meta, txt -> txt })
+                         | mix(GENOME_ONLY.out.quast_results.map { _meta, results -> results })
+                         | mix(GENOME_ONLY.out.busco_short_summaries.map { _meta, txt -> txt })
     } else {
         GENOME_ONLY (
             ch_input_geno.fasta
@@ -244,8 +245,8 @@ workflow GENOMEQC {
             ch_input_anno.gxf
         )
         ch_multiqc_files = ch_multiqc_files
-                         | mix(GENOME_AND_ANNOTATION.out.quast_results.map { meta, results -> results })
-                         | mix(GENOME_AND_ANNOTATION.out.busco_short_summaries_prot.map { meta, txt -> txt })
+                         | mix(GENOME_AND_ANNOTATION.out.quast_results.map { _meta, results -> results })
+                         | mix(GENOME_AND_ANNOTATION.out.busco_short_summaries_prot.map { _meta, txt -> txt })
 
         //
         // MODULE: run BUSCO SEQS
@@ -262,10 +263,10 @@ workflow GENOMEQC {
 
         // Prepare channels for tree plot
         ch_tree_genome_anno = GENOME_AND_ANNOTATION.out.tree_data
-                            | concat(BUSCO_SEQS_GENOME_ANNO.out.table.map { meta, table -> table})
+                            | concat(BUSCO_SEQS_GENOME_ANNO.out.table.map { _meta, table -> table})
                             | collect
         ch_tree_genome      = GENOME_ONLY.out.tree_data
-                            | concat(BUSCO_SEQS_GENOME.out.table.map { meta, table -> table})
+                            | concat(BUSCO_SEQS_GENOME.out.table.map { _meta, table -> table})
                             | collect
 
         //
@@ -274,12 +275,12 @@ workflow GENOMEQC {
         // Prepare busco channel for genome and annotation
         // First for genome completness
         ch_busco_geno_anno1 = GENOME_AND_ANNOTATION.out.busco_short_summaries_geno
-                            | map { meta, file -> file }
+                            | map { _meta, file -> file }
                             | collect
                             | map { files -> tuple( [id:"busco_geno_anno"], files )}
         // Then for annotation completeness
         ch_busco_geno_anno2 = GENOME_AND_ANNOTATION.out.busco_short_summaries_prot
-                            | map { meta, file -> file }
+                            | map { _meta, file -> file }
                             | collect
                             | map { files -> tuple( [id:"busco_geno_anno"], files )}
         // Combine both channels into a multi-channel object
@@ -289,9 +290,6 @@ workflow GENOMEQC {
                                     geno      : geno_files ? tuple( meta, geno_files ) : [[],[]]
                                     prot      : prot_files ? tuple( meta, prot_files ) : [[],[]]
                             }
-
-        ch_busco_geno_anno.geno.view()
-        ch_busco_geno_anno.prot.view()
 
         // Run TREE SUMMARY for genome and annotation
         TREE_SUMMARY_GENO_ANNO (
@@ -316,18 +314,19 @@ workflow GENOMEQC {
         ch_functions = channel.fromPath("$projectDir/bin/tree_functions.R", checkIfExists: true)
         ch_app       = channel.fromPath("$projectDir/bin/shiny_app.R", checkIfExists: true)
 
+
+    TREE_SUMMARY_GENO_ANNO.out.tables.join(TREE_SUMMARY_GENO_ANNO.out.tree, by:0).view()
+    TREE_SUMMARY_GENO.out.tables.join(TREE_SUMMARY_GENO.out.tree, by:0).view()
         // For genome and annotation
         SHINY_APP_GENOME_ANNO (
-            TREE_SUMMARY_GENO_ANNO.out.tables,
-            TREE_SUMMARY_GENO_ANNO.out.tree,
+            TREE_SUMMARY_GENO_ANNO.out.tables.join(TREE_SUMMARY_GENO_ANNO.out.tree, by:0),
             ch_functions,
             ch_app
         )
 
         // For genome only
         SHINY_APP_GENOME (
-            TREE_SUMMARY_GENO.out.tables,
-            TREE_SUMMARY_GENO.out.tree,
+            TREE_SUMMARY_GENO.out.tables.join(TREE_SUMMARY_GENO.out.tree, by:0),
             ch_functions,
             ch_app
         )
@@ -389,7 +388,9 @@ workflow GENOMEQC {
             ]
         }
     )
-    emit:multiqc_report = MULTIQC.out.report.map { _meta, report -> [report] }.toList() // channel: /path/to/multiqc_report.html
+
+    emit:
+    multiqc_report = MULTIQC.out.report.map { _meta, report -> [report] }.toList() // channel: /path/to/multiqc_report.html
     versions       = ch_versions                 // channel: [ path(versions.yml) ]
 }
 
@@ -406,13 +407,4 @@ workflow GENOMEQC {
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-def multimapChannel(input) {
-   multi_ch = input
-            | multiMap {
-                meta, fasta, gxf, fq ->
-                    fasta : fasta ? tuple( meta, file(fasta) ) : null
-                    gxf   : gxf   ? tuple( meta, file(gxf) )   : null
-                    fq    : fq    ? tuple( meta, file(fq) )    : null // Only this one is necessary
-            }
-    return multi_ch
-}
+
