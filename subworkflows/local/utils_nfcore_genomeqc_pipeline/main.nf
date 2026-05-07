@@ -109,22 +109,6 @@ workflow PIPELINE_INITIALISATION {
 
     channel
         .fromList(samplesheetToList(input, "${projectDir}/assets/schema_input.json"))
-        .map {
-            meta, fastq_1, fastq_2 ->
-                if (!fastq_2) {
-                    return [ meta.id, meta + [ single_end:true ], [ fastq_1 ] ]
-                } else {
-                    return [ meta.id, meta + [ single_end:false ], [ fastq_1, fastq_2 ] ]
-                }
-        }
-        .groupTuple()
-        .map { samplesheet ->
-            validateInputSamplesheet(samplesheet)
-        }
-        .map {
-            meta, fastqs ->
-                return [ meta, fastqs.flatten() ]
-        }
         .set { ch_samplesheet }
 
     emit:
@@ -186,48 +170,71 @@ workflow PIPELINE_COMPLETION {
 // Check and validate pipeline parameters
 //
 def validateInputParameters() {
-    genomeExistsError()
+    //genomeExistsError()
+    // Add ways of validating input parameters, e.g. for groups in ncbigenomedownload
 }
 
 //
 // Validate channels from input samplesheet
 //
 def validateInputSamplesheet(input) {
-    def (metas, fastqs) = input[1..2]
-
-    // Check that multiple runs of the same sample are of the same datatype i.e. single-end / paired-end
-    def endedness_ok = metas.collect{ meta -> meta.single_end }.unique().size == 1
-    if (!endedness_ok) {
-        error("Please check input samplesheet -> Multiple runs of a sample must be of the same datatype i.e. single-end or paired-end: ${metas[0].id}")
+    def ( meta, ncbi, fasta, gff, fastq ) = input
+    // If input are ncbi accessions
+    if ( meta && ncbi ) {
+        if ( ncbi.startsWith('GCF') ) { // For refseq IDs
+            return [ [id:meta.id, ncbi:'refseq',taxid:meta.taxid], ncbi, fastq ]
+        } else if ( ncbi.startsWith('GCA') ) { // For genbank IDs
+            return [ [id:meta.id, ncbi:'genbank',taxid:meta.taxid], ncbi, fastq ]
+        } else {
+            error('Incorrect ncbi ID. Please make sure ncbi IDs start with "GCA" for GenBank or "GCG" for RefSeq')
+        }
+    // If input are local files
+    } else if ( meta && fasta ) { // At least fasta file is necessary if local files (genome only mode is the minimum run)
+        return [ meta, fasta, gff, fastq ]
+    } else {
+        error("You are running genomeqc on default mode. Please check input samplesheet -> Incorrect samplesheet format")
     }
-
-    return [ metas[0], fastqs ]
 }
+
+// MultiMap channel to split the input samplesheet into multiple channels for different processes.
+// This is necessary since some processes only require a subset of the input files
+// (e.g. fasta and gff for annotation-based QC, while fasta only for genome-only QC)
+def multimapChannel(input) {
+   def multi_ch = input
+            .multiMap {
+                meta, fasta, gxf, fq ->
+                    fasta : fasta ? tuple( meta, file(fasta) ) : null
+                    gxf   : gxf   ? tuple( meta, file(gxf) )   : null
+                    fq    : fq    ? tuple( meta, file(fq) )    : null // Only this one is necessary
+            }
+    return multi_ch
+}
+
 //
 // Get attribute from genome config file e.g. fasta
 //
-def getGenomeAttribute(attribute) {
-    if (params.genomes && params.genome && params.genomes.containsKey(params.genome)) {
-        if (params.genomes[ params.genome ].containsKey(attribute)) {
-            return params.genomes[ params.genome ][ attribute ]
-        }
-    }
-    return null
-}
+//def getGenomeAttribute(attribute) {
+//    if (params.genomes && params.genome && params.genomes.containsKey(params.genome)) {
+//        if (params.genomes[ params.genome ].containsKey(attribute)) {
+//            return params.genomes[ params.genome ][ attribute ]
+//        }
+//    }
+//    return null
+//}
 
 //
 // Exit pipeline if incorrect --genome key provided
 //
-def genomeExistsError() {
-    if (params.genomes && params.genome && !params.genomes.containsKey(params.genome)) {
-        def error_string = "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n" +
-            "  Genome '${params.genome}' not found in any config files provided to the pipeline.\n" +
-            "  Currently, the available genome keys are:\n" +
-            "  ${params.genomes.keySet().join(", ")}\n" +
-            "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-        error(error_string)
-    }
-}
+//def genomeExistsError() {
+//    if (params.genomes && params.genome && !params.genomes.containsKey(params.genome)) {
+//        def error_string = "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n" +
+//            "  Genome '${params.genome}' not found in any config files provided to the pipeline.\n" +
+//            "  Currently, the available genome keys are:\n" +
+//            "  ${params.genomes.keySet().join(", ")}\n" +
+//            "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+//        error(error_string)
+//    }
+//}
 //
 // Generate methods description for MultiQC
 //
