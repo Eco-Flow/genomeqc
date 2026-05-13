@@ -22,9 +22,11 @@ include { BUSCO_SEQS as BUSCO_SEQS_GENOME_ANNO   } from '../modules/local/buscos
 include { BUSCO_SEQS as BUSCO_SEQS_GENOME        } from '../modules/local/buscos_seqs/main'
 include { SHINY_APP as SHINY_APP_GENOME_ANNO     } from '../modules/local/shiny_app/main'
 include { SHINY_APP as SHINY_APP_GENOME          } from '../modules/local/shiny_app/main'
-include { HTML_REPORT as HTML_REPORT_GENOME_ANNO } from '../modules/local/html_report/main'
-include { HTML_REPORT as HTML_REPORT_GENOME      } from '../modules/local/html_report/main'
-include { MULTIQC                                } from '../modules/nf-core/multiqc/main'
+include { HTML_REPORT as HTML_REPORT_GENOME_ANNO   } from '../modules/local/html_report/main'
+include { HTML_REPORT as HTML_REPORT_GENOME        } from '../modules/local/html_report/main'
+include { EXCEL_REPORT as EXCEL_REPORT_GENOME_ANNO } from '../modules/local/excel_report/main'
+include { EXCEL_REPORT as EXCEL_REPORT_GENOME      } from '../modules/local/excel_report/main'
+include { MULTIQC                                  } from '../modules/nf-core/multiqc/main'
 include { paramsSummaryMap                       } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc                   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML                 } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -253,6 +255,25 @@ workflow GENOMEQC {
             ch_report_tidk_tsv_go,
             ch_report_tidk_svg_go
         )
+
+        //
+        // MODULE: Run EXCEL REPORT (genome only mode)
+        //
+        ch_excel_quast_go  = GENOME_ONLY.out.quast_tsv.map { _meta, f -> f }.collect()
+        ch_excel_tidk_go   = params.skip_tidk ? channel.value([]) : FASTA_EXPLORE_SEARCH_PLOT_TIDK.out.aposteriori_tsv.map { _meta, f -> f }.collect()
+        ch_excel_fcsgx_go  = (params.gxdb || params.gxdb_manifiest) ? DECONTAMINATION.out.fcs_gx_report.map { _meta, f -> f }.collect()   : channel.value([])
+        ch_excel_fcsadp_go = (params.gxdb || params.gxdb_manifiest) ? DECONTAMINATION.out.adaptor_report.map { _meta, f -> f }.collect()   : channel.value([])
+        ch_excel_tiara_go  = (params.gxdb || params.gxdb_manifiest) ? DECONTAMINATION.out.tiara_cleaned.map { _meta, f -> f }.collect()    : channel.value([])
+
+        EXCEL_REPORT_GENOME (
+            ch_report_busco_go,
+            ch_excel_quast_go,
+            channel.value([]),     // no AGAT in genome-only mode
+            ch_excel_tidk_go,
+            ch_excel_fcsgx_go,
+            ch_excel_fcsadp_go,
+            ch_excel_tiara_go
+        )
     } else {
         GENOME_ONLY (
             ch_input_geno.fasta
@@ -362,6 +383,28 @@ workflow GENOMEQC {
             ch_report_busco,
             ch_report_tidk_tsv,
             ch_report_tidk_svg
+        )
+
+        //
+        // MODULE: Run EXCEL REPORT (genome + annotation mode)
+        //
+        ch_excel_quast  = GENOME_AND_ANNOTATION.out.quast_tsv.map { _meta, f -> f }
+                        | mix( GENOME_ONLY.out.quast_tsv.map { _meta, f -> f } )
+                        | collect
+        ch_excel_agat   = GENOME_AND_ANNOTATION.out.agat_stats.map { _meta, f -> f }.collect()
+        ch_excel_tidk   = params.skip_tidk ? channel.value([]) : FASTA_EXPLORE_SEARCH_PLOT_TIDK.out.aposteriori_tsv.map { _meta, f -> f }.collect()
+        ch_excel_fcsgx  = (params.gxdb || params.gxdb_manifiest) ? DECONTAMINATION.out.fcs_gx_report.map { _meta, f -> f }.collect()   : channel.value([])
+        ch_excel_fcsadp = (params.gxdb || params.gxdb_manifiest) ? DECONTAMINATION.out.adaptor_report.map { _meta, f -> f }.collect()   : channel.value([])
+        ch_excel_tiara  = (params.gxdb || params.gxdb_manifiest) ? DECONTAMINATION.out.tiara_cleaned.map { _meta, f -> f }.collect()    : channel.value([])
+
+        EXCEL_REPORT_GENOME_ANNO (
+            ch_report_busco,
+            ch_excel_quast,
+            ch_excel_agat,
+            ch_excel_tidk,
+            ch_excel_fcsgx,
+            ch_excel_fcsadp,
+            ch_excel_tiara
         )
     }
 

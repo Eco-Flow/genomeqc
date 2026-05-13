@@ -114,6 +114,7 @@ workflow GENOME_ONLY {
     orthofinder             = ORTHOFINDER.out.orthofinder         // channel: [ val(meta), [folder] ]
     tree_data               = ch_tree_data.flatten().collect()
     quast_results           = QUAST.out.results                   // channel: [ val(meta), [tsv] ]
+    quast_tsv               = QUAST.out.tsv                       // channel: [ val(meta), path(tsv) ]
     busco_short_summaries   = BUSCO_BUSCO.out.short_summaries_txt // channel: [ val(meta), [txt] ]
     busco_batch_summaries   = GAWK.out.output                     // channel: [ val(meta), path(tsv) ] — species-named batch summaries
     buscos_per_seqs         = GENOME_ONLY_BUSCO_IDEOGRAM.out.busco_mappings.collect { _meta, table -> table} // channel: [ csv ]

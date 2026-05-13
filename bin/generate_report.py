@@ -70,7 +70,6 @@ def parse_tidk_tsvs(paths):
         result[species] = rows
     return result
 
-
 def read_svg(path):
     """Read SVG file, stripping the XML declaration if present."""
     content = Path(path).read_text()
@@ -160,7 +159,7 @@ def busco_stacked_bar_svg(rows, mode_label=""):
         )
         lx += 110
 
-    title_lbl = f"BUSCO Completeness" + (f" — {mode_label}" if mode_label else "")
+    title_lbl = "BUSCO Completeness" + (f" — {mode_label}" if mode_label else "")
     title = (
         f'<text x="{svg_w // 2}" y="22" text-anchor="middle" '
         f'font-size="14" font-weight="600" font-family="sans-serif" fill="#222">'

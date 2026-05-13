@@ -249,8 +249,10 @@ workflow GENOME_AND_ANNOTATION {
     orthofinder                = ORTHOFINDER.out.orthofinder         // channel: [ val(meta), [folder] ]
     tree_data                  = ch_tree_data.flatten().collect()
     quast_results              = QUAST.out.results                   // channel: [ val(meta), [tsv] ]
+    quast_tsv                  = QUAST.out.tsv                       // channel: [ val(meta), path(tsv) ]
     busco_short_summaries_geno = GAWK_GENO.out.output
     busco_short_summaries_prot = GAWK_PROT.out.output
+    agat_stats                 = AGAT_SPSTATISTICS.out.stats_txt     // channel: [ val(meta), path(txt) ]
     orthologous_chromosomes    = ORTHOLOGOUS_CHROMOSOMES.out.species_summary // channel: [ path(tsv) ]
     buscos_per_seqs            = GENOME_ANNOTATION_BUSCO_IDEOGRAM.out.busco_mappings.collect { _meta, table -> table} // channel: [ val(meta), [csv] ]
 
