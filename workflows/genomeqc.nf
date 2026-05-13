@@ -22,6 +22,8 @@ include { BUSCO_SEQS as BUSCO_SEQS_GENOME_ANNO   } from '../modules/local/buscos
 include { BUSCO_SEQS as BUSCO_SEQS_GENOME        } from '../modules/local/buscos_seqs/main'
 include { SHINY_APP as SHINY_APP_GENOME_ANNO     } from '../modules/local/shiny_app/main'
 include { SHINY_APP as SHINY_APP_GENOME          } from '../modules/local/shiny_app/main'
+include { HTML_REPORT as HTML_REPORT_GENOME_ANNO } from '../modules/local/html_report/main'
+include { HTML_REPORT as HTML_REPORT_GENOME      } from '../modules/local/html_report/main'
 include { MULTIQC                                } from '../modules/nf-core/multiqc/main'
 include { paramsSummaryMap                       } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc                   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -236,6 +238,21 @@ workflow GENOMEQC {
         ch_multiqc_files = ch_multiqc_files
                          | mix(GENOME_ONLY.out.quast_results.map { _meta, results -> results })
                          | mix(GENOME_ONLY.out.busco_short_summaries.map { _meta, txt -> txt })
+
+        //
+        // MODULE: Run HTML REPORT (genome only mode)
+        //
+        ch_report_busco_go = GENOME_ONLY.out.busco_batch_summaries
+                           | map { _meta, f -> f }
+                           | collect
+        ch_report_tidk_tsv_go = params.skip_tidk ? channel.value([]) : FASTA_EXPLORE_SEARCH_PLOT_TIDK.out.aposteriori_tsv.map { _meta, f -> f }.collect()
+        ch_report_tidk_svg_go = params.skip_tidk ? channel.value([]) : FASTA_EXPLORE_SEARCH_PLOT_TIDK.out.aposteriori_svg.map { _meta, f -> f }.collect()
+
+        HTML_REPORT_GENOME (
+            ch_report_busco_go,
+            ch_report_tidk_tsv_go,
+            ch_report_tidk_svg_go
+        )
     } else {
         GENOME_ONLY (
             ch_input_geno.fasta
@@ -329,6 +346,22 @@ workflow GENOMEQC {
             TREE_SUMMARY_GENO.out.tables.join(TREE_SUMMARY_GENO.out.tree, by:0),
             ch_functions,
             ch_app
+        )
+
+        //
+        // MODULE: Run HTML REPORT (genome + annotation mode)
+        //
+        ch_report_busco = GENOME_AND_ANNOTATION.out.busco_short_summaries_geno
+                        | map { _meta, f -> f }
+                        | mix( GENOME_ONLY.out.busco_batch_summaries.map { _meta, f -> f } )
+                        | collect
+        ch_report_tidk_tsv = params.skip_tidk ? channel.value([]) : FASTA_EXPLORE_SEARCH_PLOT_TIDK.out.aposteriori_tsv.map { _meta, f -> f }.collect()
+        ch_report_tidk_svg = params.skip_tidk ? channel.value([]) : FASTA_EXPLORE_SEARCH_PLOT_TIDK.out.aposteriori_svg.map { _meta, f -> f }.collect()
+
+        HTML_REPORT_GENOME_ANNO (
+            ch_report_busco,
+            ch_report_tidk_tsv,
+            ch_report_tidk_svg
         )
     }
 
