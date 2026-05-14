@@ -156,11 +156,15 @@ The pipeline will run on genome and annotation mode if these inputs are provided
 
 The pipeline will produce a tree plot summary that can be modified in real time using a packaged shiny app, as well as a MultiQC report with quality statistics.
 
+### Running tidk
+
+
+
 ### Running Merqury
 
 Users can also run the pipeline using Merqury by supplying the path to sequencing reads under the **fastq** field. Merqury needs both **fasta** and **fastq** to run. Refer the [GitHub page](https://github.com/marbl/merqury) for more information on Merqury.
 
-### Running the Decontamination subworkflow
+### Running Decontamination
 
 If, in the samplesheet, a NCBI taxid is provided for an assembly, and a path pointing to the FCS-GX database or a manifest to download and build it (check the Parameters tab in this page), the pipeline will run the decontamination subworkflow.
 
