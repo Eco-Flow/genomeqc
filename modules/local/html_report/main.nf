@@ -6,9 +6,9 @@ process HTML_REPORT {
     publishDir "$params.outdir/report", mode: "${params.publish_dir_mode}", pattern: "*.html"
 
     input:
-    path busco_tables, stageAs: "busco/*"   // batch_summary_modified.txt files (one per species)
-    path tidk_tsvs,    stageAs: "tidk/*"    // tidk aposteriori search TSV files
-    path tidk_svgs,    stageAs: "svg/*"     // tidk aposteriori plot SVG files
+    path busco_tables,       stageAs: "busco/*"         // batch_summary_modified.txt files (one per species)
+    path tidk_tsvs,          stageAs: "tidk/*"          // tidk aposteriori search TSV files
+    path tidk_apriori_tsvs,  stageAs: "tidk_apriori/*"  // tidk apriori search TSV files (optional)
 
     output:
     path "genomeqc_report.html", emit: report
@@ -18,14 +18,14 @@ process HTML_REPORT {
     task.ext.when == null || task.ext.when
 
     script:
-    def busco_arg = busco_tables ? "--busco_tables busco/*" : ""
-    def tidk_tsv_arg = tidk_tsvs  ? "--tidk_tsvs tidk/*"    : ""
-    def tidk_svg_arg = tidk_svgs  ? "--tidk_svgs svg/*"      : ""
+    def busco_arg         = busco_tables      ? "--busco_tables busco/*"                  : ""
+    def tidk_tsv_arg      = tidk_tsvs         ? "--tidk_tsvs tidk/*"                      : ""
+    def tidk_apriori_arg  = tidk_apriori_tsvs ? "--tidk_apriori_tsvs tidk_apriori/*"      : ""
     """
     generate_report.py \\
         ${busco_arg} \\
         ${tidk_tsv_arg} \\
-        ${tidk_svg_arg} \\
+        ${tidk_apriori_arg} \\
         --output genomeqc_report.html
     """
 }

@@ -3,9 +3,14 @@
 
 import argparse
 import json
+import re
 import sys
 from datetime import datetime
 from pathlib import Path
+
+
+def _safe_id(s):
+    return re.sub(r'[^a-zA-Z0-9]', '_', s)
 
 # ── Colour palette ────────────────────────────────────────────────────────────
 
@@ -69,15 +74,6 @@ def parse_tidk_tsvs(paths):
             rows.append(row)
         result[species] = rows
     return result
-
-def read_svg(path):
-    """Read SVG file, stripping the XML declaration if present."""
-    content = Path(path).read_text()
-    if content.lstrip().startswith("<?xml"):
-        idx = content.find("<svg")
-        if idx != -1:
-            content = content[idx:]
-    return content
 
 
 # ── SVG chart generators ──────────────────────────────────────────────────────
@@ -175,8 +171,13 @@ def busco_stacked_bar_svg(rows, mode_label=""):
     )
 
 
-def tidk_line_svg(species, rows, width=700, height=200):
-    """Generate an inline SVG line chart for tidk window repeat counts."""
+def tidk_line_svg(species, rows, width=700, height=220, plot_id=None):
+    """Return an HTML block (optional chromosome dropdown + SVG waveform).
+
+    Mirrors the original tidk SVG plot: one path per chromosome, y encodes total
+    repeat count (fwd+rev) with high density plotted toward the top.
+    A chromosome selector dropdown is shown when the species has >1 sequence.
+    """
     if not rows:
         return ""
 
@@ -185,86 +186,148 @@ def tidk_line_svg(species, rows, width=700, height=200):
         cid = r.get("id", "chr")
         chroms.setdefault(cid, []).append(r)
 
-    max_val = max(
-        (max(r["forward_repeat_number"] + r["reverse_repeat_number"] for r in rs)
-         for rs in chroms.values()),
-        default=1,
-    )
-    max_window = max(
-        (max(r["window"] for r in rs) for rs in chroms.values()),
-        default=1,
-    )
+    # plot_id lets the caller differentiate IDs when both modes share a page
+    sp_id = _safe_id(plot_id if plot_id else species)
 
-    pl, pr, pt, pb = 55, 15, 30, 45
+    # Use fwd+rev sum as the signal value
+    max_sum = max(
+        (r["forward_repeat_number"] + r["reverse_repeat_number"]
+         for rs in chroms.values() for r in rs),
+        default=1,
+    ) or 1
+    max_window = max(
+        (r["window"] for rs in chroms.values() for r in rs),
+        default=1,
+    ) or 1
+
+    pl, pr, pt, pb = 50, 15, 30, 50
     pw = width - pl - pr
     ph = height - pt - pb
+    baseline_y = pt + ph  # SVG y of zero-count baseline (bottom of plot)
 
     def tx(w):
         return pl + w / max_window * pw
 
-    def ty(v):
-        return pt + ph - v / max(max_val, 1) * ph
+    def ty(s):
+        return baseline_y - s / max_sum * ph
 
-    lines_svg = []
+    paths_svg = []
     for i, (cid, chrom_rows) in enumerate(list(chroms.items())[:10]):
         color = TIDK_PALETTE[i % len(TIDK_PALETTE)]
-        fwd = " ".join(f"{tx(r['window']):.1f},{ty(r['forward_repeat_number']):.1f}" for r in chrom_rows)
-        rev = " ".join(f"{tx(r['window']):.1f},{ty(r['reverse_repeat_number']):.1f}" for r in chrom_rows)
-        lines_svg.append(
-            f'<polyline points="{fwd}" fill="none" stroke="{color}" stroke-width="1.5" opacity="0.9">'
-            f'<title>{cid} (forward)</title></polyline>'
-            f'<polyline points="{rev}" fill="none" stroke="{color}" stroke-width="1.5" opacity="0.5" stroke-dasharray="4,2">'
-            f'<title>{cid} (reverse)</title></polyline>'
+        cid_safe = _safe_id(cid)
+        s0 = chrom_rows[0]["forward_repeat_number"] + chrom_rows[0]["reverse_repeat_number"]
+        pts = [f"M{pl:.1f},{ty(s0):.1f}"]
+        for r in chrom_rows:
+            s = r["forward_repeat_number"] + r["reverse_repeat_number"]
+            pts.append(f"L{tx(r['window']):.1f},{ty(s):.1f}")
+        paths_svg.append(
+            f'<path id="tp-{sp_id}-{cid_safe}" d="{" ".join(pts)}" fill="none" '
+            f'stroke="{color}" stroke-width="1.5" opacity="0.85">'
+            f'<title>{cid}</title></path>'
         )
 
+    # Baseline
+    baseline = (
+        f'<line x1="{pl}" y1="{baseline_y}" x2="{pl + pw}" y2="{baseline_y}" '
+        f'stroke="#ccc" stroke-width="1"/>'
+    )
+
+    # Horizontal grid lines
     y_grid = []
-    for pct in range(0, 101, 25):
-        ypos = ty(max_val * pct / 100)
-        val_label = int(max_val * pct / 100)
+    for pct in (25, 50, 75, 100):
+        ypos = ty(max_sum * pct / 100)
         y_grid.append(
-            f'<text x="{pl - 5}" y="{ypos + 4}" text-anchor="end" font-size="9" fill="#888">{val_label}</text>'
-            f'<line x1="{pl}" y1="{ypos}" x2="{pl + pw}" y2="{ypos}" stroke="#eee" stroke-width="1"/>'
+            f'<line x1="{pl}" y1="{ypos:.1f}" x2="{pl + pw}" y2="{ypos:.1f}" '
+            f'stroke="#eee" stroke-width="1" stroke-dasharray="3,3"/>'
+            f'<text x="{pl - 4}" y="{ypos + 4:.1f}" text-anchor="end" '
+            f'font-size="9" fill="#aaa">{int(max_sum * pct / 100)}</text>'
         )
 
+    # X-axis ticks
     x_grid = []
     for pct in range(0, 101, 25):
         xpos = tx(max_window * pct / 100)
-        label = f"{int(max_window * pct / 100 / 1000)}k"
+        mbp = max_window * pct / 100 / 1_000_000
+        label = f"{mbp:.2f}Mb" if mbp >= 0.1 else f"{int(max_window * pct / 100 / 1000)}k"
         x_grid.append(
-            f'<text x="{xpos}" y="{pt + ph + 14}" text-anchor="middle" font-size="9" fill="#888">{label}</text>'
+            f'<line x1="{xpos:.1f}" y1="{baseline_y}" x2="{xpos:.1f}" y2="{baseline_y + 4}" '
+            f'stroke="#bbb" stroke-width="1"/>'
+            f'<text x="{xpos:.1f}" y="{baseline_y + 14}" text-anchor="middle" '
+            f'font-size="9" fill="#888">{label}</text>'
         )
 
-    # legend for chromosomes
+    # Chromosome legend (below x-axis)
     leg = []
+    n_chroms = min(len(chroms), 10)
+    leg_item_w = min(80, pw // max(n_chroms, 1))
     for i, cid in enumerate(list(chroms.keys())[:10]):
         color = TIDK_PALETTE[i % len(TIDK_PALETTE)]
-        lx = pl + i * 68
-        if lx + 60 > width:
+        lx = pl + i * leg_item_w
+        if lx + leg_item_w > pl + pw:
             break
         leg.append(
-            f'<rect x="{lx}" y="{pt + ph + 25}" width="10" height="10" fill="{color}"/>'
-            f'<text x="{lx + 13}" y="{pt + ph + 34}" font-size="9" fill="#555">{cid[:8]}</text>'
+            f'<line x1="{lx}" y1="{baseline_y + 28}" x2="{lx + 12}" y2="{baseline_y + 28}" '
+            f'stroke="{color}" stroke-width="2"/>'
+            f'<text x="{lx + 15}" y="{baseline_y + 32}" font-size="9" fill="#555">{cid[:10]}</text>'
         )
 
-    border = f'<rect x="{pl}" y="{pt}" width="{pw}" height="{ph}" fill="none" stroke="#ccc" stroke-width="1"/>'
+    border = (
+        f'<rect x="{pl}" y="{pt}" width="{pw}" height="{ph}" '
+        f'fill="none" stroke="#ccc" stroke-width="1"/>'
+    )
     title_svg = (
         f'<text x="{width // 2}" y="18" text-anchor="middle" '
         f'font-size="12" font-weight="600" font-family="sans-serif" fill="#333">'
-        f'Telomere repeats — {species}</text>'
+        f'{species}</text>'
     )
-    axis_labels = (
-        f'<text x="{pl - 40}" y="{pt + ph // 2}" text-anchor="middle" '
-        f'font-size="9" fill="#888" transform="rotate(-90 {pl - 40} {pt + ph // 2})">Repeat count</text>'
-        f'<text x="{pl + pw // 2}" y="{pt + ph + 38}" text-anchor="middle" font-size="9" fill="#888">Genomic position</text>'
+    y_axis_label = (
+        f'<text x="{pl - 38}" y="{pt + ph // 2}" text-anchor="middle" '
+        f'font-size="9" fill="#888" '
+        f'transform="rotate(-90 {pl - 38} {pt + ph // 2})">Repeat density</text>'
     )
 
-    return (
+    svg = (
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" '
         f'style="max-width:100%;height:auto;display:block">'
-        f'{title_svg}{border}{"".join(y_grid)}{"".join(x_grid)}{axis_labels}'
-        f'{"".join(lines_svg)}{"".join(leg)}'
+        f'{title_svg}{border}{baseline}'
+        f'{"".join(y_grid)}{"".join(x_grid)}'
+        f'{y_axis_label}'
+        f'{"".join(paths_svg)}'
+        f'{"".join(leg)}'
         f'</svg>'
     )
+
+    # Chromosome selector dropdown — only rendered when there are multiple sequences
+    if len(chroms) > 1:
+        chrom_items = []
+        for i, cid in enumerate(list(chroms.keys())[:10]):
+            cid_safe = _safe_id(cid)
+            color = TIDK_PALETTE[i % len(TIDK_PALETTE)]
+            chrom_items.append(
+                f'<label>'
+                f'<input type="checkbox" value="{cid_safe}" checked '
+                f'onchange="tidkUpdate(\'{sp_id}\')">'
+                f'<span class="chrom-swatch" style="background:{color}"></span>'
+                f'{cid}'
+                f'</label>'
+            )
+        dropdown = (
+            f'<div class="chrom-select-wrap">'
+            f'<button class="chrom-btn" onclick="tidkToggleMenu(\'{sp_id}\',event)">'
+            f'Sequences ▾</button>'
+            f'<div class="chrom-menu" id="cmenu-{sp_id}">'
+            f'<div class="chrom-menu-actions">'
+            f'<button onclick="tidkSelectAll(\'{sp_id}\')">All</button>'
+            f'<button onclick="tidkSelectNone(\'{sp_id}\')">None</button>'
+            f'</div>'
+            f'{"".join(chrom_items)}'
+            f'</div>'
+            f'</div>'
+        )
+    else:
+        dropdown = ""
+
+    return f'{dropdown}{svg}'
 
 
 # ── HTML helpers ──────────────────────────────────────────────────────────────
@@ -341,9 +404,26 @@ table.table tr:hover td{background:#fafafa}
 .badge-green{background:#e8f5e9;color:#2e7d32}
 .badge-orange{background:#fff3e0;color:#e65100}
 .tag{font-size:11px;color:#888}
-.tidk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+.tidk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(660px,1fr));gap:16px}
 .tidk-item{background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.08);padding:12px}
 .tidk-item h3{font-size:13px;font-weight:600;margin-bottom:8px;color:#333}
+.chrom-select-wrap{position:relative;display:inline-block;margin-bottom:8px}
+.chrom-btn{background:#f0f4ff;border:1px solid #c5cae9;border-radius:4px;padding:4px 10px;cursor:pointer;font-size:12px;color:#3949ab;line-height:1.4}
+.chrom-btn:hover{background:#e8eaf6}
+.chrom-menu{position:absolute;top:calc(100% + 4px);left:0;background:#fff;border:1px solid #ddd;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.12);padding:8px;z-index:100;min-width:180px;max-height:260px;overflow-y:auto;display:none}
+.chrom-menu.open{display:block}
+.chrom-menu label{display:flex;align-items:center;gap:6px;padding:3px 4px;font-size:12px;cursor:pointer;white-space:nowrap;border-radius:3px}
+.chrom-menu label:hover{background:#f5f5f5}
+.chrom-menu input[type=checkbox]{cursor:pointer}
+.chrom-swatch{display:inline-block;width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.chrom-menu-actions{display:flex;gap:6px;margin-bottom:6px;padding-bottom:6px;border-bottom:1px solid #eee}
+.chrom-menu-actions button{flex:1;background:#f0f4ff;border:1px solid #c5cae9;border-radius:3px;padding:2px 6px;font-size:11px;cursor:pointer;color:#3949ab}
+.chrom-menu-actions button:hover{background:#e8eaf6}
+.tidk-mode-toggle{display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap}
+.tidk-mode-toggle button{background:#f5f5f5;border:1px solid #ddd;border-radius:4px;padding:4px 12px;cursor:pointer;font-size:12px;color:#555;transition:background .1s,border-color .1s}
+.tidk-mode-toggle button.active{background:#e3f2fd;border-color:#90caf9;color:#1565C0;font-weight:600}
+.tidk-mode-toggle button:hover:not(.active){background:#ebebeb}
+.tidk-mode-toggle code{font-size:11px;background:rgba(0,0,0,.06);padding:1px 4px;border-radius:3px}
 footer{text-align:center;padding:24px;font-size:12px;color:#aaa}
 """
 
@@ -356,11 +436,54 @@ document.querySelectorAll('nav.tabs button').forEach(btn => {
     document.getElementById(btn.dataset.tab).classList.add('active');
   });
 });
+
+function tidkToggleMenu(spId, event) {
+  event.stopPropagation();
+  var menu = document.getElementById('cmenu-' + spId);
+  menu.classList.toggle('open');
+}
+
+function tidkUpdate(spId) {
+  var menu = document.getElementById('cmenu-' + spId);
+  menu.querySelectorAll('input[type=checkbox]').forEach(function(cb) {
+    var path = document.getElementById('tp-' + spId + '-' + cb.value);
+    if (path) path.style.display = cb.checked ? '' : 'none';
+  });
+}
+
+function tidkSelectAll(spId) {
+  var menu = document.getElementById('cmenu-' + spId);
+  menu.querySelectorAll('input[type=checkbox]').forEach(function(cb) { cb.checked = true; });
+  tidkUpdate(spId);
+}
+
+function tidkSelectNone(spId) {
+  var menu = document.getElementById('cmenu-' + spId);
+  menu.querySelectorAll('input[type=checkbox]').forEach(function(cb) { cb.checked = false; });
+  tidkUpdate(spId);
+}
+
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.chrom-select-wrap')) {
+    document.querySelectorAll('.chrom-menu.open').forEach(function(m) { m.classList.remove('open'); });
+  }
+});
+
+function tidkSetMode(spId, mode) {
+  ['aposteriori', 'apriori'].forEach(function(m) {
+    var el = document.getElementById('plot-' + m + '-' + spId);
+    if (el) el.style.display = (m === mode) ? '' : 'none';
+  });
+  var toggle = document.getElementById('mode-' + spId);
+  if (toggle) toggle.querySelectorAll('button').forEach(function(btn) {
+    btn.classList.toggle('active', btn.dataset.mode === mode);
+  });
+}
 """
 
 # ── Main HTML assembly ────────────────────────────────────────────────────────
 
-def build_html(busco_rows, tidk_data, tidk_svgs):
+def build_html(busco_rows, tidk_data, tidk_apriori_data=None):
     tabs = []
     panels = []
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
@@ -402,30 +525,56 @@ def build_html(busco_rows, tidk_data, tidk_svgs):
         )
 
     # ── Telomeres tab ─────────────────────────────────────────────────────────
-    if tidk_data or tidk_svgs:
+    all_tidk_species = sorted(set(tidk_data.keys()) | set((tidk_apriori_data or {}).keys()))
+    if all_tidk_species:
         tabs.append(("tidk", "Telomeres"))
-        species_list = sorted(set(tidk_data.keys()) | set(tidk_svgs.keys()))
         items = []
-        for sp in species_list:
-            # prefer pre-rendered SVG; fall back to generating from TSV
-            if sp in tidk_svgs:
-                plot_html = (
-                    f'<div style="overflow-x:auto">{tidk_svgs[sp]}</div>'
-                )
-            elif sp in tidk_data:
-                plot_html = tidk_line_svg(sp, tidk_data[sp])
-            else:
-                plot_html = "<p><em>No plot data available.</em></p>"
+        for sp in all_tidk_species:
+            post_rows = tidk_data.get(sp, [])
+            pre_rows  = (tidk_apriori_data or {}).get(sp, [])
+            sp_id     = _safe_id(sp)
+            has_both  = bool(post_rows and pre_rows)
 
-            # show top repeat
-            td_rows = tidk_data.get(sp, [])
-            repeat = td_rows[0].get("telomeric_repeat", "—") if td_rows else "—"
-            repeat_badge = f'<span class="badge badge-green">Repeat: {repeat}</span>' if repeat != "—" else ""
+            repeat = (post_rows or pre_rows)[0].get("telomeric_repeat", "—")
+            repeat_badge = (
+                f'<span class="badge badge-green">Repeat: {repeat}</span>'
+                if repeat != "—" else ""
+            )
+
+            if has_both:
+                # Repeat badges for each mode
+                post_repeat = post_rows[0].get("telomeric_repeat", "—")
+                pre_repeat  = pre_rows[0].get("telomeric_repeat", "—")
+                toggle = (
+                    f'<div class="tidk-mode-toggle" id="mode-{sp_id}">'
+                    f'<button class="active" data-mode="aposteriori" '
+                    f'onclick="tidkSetMode(\'{sp_id}\',\'aposteriori\')">'
+                    f'A posteriori'
+                    f'{f" &middot; <code>{post_repeat}</code>" if post_repeat != "—" else ""}'
+                    f'</button>'
+                    f'<button data-mode="apriori" '
+                    f'onclick="tidkSetMode(\'{sp_id}\',\'apriori\')">'
+                    f'A priori'
+                    f'{f" &middot; <code>{pre_repeat}</code>" if pre_repeat != "—" else ""}'
+                    f'</button>'
+                    f'</div>'
+                )
+                plot_content = (
+                    f'{toggle}'
+                    f'<div id="plot-aposteriori-{sp_id}">'
+                    f'{tidk_line_svg(sp, post_rows, plot_id=sp + "__post")}</div>'
+                    f'<div id="plot-apriori-{sp_id}" style="display:none">'
+                    f'{tidk_line_svg(sp, pre_rows, plot_id=sp + "__pre")}</div>'
+                )
+            elif post_rows:
+                plot_content = tidk_line_svg(sp, post_rows)
+            else:
+                plot_content = tidk_line_svg(sp, pre_rows)
 
             items.append(
                 f'<div class="tidk-item">'
                 f'<h3>{sp} {repeat_badge}</h3>'
-                f'{plot_html}</div>'
+                f'{plot_content}</div>'
             )
 
         panels.append(
@@ -433,7 +582,7 @@ def build_html(busco_rows, tidk_data, tidk_svgs):
             f'<div class="card">'
             f'<h2>Telomeric repeat analysis</h2>'
             f'<p style="margin-bottom:14px;font-size:12px;color:#888">'
-            f'Solid lines = forward strand &nbsp;·&nbsp; Dashed lines = reverse strand</p>'
+            f'Total telomere repeat density (forward + reverse) per 10 kb window.</p>'
             f'<div class="tidk-grid">{"".join(items)}</div>'
             f'</div></div>'
         )
@@ -492,9 +641,9 @@ def main():
         help="tidk aposteriori search TSV files (one per species)",
     )
     parser.add_argument(
-        "--tidk_svgs", nargs="*", default=[],
-        metavar="SVG",
-        help="tidk aposteriori plot SVG files (one per species)",
+        "--tidk_apriori_tsvs", nargs="*", default=[],
+        metavar="TSV",
+        help="tidk apriori search TSV files (one per species)",
     )
     parser.add_argument(
         "--output", default="genomeqc_report.html",
@@ -507,17 +656,13 @@ def main():
     busco_rows = parse_busco_batch_summaries(args.busco_tables) if args.busco_tables else []
 
     # Parse tidk TSVs
-    tidk_data = parse_tidk_tsvs(args.tidk_tsvs) if args.tidk_tsvs else {}
+    tidk_data         = parse_tidk_tsvs(args.tidk_tsvs)         if args.tidk_tsvs         else {}
+    tidk_apriori_data = parse_tidk_tsvs(args.tidk_apriori_tsvs) if args.tidk_apriori_tsvs else None
 
-    # Read tidk SVGs  – key by stem (species name)
-    tidk_svgs = {}
-    for p in (args.tidk_svgs or []):
-        tidk_svgs[Path(p).stem] = read_svg(p)
-
-    if not busco_rows and not tidk_data and not tidk_svgs:
+    if not busco_rows and not tidk_data and not tidk_apriori_data:
         print("WARNING: no input data found; generating empty report.", file=sys.stderr)
 
-    html = build_html(busco_rows, tidk_data, tidk_svgs)
+    html = build_html(busco_rows, tidk_data, tidk_apriori_data)
 
     Path(args.output).write_text(html)
     print(f"Report written to {args.output}", file=sys.stderr)

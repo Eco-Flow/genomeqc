@@ -247,13 +247,14 @@ workflow GENOMEQC {
         ch_report_busco_go = GENOME_ONLY.out.busco_batch_summaries
                            | map { _meta, f -> f }
                            | collect
-        ch_report_tidk_tsv_go = params.skip_tidk ? channel.value([]) : FASTA_EXPLORE_SEARCH_PLOT_TIDK.out.aposteriori_tsv.map { _meta, f -> f }.collect()
-        ch_report_tidk_svg_go = params.skip_tidk ? channel.value([]) : FASTA_EXPLORE_SEARCH_PLOT_TIDK.out.aposteriori_svg.map { _meta, f -> f }.collect()
+                           | first
+        ch_report_tidk_tsv_go        = params.skip_tidk ? channel.value([]) : FASTA_EXPLORE_SEARCH_PLOT_TIDK.out.aposteriori_tsv.map { _meta, f -> f }.collect().first()
+        ch_report_tidk_apriori_go    = (params.skip_tidk || !params.tidk_apriori_sequence) ? channel.value([]) : FASTA_EXPLORE_SEARCH_PLOT_TIDK.out.apriori_tsv.map { _meta, f -> f }.collect().first()
 
         HTML_REPORT_GENOME (
             ch_report_busco_go,
             ch_report_tidk_tsv_go,
-            ch_report_tidk_svg_go
+            ch_report_tidk_apriori_go
         )
 
         //
@@ -352,9 +353,6 @@ workflow GENOMEQC {
         ch_functions = channel.fromPath("$projectDir/bin/tree_functions.R", checkIfExists: true)
         ch_app       = channel.fromPath("$projectDir/bin/shiny_app.R", checkIfExists: true)
 
-
-    TREE_SUMMARY_GENO_ANNO.out.tables.join(TREE_SUMMARY_GENO_ANNO.out.tree, by:0).view()
-    TREE_SUMMARY_GENO.out.tables.join(TREE_SUMMARY_GENO.out.tree, by:0).view()
         // For genome and annotation
         SHINY_APP_GENOME_ANNO (
             TREE_SUMMARY_GENO_ANNO.out.tables.join(TREE_SUMMARY_GENO_ANNO.out.tree, by:0),
@@ -376,13 +374,14 @@ workflow GENOMEQC {
                         | map { _meta, f -> f }
                         | mix( GENOME_ONLY.out.busco_batch_summaries.map { _meta, f -> f } )
                         | collect
-        ch_report_tidk_tsv = params.skip_tidk ? channel.value([]) : FASTA_EXPLORE_SEARCH_PLOT_TIDK.out.aposteriori_tsv.map { _meta, f -> f }.collect()
-        ch_report_tidk_svg = params.skip_tidk ? channel.value([]) : FASTA_EXPLORE_SEARCH_PLOT_TIDK.out.aposteriori_svg.map { _meta, f -> f }.collect()
+                        | first
+        ch_tidk                = params.skip_tidk ? channel.value([]) : FASTA_EXPLORE_SEARCH_PLOT_TIDK.out.aposteriori_tsv.map { _meta, f -> f }.collect().first()
+        ch_report_tidk_apriori = (params.skip_tidk || !params.tidk_apriori_sequence) ? channel.value([]) : FASTA_EXPLORE_SEARCH_PLOT_TIDK.out.apriori_tsv.map { _meta, f -> f }.collect()
 
         HTML_REPORT_GENOME_ANNO (
             ch_report_busco,
-            ch_report_tidk_tsv,
-            ch_report_tidk_svg
+            ch_tidk,
+            ch_report_tidk_apriori
         )
 
         //
@@ -391,17 +390,23 @@ workflow GENOMEQC {
         ch_excel_quast  = GENOME_AND_ANNOTATION.out.quast_tsv.map { _meta, f -> f }
                         | mix( GENOME_ONLY.out.quast_tsv.map { _meta, f -> f } )
                         | collect
-        ch_excel_agat   = GENOME_AND_ANNOTATION.out.agat_stats.map { _meta, f -> f }.collect()
-        ch_excel_tidk   = params.skip_tidk ? channel.value([]) : FASTA_EXPLORE_SEARCH_PLOT_TIDK.out.aposteriori_tsv.map { _meta, f -> f }.collect()
+        ch_excel_agat   = GENOME_AND_ANNOTATION.out.agat_stats.map { _meta, f -> f }.collect().ifEmpty([])
         ch_excel_fcsgx  = (params.gxdb || params.gxdb_manifiest) ? DECONTAMINATION.out.fcs_gx_report.map { _meta, f -> f }.collect()   : channel.value([])
         ch_excel_fcsadp = (params.gxdb || params.gxdb_manifiest) ? DECONTAMINATION.out.adaptor_report.map { _meta, f -> f }.collect()   : channel.value([])
         ch_excel_tiara  = (params.gxdb || params.gxdb_manifiest) ? DECONTAMINATION.out.tiara_cleaned.map { _meta, f -> f }.collect()    : channel.value([])
+
+        ch_report_busco.view { println "Busco batch summaries for genome + annotation mode: ${it}" }
+        ch_excel_quast.view { println "Quast tsv for genome + annotation mode: ${it}" }
+        ch_excel_agat.view { println "AGAT stats for genome + annotation mode: ${it}" }
+        ch_excel_fcsgx.view { println "FCS-GX report for genome + annotation mode: ${it}" }
+        ch_excel_fcsadp.view { println "FCS-ADP report for genome + annotation mode: ${it}" }
+        ch_excel_tiara.view { println "TIARA cleaned report for genome + annotation mode: ${it}" }
 
         EXCEL_REPORT_GENOME_ANNO (
             ch_report_busco,
             ch_excel_quast,
             ch_excel_agat,
-            ch_excel_tidk,
+            ch_tidk,
             ch_excel_fcsgx,
             ch_excel_fcsadp,
             ch_excel_tiara
