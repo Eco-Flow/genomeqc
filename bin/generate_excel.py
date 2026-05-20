@@ -148,6 +148,8 @@ def _read_tsv(path, skip_comment=True):
             line = line.rstrip("\n")
             if not line:
                 continue
+            if skip_comment and line.startswith("##"):
+                continue  # metadata lines (e.g. FCS-GX JSON header) — always skip
             if first and skip_comment:
                 line = line.lstrip("#").lstrip()
                 first = False
@@ -176,8 +178,11 @@ def _combine_tsv_files(paths, add_species_col=True):
             data_rows = file_rows[1:]
         else:
             data_rows = file_rows[1:]   # skip repeated header
-        for r in data_rows:
-            rows.append(([species] + r) if add_species_col else r)
+        if data_rows:
+            for r in data_rows:
+                rows.append(([species] + r) if add_species_col else r)
+        elif add_species_col:
+            rows.append([species, "no contamination detected"] + [""] * (len(file_rows[0]) - 1))
     return rows
 
 

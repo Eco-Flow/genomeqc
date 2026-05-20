@@ -251,29 +251,33 @@ workflow GENOMEQC {
         ch_report_tidk_tsv_go        = params.skip_tidk ? channel.value([]) : FASTA_EXPLORE_SEARCH_PLOT_TIDK.out.aposteriori_tsv.map { _meta, f -> f }.collect().first()
         ch_report_tidk_apriori_go    = (params.skip_tidk || !params.tidk_apriori_sequence) ? channel.value([]) : FASTA_EXPLORE_SEARCH_PLOT_TIDK.out.apriori_tsv.map { _meta, f -> f }.collect().first()
 
+        ch_fcsgx_go  = (params.gxdb || params.gxdb_manifiest) ? DECONTAMINATION.out.fcs_gx_report.map { _meta, f -> f }.collect().first()  : channel.value([])
+        ch_fcsadp_go = (params.gxdb || params.gxdb_manifiest) ? DECONTAMINATION.out.adaptor_report.map { _meta, f -> f }.collect().first()  : channel.value([])
+        ch_tiara_go  = (params.gxdb || params.gxdb_manifiest) ? DECONTAMINATION.out.tiara_cleaned.map  { _meta, f -> f }.collect().first()  : channel.value([])
+
         HTML_REPORT_GENOME (
             ch_report_busco_go,
             ch_report_tidk_tsv_go,
-            ch_report_tidk_apriori_go
+            ch_report_tidk_apriori_go,
+            ch_fcsgx_go,
+            ch_fcsadp_go,
+            ch_tiara_go
         )
 
         //
         // MODULE: Run EXCEL REPORT (genome only mode)
         //
-        ch_excel_quast_go  = GENOME_ONLY.out.quast_tsv.map { _meta, f -> f }.collect()
-        ch_excel_tidk_go   = params.skip_tidk ? channel.value([]) : FASTA_EXPLORE_SEARCH_PLOT_TIDK.out.aposteriori_tsv.map { _meta, f -> f }.collect()
-        ch_excel_fcsgx_go  = (params.gxdb || params.gxdb_manifiest) ? DECONTAMINATION.out.fcs_gx_report.map { _meta, f -> f }.collect()   : channel.value([])
-        ch_excel_fcsadp_go = (params.gxdb || params.gxdb_manifiest) ? DECONTAMINATION.out.adaptor_report.map { _meta, f -> f }.collect()   : channel.value([])
-        ch_excel_tiara_go  = (params.gxdb || params.gxdb_manifiest) ? DECONTAMINATION.out.tiara_cleaned.map { _meta, f -> f }.collect()    : channel.value([])
+        ch_excel_quast_go = GENOME_ONLY.out.quast_tsv.map { _meta, f -> f }.collect()
+        ch_tidk_go        = params.skip_tidk ? channel.value([]) : FASTA_EXPLORE_SEARCH_PLOT_TIDK.out.aposteriori_tsv.map { _meta, f -> f }.collect().first()
 
         EXCEL_REPORT_GENOME (
             ch_report_busco_go,
             ch_excel_quast_go,
             channel.value([]),     // no AGAT in genome-only mode
-            ch_excel_tidk_go,
-            ch_excel_fcsgx_go,
-            ch_excel_fcsadp_go,
-            ch_excel_tiara_go
+            ch_tidk_go,
+            ch_fcsgx_go,
+            ch_fcsadp_go,
+            ch_tiara_go
         )
     } else {
         GENOME_ONLY (
@@ -378,10 +382,17 @@ workflow GENOMEQC {
         ch_tidk                = params.skip_tidk ? channel.value([]) : FASTA_EXPLORE_SEARCH_PLOT_TIDK.out.aposteriori_tsv.map { _meta, f -> f }.collect().first()
         ch_report_tidk_apriori = (params.skip_tidk || !params.tidk_apriori_sequence) ? channel.value([]) : FASTA_EXPLORE_SEARCH_PLOT_TIDK.out.apriori_tsv.map { _meta, f -> f }.collect()
 
+        ch_fcsgx  = (params.gxdb || params.gxdb_manifiest) ? DECONTAMINATION.out.fcs_gx_report.map { _meta, f -> f }.collect().first()  : channel.value([])
+        ch_fcsadp = (params.gxdb || params.gxdb_manifiest) ? DECONTAMINATION.out.adaptor_report.map { _meta, f -> f }.collect().first()  : channel.value([])
+        ch_tiara  = (params.gxdb || params.gxdb_manifiest) ? DECONTAMINATION.out.tiara_cleaned.map  { _meta, f -> f }.collect().first()  : channel.value([])
+
         HTML_REPORT_GENOME_ANNO (
             ch_report_busco,
             ch_tidk,
-            ch_report_tidk_apriori
+            ch_report_tidk_apriori,
+            ch_fcsgx,
+            ch_fcsadp,
+            ch_tiara
         )
 
         //
@@ -391,25 +402,22 @@ workflow GENOMEQC {
                         | mix( GENOME_ONLY.out.quast_tsv.map { _meta, f -> f } )
                         | collect
         ch_excel_agat   = GENOME_AND_ANNOTATION.out.agat_stats.map { _meta, f -> f }.collect().ifEmpty([])
-        ch_excel_fcsgx  = (params.gxdb || params.gxdb_manifiest) ? DECONTAMINATION.out.fcs_gx_report.map { _meta, f -> f }.collect()   : channel.value([])
-        ch_excel_fcsadp = (params.gxdb || params.gxdb_manifiest) ? DECONTAMINATION.out.adaptor_report.map { _meta, f -> f }.collect()   : channel.value([])
-        ch_excel_tiara  = (params.gxdb || params.gxdb_manifiest) ? DECONTAMINATION.out.tiara_cleaned.map { _meta, f -> f }.collect()    : channel.value([])
 
         ch_report_busco.view { println "Busco batch summaries for genome + annotation mode: ${it}" }
-        ch_excel_quast.view { println "Quast tsv for genome + annotation mode: ${it}" }
-        ch_excel_agat.view { println "AGAT stats for genome + annotation mode: ${it}" }
-        ch_excel_fcsgx.view { println "FCS-GX report for genome + annotation mode: ${it}" }
-        ch_excel_fcsadp.view { println "FCS-ADP report for genome + annotation mode: ${it}" }
-        ch_excel_tiara.view { println "TIARA cleaned report for genome + annotation mode: ${it}" }
+        ch_excel_quast.view  { println "Quast tsv for genome + annotation mode: ${it}" }
+        ch_excel_agat.view   { println "AGAT stats for genome + annotation mode: ${it}" }
+        ch_fcsgx.view        { println "FCS-GX report for genome + annotation mode: ${it}" }
+        ch_fcsadp.view       { println "FCS-ADP report for genome + annotation mode: ${it}" }
+        ch_tiara.view        { println "TIARA cleaned report for genome + annotation mode: ${it}" }
 
         EXCEL_REPORT_GENOME_ANNO (
             ch_report_busco,
             ch_excel_quast,
             ch_excel_agat,
             ch_tidk,
-            ch_excel_fcsgx,
-            ch_excel_fcsadp,
-            ch_excel_tiara
+            ch_fcsgx,
+            ch_fcsadp,
+            ch_tiara
         )
     }
 

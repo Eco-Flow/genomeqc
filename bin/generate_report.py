@@ -2,7 +2,6 @@
 """Generate a self-contained HTML quality report for GenomeQC pipeline results."""
 
 import argparse
-import json
 import re
 import sys
 from datetime import datetime
@@ -46,6 +45,32 @@ def parse_busco_batch_summaries(paths):
             rows.append(row)
     rows.sort(key=lambda r: r.get("Input_file", ""))
     return rows
+
+
+def parse_decontam_tsv(paths):
+    """Return {species: [row_dict, ...]} from decontamination report TSV/TXT files.
+
+    Handles FCS-GX (##-prefixed metadata + #-prefixed header), FCS-Adaptor
+    (#-prefixed header), and Tiara (plain header) formats.
+    """
+    result = {}
+    for p in paths:
+        species = Path(p).stem.split(".")[0]
+        rows = []
+        header = None
+        with open(p) as fh:
+            for line in fh:
+                line = line.rstrip("\n")
+                if not line or line.startswith("##"):
+                    continue
+                if header is None:
+                    header = line.lstrip("#").lstrip().split("\t")
+                    continue
+                parts = line.split("\t")
+                rows.append(dict(zip(header, parts + [""] * max(0, len(header) - len(parts)))))
+        if header is not None:
+            result[species] = rows
+    return result
 
 
 def parse_tidk_tsvs(paths):
@@ -349,6 +374,58 @@ def busco_table_html(rows):
     return f'<table class="table">{header}{body}</table>'
 
 
+def decontam_table_html(data, no_hit_msg="No contamination detected."):
+    """Render per-species tables for FCS-GX or FCS-Adaptor data."""
+    if not data:
+        return "<p><em>No data available.</em></p>"
+    parts = []
+    for species in sorted(data.keys()):
+        rows = data[species]
+        if not rows:
+            parts.append(
+                f'<h3 style="margin:16px 0 4px">{species} '
+                f'<span class="badge badge-green">Clean</span></h3>'
+                f'<p style="color:#888;font-size:12px;margin-bottom:16px">{no_hit_msg}</p>'
+            )
+            continue
+        cols = list(rows[0].keys())
+        body = "\n".join(_td([r.get(c, "") for c in cols]) for r in rows)
+        n = len(rows)
+        badge = f'<span class="badge badge-orange">{n} hit{"s" if n != 1 else ""}</span>'
+        parts.append(
+            f'<h3 style="margin:16px 0 8px">{species} {badge}</h3>'
+            f'<div style="overflow-x:auto;margin-bottom:8px">'
+            f'<table class="table">{_th(cols)}{body}</table></div>'
+        )
+    return "".join(parts)
+
+
+def tiara_summary_html(data):
+    """Render a per-species classification summary table for Tiara data."""
+    if not data:
+        return "<p><em>No Tiara data available.</em></p>"
+    classes = ["eukarya", "bacteria", "archaea", "prokarya", "mitochondria", "plastid", "unknown"]
+    header = _th(["Species", "Status"] + [c.capitalize() for c in classes] + ["Total"])
+    rows_html = []
+    for species in sorted(data.keys()):
+        rows = data[species]
+        counts = {c: 0 for c in classes}
+        for r in rows:
+            cls = r.get("class_fst_stage", "unknown").lower()
+            counts[cls] = counts.get(cls, 0) + 1
+        total = len(rows)
+        non_euk = total - counts.get("eukarya", 0)
+        status = (
+            f'<span class="badge badge-orange">{non_euk} non-eukaryote</span>'
+            if non_euk > 0 else
+            f'<span class="badge badge-green">All eukaryote</span>'
+        )
+        cells = [species, status] + [str(counts.get(c, 0)) for c in classes] + [str(total)]
+        rows_html.append(_td(cells))
+    body = "\n".join(rows_html)
+    return f'<div style="overflow-x:auto"><table class="table">{header}{body}</table></div>'
+
+
 def summary_table_html(busco_rows, tidk_data):
     """Cross-tool summary table shown on the Overview tab."""
     # Collect unique species from all data sources
@@ -483,7 +560,8 @@ function tidkSetMode(spId, mode) {
 
 # ── Main HTML assembly ────────────────────────────────────────────────────────
 
-def build_html(busco_rows, tidk_data, tidk_apriori_data=None):
+def build_html(busco_rows, tidk_data, tidk_apriori_data=None,
+               fcsgx_data=None, fcsadp_data=None, tiara_data=None):
     tabs = []
     panels = []
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
@@ -587,6 +665,42 @@ def build_html(busco_rows, tidk_data, tidk_apriori_data=None):
             f'</div></div>'
         )
 
+    # ── FCS-GX tab ────────────────────────────────────────────────────────────
+    if fcsgx_data is not None:
+        tabs.append(("fcsgx", "FCS-GX"))
+        content = decontam_table_html(fcsgx_data, "No foreign sequences detected.")
+        panels.append(
+            f'<div id="fcsgx" class="tab-panel">'
+            f'<div class="card"><h2>FCS-GX — Foreign sequence detection</h2>'
+            f'<p style="margin-bottom:14px;font-size:12px;color:#888">'
+            f'Sequences flagged for removal due to cross-species contamination.</p>'
+            f'{content}</div></div>'
+        )
+
+    # ── FCS-Adaptor tab ───────────────────────────────────────────────────────
+    if fcsadp_data is not None:
+        tabs.append(("fcsadp", "FCS-Adaptor"))
+        content = decontam_table_html(fcsadp_data, "No adaptor contamination detected.")
+        panels.append(
+            f'<div id="fcsadp" class="tab-panel">'
+            f'<div class="card"><h2>FCS-Adaptor — Adaptor contamination</h2>'
+            f'<p style="margin-bottom:14px;font-size:12px;color:#888">'
+            f'Sequences flagged for adaptor trimming or removal.</p>'
+            f'{content}</div></div>'
+        )
+
+    # ── Tiara tab ─────────────────────────────────────────────────────────────
+    if tiara_data is not None:
+        tabs.append(("tiara", "Tiara"))
+        content = tiara_summary_html(tiara_data)
+        panels.append(
+            f'<div id="tiara" class="tab-panel">'
+            f'<div class="card"><h2>Tiara — Sequence classification</h2>'
+            f'<p style="margin-bottom:14px;font-size:12px;color:#888">'
+            f'Deep-learning classification of sequences by taxonomic origin.</p>'
+            f'{content}</div></div>'
+        )
+
     # ── Assemble page ─────────────────────────────────────────────────────────
     tab_nav = "\n".join(
         f'<button data-tab="{tid}" class="{"active" if i == 0 else ""}">{label}</button>'
@@ -646,6 +760,21 @@ def main():
         help="tidk apriori search TSV files (one per species)",
     )
     parser.add_argument(
+        "--fcsgx_reports", nargs="*", default=None,
+        metavar="TXT",
+        help="FCS-GX *.fcs_gx_report.txt files (one per species, omit to hide tab)",
+    )
+    parser.add_argument(
+        "--fcsadp_reports", nargs="*", default=None,
+        metavar="TXT",
+        help="FCS-Adaptor *.fcs_adaptor_report.txt files (one per species, omit to hide tab)",
+    )
+    parser.add_argument(
+        "--tiara_reports", nargs="*", default=None,
+        metavar="TXT",
+        help="Tiara *.txt classification files (one per species, omit to hide tab)",
+    )
+    parser.add_argument(
         "--output", default="genomeqc_report.html",
         metavar="HTML",
         help="Output HTML file path (default: genomeqc_report.html)",
@@ -659,10 +788,16 @@ def main():
     tidk_data         = parse_tidk_tsvs(args.tidk_tsvs)         if args.tidk_tsvs         else {}
     tidk_apriori_data = parse_tidk_tsvs(args.tidk_apriori_tsvs) if args.tidk_apriori_tsvs else None
 
+    # Parse decontamination reports (None = tool not run → tab hidden)
+    fcsgx_data  = parse_decontam_tsv(args.fcsgx_reports)  if args.fcsgx_reports  is not None else None
+    fcsadp_data = parse_decontam_tsv(args.fcsadp_reports) if args.fcsadp_reports is not None else None
+    tiara_data  = parse_decontam_tsv(args.tiara_reports)  if args.tiara_reports  is not None else None
+
     if not busco_rows and not tidk_data and not tidk_apriori_data:
         print("WARNING: no input data found; generating empty report.", file=sys.stderr)
 
-    html = build_html(busco_rows, tidk_data, tidk_apriori_data)
+    html = build_html(busco_rows, tidk_data, tidk_apriori_data,
+                      fcsgx_data=fcsgx_data, fcsadp_data=fcsadp_data, tiara_data=tiara_data)
 
     Path(args.output).write_text(html)
     print(f"Report written to {args.output}", file=sys.stderr)

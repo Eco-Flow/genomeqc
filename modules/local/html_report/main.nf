@@ -9,6 +9,9 @@ process HTML_REPORT {
     path busco_tables,       stageAs: "busco/*"         // batch_summary_modified.txt files (one per species)
     path tidk_tsvs,          stageAs: "tidk/*"          // tidk aposteriori search TSV files
     path tidk_apriori_tsvs,  stageAs: "tidk_apriori/*"  // tidk apriori search TSV files (optional)
+    path fcsgx_reports,      stageAs: "fcsgx/*"         // FCS-GX report files (optional)
+    path fcsadp_reports,     stageAs: "fcsadp/*"        // FCS-Adaptor report files (optional)
+    path tiara_reports,      stageAs: "tiara/*"         // Tiara classification files (optional)
 
     output:
     path "genomeqc_report.html", emit: report
@@ -18,14 +21,20 @@ process HTML_REPORT {
     task.ext.when == null || task.ext.when
 
     script:
-    def busco_arg         = busco_tables      ? "--busco_tables busco/*"                  : ""
-    def tidk_tsv_arg      = tidk_tsvs         ? "--tidk_tsvs tidk/*"                      : ""
-    def tidk_apriori_arg  = tidk_apriori_tsvs ? "--tidk_apriori_tsvs tidk_apriori/*"      : ""
+    def busco_arg        = busco_tables      ? "--busco_tables busco/*"             : ""
+    def tidk_tsv_arg     = tidk_tsvs         ? "--tidk_tsvs tidk/*"                 : ""
+    def tidk_apriori_arg = tidk_apriori_tsvs ? "--tidk_apriori_tsvs tidk_apriori/*" : ""
+    def fcsgx_arg        = fcsgx_reports     ? "--fcsgx_reports fcsgx/*"            : ""
+    def fcsadp_arg       = fcsadp_reports    ? "--fcsadp_reports fcsadp/*"          : ""
+    def tiara_arg        = tiara_reports     ? "--tiara_reports tiara/*"            : ""
     """
     generate_report.py \\
         ${busco_arg} \\
         ${tidk_tsv_arg} \\
         ${tidk_apriori_arg} \\
+        ${fcsgx_arg} \\
+        ${fcsadp_arg} \\
+        ${tiara_arg} \\
         --output genomeqc_report.html
     """
 }
