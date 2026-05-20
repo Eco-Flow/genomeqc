@@ -181,7 +181,7 @@ workflow GENOMEQC {
             ch_input_decon,
             params.ramdisk ?: [],
             params.gxdb ?: [],
-            file(params.gxdb_manifiest) ?: []
+            params.gxdb_manifiest ?: []
         )
     }
 
