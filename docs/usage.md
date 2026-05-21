@@ -199,52 +199,6 @@ nextflow run nf-core/genomeqc \
    -profile docker
 ```
 
-#### `--te minimap2`
-
-Fast TE quantification using [minimap2](https://github.com/lh3/minimap2). Shares the same DFAM library preparation steps as `--te repeatmasker` but replaces RepeatMasker with a minimap2 alignment + Python summary step. Runs in minutes rather than hours and produces a `.tbl`-like output file per genome. **The genome is not masked** — use this option when you only need TE composition statistics.
-
-```bash
-nextflow run nf-core/genomeqc \
-   --input samplesheet.csv \
-   --outdir results \
-   --te minimap2 \
-   --famdb_library "/path/to/dfam39_full.*.h5" \
-   --famdb_lineage hymenoptera \
-   -profile docker
-```
-
-The repeat library is aligned to each genome using `minimap2 -x asm20`. Hits are parsed by TE class/family from the DFAM sequence headers and coverage is summed per category, merging overlapping alignments to avoid double-counting.
-
-##### minimap2 sensitivity (`--te_minimap_args`)
-
-By default the pipeline adds `-k 13 -s 40` on top of the `asm20` preset. This lowers the k-mer seed size from 19 to 13 and the minimum alignment score from 200 to 40, allowing detection of older, more diverged TE copies at the cost of slightly longer run time — comparable in sensitivity to RepeatMasker.
-
-| Value | Effect |
-|-------|--------|
-| `"-k 13 -s 40"` | Default. Sensitive — detects TEs up to ~35% diverged. |
-| `""` | asm20 preset defaults. Faster but misses older/diverged copies. |
-| `"-k 11 -s 25"` | Maximum sensitivity. Slowest, most false positives. |
-
-```bash
-# Use stricter asm20 defaults (faster):
---te_minimap_args ''
-
-# Push sensitivity further:
---te_minimap_args '-k 11 -s 25'
-```
-
-> [!NOTE]
-> `--run_repeatmodeler` is not supported with `--te minimap2`. Only the DFAM library is used.
-
-> [!WARNING]
-> minimap2-based TE quantification is an approximation with one known limitation compared to RepeatMasker:
->
-> 1. **Diverged copies**: minimap2 uses DNA k-mer seeding and will underestimate TE content for highly degraded or ancient insertions, even with sensitive parameters (`-k 13 -s 40`). RepeatMasker uses profile HMMs tuned specifically for repetitive element detection.
->
-> Low complexity and simple repeat content are handled separately from the TE library: [mdust](https://github.com/lh3/mdust) (DUST algorithm) populates the "Low complexity" row, and [Tandem Repeat Finder](https://tandem.bu.edu/trf/trf.html) (TRF) populates the "Simple repeats" row — matching the approach used by RepeatMasker.
->
-> Results are suitable for rapid comparative surveys of interspersed repeat content, but should not be treated as equivalent to a full RepeatMasker annotation. For publication-quality TE composition tables, use `--te repeatmasker`.
-
 #### `--te repeatmasker`
 
 Runs a curated TE masking pipeline using the [DFAM](https://www.dfam.org) repeat library:
