@@ -30,6 +30,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
   - [Tiara](#tiara) - Sequence classification (domain and organelle level).
 - [GffRead](#gffread) - Extract longest isoform from FASTA file.
 - [BUSCO](#busco) - Genome completeness based on single copy markers.
+- [TE annotation](#te-annotation) (optional) - Transposable element identification and masking.
 - [Orthofinder](#orthofinder) - Phylogenetic orthology inference.
 - [Tree summary](#tree-summary) - Phylogenetic summary plot.
 - [Shiny app](#shiny-app) - Dynamic tree summary plot adjuster.
@@ -249,6 +250,45 @@ It outputs a report with completness stats, a summarized table with these stats,
   </details>
 
 ![output_example_busco](images/output_example/syngnathus_acus_ideogram.png)
+
+### TE annotation
+
+TE annotation is optional and is enabled with `--te hite` or `--te repeatmasker`. See [usage documentation](usage.md#running-te-annotation) for full details.
+
+#### HiTE (`--te hite`)
+
+[HiTE](https://github.com/BioinformaticsToolsmith/HiTE) is a fast, alignment-free tool for TE identification and masking. It is the recommended option for quick runs or plant genomes (`--is_plant true`).
+
+<details markdown="1">
+<summary>Output files</summary>
+
+- `hite/<species_name>/`
+  - `<species_name>_hite_results/` directory containing all HiTE output files, including the masked genome and identified TE families.
+
+</details>
+
+#### RepeatMasker (`--te repeatmasker`)
+
+The RepeatMasker path masks the genome against the [DFAM](https://www.dfam.org) curated repeat library:
+
+1. **famdb.py** – curated repeat library extracted from DFAM h5 partitions (downloaded automatically unless `--RM_download_db false`).
+2. **CAT + CD-HIT-EST** – deduplicates the library.
+3. **RepeatMasker** – soft-masks the genome.
+
+With `--run_repeatmodeler`, [RepeatModeler](https://github.com/Dfam-consortium/RepeatModeler) is also run to build a de novo library from the genome, which is merged with the famdb library before masking. RepeatModeler employs RECON, RepeatScout and LtrHarvest/Ltr_retriever for complementary repeat boundary identification.
+
+[RepeatMasker](https://www.repeatmasker.org) screens DNA sequences for interspersed repeats and low complexity sequences, producing a soft-masked genome and summary statistics.
+
+<details markdown="1">
+<summary>Output files</summary>
+
+- `repeatmasker/<species_name>/`
+  - `<species_name>.masked` – soft-masked genome in FASTA format.
+  - `<species_name>.out` – detailed table of repeat positions and classifications.
+  - `<species_name>.tbl` – summary table of repeat annotation results.
+  - `<species_name>.gff` – repeat annotations in GFF format (if produced).
+
+</details>
 
 ### Orthofinder
 

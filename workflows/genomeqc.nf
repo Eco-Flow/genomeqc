@@ -22,6 +22,8 @@ include { BUSCO_SEQS as BUSCO_SEQS_GENOME_ANNO   } from '../modules/local/buscos
 include { BUSCO_SEQS as BUSCO_SEQS_GENOME        } from '../modules/local/buscos_seqs/main'
 include { SHINY_APP as SHINY_APP_GENOME_ANNO     } from '../modules/local/shiny_app/main'
 include { SHINY_APP as SHINY_APP_GENOME          } from '../modules/local/shiny_app/main'
+include { HITE                                   } from '../modules/local/hite/main'
+include { FASTA_ANNOTATE_TE                      } from '../subworkflows/local/fasta_annotate_te/main'
 include { MULTIQC                                } from '../modules/nf-core/multiqc/main'
 include { paramsSummaryMap                       } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc                   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -147,8 +149,8 @@ workflow GENOMEQC {
     // Check multimapChannel function below
 
     ch_input       = ch_fasta // channel: [ val(meta), val(fasta), val(gxf), val(fastq) ]
-                   | join(ch_gxf, remainder: true) // reminder: if gxf is null (only necessary for ncbi genomes)
-                   | join(ch_fastq, remainder: true)
+                   | join(ch_gxf, remainder: true)           // full outer: gxf is optional
+                   | join(ch_fastq, remainder: true) // left outer: fastq is optional, drop fastq-only entries
 
     // Split into two channels according to the presence/absence of an annotation
     ch_input_anno  = ch_input.filter { _meta, _fasta_annotation, gxf_annotation, _fastq ->  gxf_annotation } // gxf is present. Channel will run on genome and annotation
@@ -226,6 +228,36 @@ workflow GENOMEQC {
                                             | flatMap { _meta, data -> data }
 
     //
+    // SUBWORKFLOW: Annotate transposable elements
+    //
+    if (params.te == 'hite') {
+        HITE ( ch_fasta )
+    }
+
+    if (params.te == 'repeatmasker') {
+        // Skip download when a pre-staged famdb library is already provided
+        ch_rm_db_input = (params.RM_download_db && params.RM_db && !params.famdb_library)
+                       ? Channel.fromList(params.RM_db)
+                           .map { db -> tuple([id: file(db).getBaseName()], db) }
+                       : Channel.empty()
+
+        // Accepts a single file path or a glob pattern (e.g. '/path/FamDB*')
+        ch_famdb_lib_input = params.famdb_library
+                           ? Channel.fromPath(params.famdb_library)
+                               .map { path -> tuple([id: path.baseName], path) }
+                           : Channel.empty()
+
+        FASTA_ANNOTATE_TE (
+            ch_fasta,
+            ch_rm_db_input,
+            ch_famdb_lib_input,
+            params.famdb_lineage ?: '',
+            params.run_repeatmodeler,
+            params.te_clusterer
+        )
+    }
+
+    //
     // SUBWORKFLOWS: Run genome only or genome + annotation subworkflows
     //
     // Run genome only or genome + gxf
@@ -253,6 +285,7 @@ workflow GENOMEQC {
         //
         // Number of sequences with more than x complete single copy buscos
         // this should depend on whether protein mode was used or not
+        if(!params.skip_busco){
         BUSCO_SEQS_GENOME_ANNO(
             GENOME_AND_ANNOTATION.out.buscos_per_seqs.map { tables -> [[id:"tables"], tables] }
         )
@@ -260,7 +293,7 @@ workflow GENOMEQC {
         BUSCO_SEQS_GENOME(
             GENOME_ONLY.out.buscos_per_seqs.map { tables -> [[id:"tables"], tables] }
         )
-
+        
         // Prepare channels for tree plot
         ch_tree_genome_anno = GENOME_AND_ANNOTATION.out.tree_data
                             | concat(BUSCO_SEQS_GENOME_ANNO.out.table.map { _meta, table -> table})
@@ -268,6 +301,7 @@ workflow GENOMEQC {
         ch_tree_genome      = GENOME_ONLY.out.tree_data
                             | concat(BUSCO_SEQS_GENOME.out.table.map { _meta, table -> table})
                             | collect
+        }
 
         //
         // MODULE: Run TREE SUMMARY
@@ -292,6 +326,7 @@ workflow GENOMEQC {
                             }
 
         // Run TREE SUMMARY for genome and annotation
+        if(!params.skip_busco) {
         TREE_SUMMARY_GENO_ANNO (
             GENOME_AND_ANNOTATION.out.orthofinder,
             ch_busco_geno_anno.geno,
@@ -306,7 +341,7 @@ workflow GENOMEQC {
             [[],[]], // No busco for genome only (busco runs on genome)
             ch_tree_genome
         )
-
+        
         //
         // MODULE: Run SHINY APP
         //
@@ -330,6 +365,7 @@ workflow GENOMEQC {
             ch_functions,
             ch_app
         )
+        }
     }
 
     //

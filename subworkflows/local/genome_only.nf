@@ -30,6 +30,7 @@ workflow GENOME_ONLY {
     )
     ch_tree_data = ch_tree_data.mix(QUAST.out.tsv.map { tuple -> tuple[1] })
 
+    if (!params.skip_busco) {
     BUSCO_BUSCO (
         ch_fasta,
         "genome", // hardcoded, other options ('proteins', 'transcriptome') make no sense
@@ -109,12 +110,12 @@ workflow GENOME_ONLY {
         BUSCO_TSV_TO_GFF.out.gff.map { _meta, gff -> gff }.collect()
     )
     ch_tree_data = ch_tree_data.mix(ORTHOLOGOUS_CHROMOSOMES.out.species_summary)
-
+    }
     emit:
-    orthofinder             = ORTHOFINDER.out.orthofinder         // channel: [ val(meta), [folder] ]
-    tree_data               = ch_tree_data.flatten().collect()
+    orthofinder             = !params.skip_busco ? ORTHOFINDER.out.orthofinder : channel.empty()        // channel: [ val(meta), [folder] ]
+    tree_data               = !params.skip_busco ? ch_tree_data.flatten().collect() : channel.empty()
     quast_results           = QUAST.out.results                   // channel: [ val(meta), [tsv] ]
-    busco_short_summaries   = BUSCO_BUSCO.out.short_summaries_txt // channel: [ val(meta), [txt] ]
-    buscos_per_seqs         = GENOME_ONLY_BUSCO_IDEOGRAM.out.busco_mappings.collect { _meta, table -> table} // channel: [ csv ]
+    busco_short_summaries   = !params.skip_busco ? BUSCO_BUSCO.out.short_summaries_txt : channel.empty() // channel: [ val(meta), [txt] ]
+    buscos_per_seqs         = !params.skip_busco ? GENOME_ONLY_BUSCO_IDEOGRAM.out.busco_mappings.collect { meta, table -> table} : channel.empty() // channel: [ csv ]
 
 }

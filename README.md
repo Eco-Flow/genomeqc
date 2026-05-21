@@ -47,6 +47,9 @@ Depending on the inputs provided, there are two ways this pipeline can run:
       - [FCS-GX](https://github.com/ncbi/fcs/wiki/FCS-GX-quickstart): Detection and removal of foreign organism contamination.
       - [FCS-adaptor](https://github.com/ncbi/fcs/wiki/FCS-adaptor-quickstart): Detection and removal of adaptor and vector contamination.
       - [Tiara](https://ibe-uw.github.io/tiara/): DNA sequence classification.
+   6. TE annotation (optional, `--te`):
+      - [`--te hite`](https://github.com/BioinformaticsToolsmith/HiTE): Fast, alignment-free TE identification and masking.
+      - `--te repeatmasker`: Curated TE masking using [DFAM famdb](https://www.dfam.org) + [RepeatMasker](https://www.repeatmasker.org). Add `--run_repeatmodeler` to also build a de novo library with [RepeatModeler](https://www.repeatmasker.org/RepeatModeler/) (slow — 24–48 h per genome). The repeat library is dereplicated using [MMseqs2](https://github.com/soedinglab/MMseqs2) `easy-linclust` by default; use `--te_clusterer` to switch tools and `--te_cluster_identity`/`--te_cluster_coverage` to tune thresholds. RepeatMasker runs in rush mode (`-qq`) by default; use `--repeatmasker_speed` to adjust.
 3. Plots a BUSCO marker-based phylogenetic tree with assembly summary statistics: **Tree Summary**.
 4. Summary with [MultiQC](http://multiqc.info).
 
@@ -63,8 +66,10 @@ Depending on the inputs provided, there are two ways this pipeline can run:
       - [FCS-GX](https://github.com/ncbi/fcs/wiki/FCS-GX-quickstart): Detection and removal of foreign organisms contamination.
       - [FCS-adaptor](https://github.com/ncbi/fcs/wiki/FCS-adaptor-quickstart): Detection and removal of adaptor and vector contamination.
       - [Tiara](https://ibe-uw.github.io/tiara/): DNA sequence classification.
-   7. More options...
-3. Describes annotation :
+   7. TE annotation (optional, `--te`):
+      - [`--te hite`](https://github.com/BioinformaticsToolsmith/HiTE): Fast, alignment-free TE identification and masking.
+      - `--te repeatmasker`: Curated TE masking using [DFAM famdb](https://www.dfam.org) + [RepeatMasker](https://www.repeatmasker.org). Add `--run_repeatmodeler` to also build a de novo library with [RepeatModeler](https://www.repeatmasker.org/RepeatModeler/) (slow — 24–48 h per genome). The repeat library is dereplicated using [MMseqs2](https://github.com/soedinglab/MMseqs2) `easy-linclust` by default; use `--te_clusterer` to switch tools and `--te_cluster_identity`/`--te_cluster_coverage` to tune thresholds. RepeatMasker runs in rush mode (`-qq`) by default; use `--repeatmasker_speed` to adjust.
+3. Describes annotation:
    1. [AGAT](https://agat.readthedocs.io/en/latest/): Number of genes, features, length...
    2. **Gene Overlaps**: Finds the number of overlapping genes.
 4. Extracts longest protein isoform: [GffRead](https://github.com/gpertea/gffread).

@@ -46,7 +46,6 @@ workflow GENOME_AND_ANNOTATION {
         ch_gxf_agat  = GFFREAD_VALIDATE.out.gffread_gff
     }
 
-
     //
     // MODULE: Run AGAT longest isoform
     //
@@ -165,7 +164,8 @@ workflow GENOME_AND_ANNOTATION {
     //
     // MODULE: Run BUSCO for genome annotation
     //
-
+    
+    if(!params.skip_busco) {
     BUSCO_GENOME (
         ch_fasta,
         'genome',
@@ -244,14 +244,15 @@ workflow GENOME_AND_ANNOTATION {
                         }
 
     GENOME_ANNOTATION_BUSCO_IDEOGRAM ( ch_plot_input )
-
+    ch_versions         = ch_versions.mix(GENOME_ANNOTATION_BUSCO_IDEOGRAM.out.versions.first())
+    }
     emit:
     orthofinder                = ORTHOFINDER.out.orthofinder         // channel: [ val(meta), [folder] ]
     tree_data                  = ch_tree_data.flatten().collect()
     quast_results              = QUAST.out.results                   // channel: [ val(meta), [tsv] ]
-    busco_short_summaries_geno = GAWK_GENO.out.output
-    busco_short_summaries_prot = GAWK_PROT.out.output
+    busco_short_summaries_geno = !params.skip_busco ? GAWK_GENO.out.output : Channel.empty()
+    busco_short_summaries_prot = !params.skip_busco ? GAWK_PROT.out.output : Channel.empty()
     orthologous_chromosomes    = ORTHOLOGOUS_CHROMOSOMES.out.species_summary // channel: [ path(tsv) ]
-    buscos_per_seqs            = GENOME_ANNOTATION_BUSCO_IDEOGRAM.out.busco_mappings.collect { _meta, table -> table} // channel: [ val(meta), [csv] ]
-
+    buscos_per_seqs            = !params.skip_busco ? GENOME_ANNOTATION_BUSCO_IDEOGRAM.out.busco_mappings.collect { meta, table -> table} : channel.empty() // channel: [ val(meta), [csv] ]
+    versions                   = ch_versions                   // channel: [ versions.yml ]
 }

@@ -172,6 +172,140 @@ The decontamination subsworkflow consists of three modules:
   1. The sequences are classified to either archaea, bacteria, prokarya, eukarya, organelle or unknown.
   2. The sequences labeled as organelle in the first stage are classified to either mitochondria, plastid or unknown.
 
+### Running TE annotation
+
+The pipeline supports two optional methods for transposable element (TE) annotation, selected with the `--te` parameter. TE annotation is skipped by default.
+
+#### `--te hite`
+
+Runs [HiTE](https://github.com/BioinformaticsToolsmith/HiTE), a fast alignment-free TE identification and masking tool. It is the recommended option for quick runs or plant genomes.
+
+```bash
+nextflow run nf-core/genomeqc \
+   --input samplesheet.csv \
+   --outdir results \
+   --te hite \
+   -profile docker
+```
+
+For plant genomes, also pass `--is_plant true`:
+
+```bash
+nextflow run nf-core/genomeqc \
+   --input samplesheet.csv \
+   --outdir results \
+   --te hite \
+   --is_plant true \
+   -profile docker
+```
+
+#### `--te repeatmasker`
+
+Runs a curated TE masking pipeline using the [DFAM](https://www.dfam.org) repeat library:
+
+1. **famdb.py** – extracts a curated repeat library from DFAM h5 partition files (downloaded automatically by default).
+2. **Clustering** – deduplicates the library using MMseqs2 `easy-linclust` by default (see [Clustering options](#repeat-library-clustering-options) below).
+3. **RepeatMasker** – masks the genome. Runs in rush mode (`-qq`) by default for speed (see [RepeatMasker speed](#repeatmasker-speed) below).
+
+```bash
+nextflow run nf-core/genomeqc \
+   --input samplesheet.csv \
+   --outdir results \
+   --te repeatmasker \
+   -profile docker
+```
+
+To restrict the curated library to a specific taxonomic lineage (strongly recommended — speeds up both the extraction and the masking step), use `--famdb_lineage`:
+
+```bash
+nextflow run nf-core/genomeqc \
+   --input samplesheet.csv \
+   --outdir results \
+   --te repeatmasker \
+   --famdb_lineage hymenoptera \
+   -profile docker
+```
+
+By default, the pipeline downloads partition `0` of the DFAM full database. To download additional partitions (required for full taxonomic coverage beyond the root lineage), pass them via `--RM_db`:
+
+```bash
+--RM_db "['https://www.dfam.org/releases/current/families/FamDB/dfam39_full.0.h5.gz',\
+           'https://www.dfam.org/releases/current/families/FamDB/dfam39_full.1.h5.gz']"
+```
+
+If you already have DFAM h5 partition files on disk, use `--famdb_library` to point at them. The download step is skipped automatically.
+
+`--famdb_library` expects **decompressed `.h5` files** — `.h5.gz` files must be extracted first. Only decompress the partitions relevant to your lineage; decompressing the entire database is unnecessary and expensive (each partition is 10–30 GB uncompressed).
+
+Partition 0 always contains the taxonomy metadata and is required. For most lineages, partitions 0 and 1 are sufficient — check the [DFAM partition guide](https://www.dfam.org/releases/current/families/FamDB/) if you need to identify which partition covers your clade.
+
+```bash
+# Decompress only the partitions you need (once, on the cluster)
+gunzip -k /path/to/dfam38-1_full.0.h5.gz
+gunzip -k /path/to/dfam38-1_full.1.h5.gz
+```
+
+Then pass them via a glob:
+
+```bash
+nextflow run nf-core/genomeqc \
+   --input samplesheet.csv \
+   --outdir results \
+   --te repeatmasker \
+   --famdb_library "/path/to/dfam38-1_full.*.h5" \
+   --famdb_lineage hymenoptera \
+   -profile docker
+```
+
+#### Adding de novo repeat discovery with RepeatModeler
+
+By default, `--te repeatmasker` only uses the curated DFAM library. To also run [RepeatModeler](https://www.repeatmasker.org/RepeatModeler/) for de novo discovery, add `--run_repeatmodeler`:
+
+```bash
+nextflow run nf-core/genomeqc \
+   --input samplesheet.csv \
+   --outdir results \
+   --te repeatmasker \
+   --run_repeatmodeler \
+   --famdb_lineage hymenoptera \
+   -profile docker
+```
+
+The RepeatModeler de novo library is merged with the famdb curated library before masking, giving broader coverage at the cost of significant runtime.
+
+> [!WARNING]
+> RepeatModeler is slow — it typically requires 24 CPUs and 24–48 hours per genome. Only enable it if you need de novo discovery beyond the curated DFAM families for your lineage.
+
+#### Repeat library clustering options
+
+Before RepeatMasker runs, the repeat library is deduplicated by a clustering step. Three tools are available via `--te_clusterer`:
+
+| Value | Tool | Notes |
+|-------|------|-------|
+| `linclust` | MMseqs2 `easy-linclust` | **Default.** Linear-time, fastest. |
+| `mmseqs` | MMseqs2 `easy-cluster` | Slower than linclust, more sensitive. |
+| `cdhit` | CD-HIT-EST | Traditional approach. |
+
+Two thresholds can be tuned:
+
+- `--te_cluster_identity` – minimum sequence identity (default `0.8`). Passed as `-c` to CD-HIT-EST and `--min-seq-id` to MMseqs2.
+- `--te_cluster_coverage` – minimum alignment coverage of the shorter sequence (default `0.8`). Passed as `-aS` to CD-HIT-EST and `-c --cov-mode 1` to MMseqs2.
+
+> [!NOTE]
+> When running without `--run_repeatmodeler`, clustering runs **once** for the whole lineage library and the result is shared across all genomes. When RepeatModeler is enabled, clustering runs per genome (each genome has a unique de novo library merged in).
+
+#### RepeatMasker speed
+
+RepeatMasker sensitivity can be controlled with `--repeatmasker_speed`:
+
+| Value | Flag | Notes |
+|-------|------|-------|
+| `qq` | `-qq` | **Default.** Rush mode — fastest, lowest sensitivity. |
+| `q` | `-q` | Quick mode — ~5× faster than default, slightly reduced sensitivity. |
+| `default` | *(none)* | Full sensitivity — slowest. |
+
+For TE quantification in a comparative genomics context, `qq` is usually sufficient. Use `default` if you need a publication-quality masked assembly.
+
 ### The Shiny App
 
 The pipeline outputs an executable that will open a shiny app in your web browser once executed. The app allows the user to change the tree plot parameters (margins, ) in real time, as well as append and remove summary plot statistics. The modified plot can be saved as a png/svg file.
