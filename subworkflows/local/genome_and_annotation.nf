@@ -244,7 +244,6 @@ workflow GENOME_AND_ANNOTATION {
                         }
 
     GENOME_ANNOTATION_BUSCO_IDEOGRAM ( ch_plot_input )
-    ch_versions         = ch_versions.mix(GENOME_ANNOTATION_BUSCO_IDEOGRAM.out.versions.first())
     }
     emit:
     orthofinder                = ORTHOFINDER.out.orthofinder         // channel: [ val(meta), [folder] ]
