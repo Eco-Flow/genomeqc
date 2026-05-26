@@ -101,6 +101,34 @@ def parse_tidk_tsvs(paths):
     return result
 
 
+def parse_busco_seqs_table(path):
+    """Return ({Id: count}, col_label) from ortho_seqs.py TSV output."""
+    result = {}
+    col_label = "Seqs above threshold"
+    with open(path) as fh:
+        lines = fh.readlines()
+    if not lines:
+        return result, col_label
+    header = lines[0].strip().split('\t')
+    count_col = next((h for h in header if h.startswith('Num_Seqs_Above_')), None)
+    if count_col:
+        threshold = count_col.replace('Num_Seqs_Above_', '')
+        col_label = f"Seqs >{threshold} BUSCOs"
+    for line in lines[1:]:
+        line = line.strip()
+        if not line:
+            continue
+        parts = line.split('\t')
+        row = dict(zip(header, parts))
+        sp_id = row.get('Id', '')
+        if sp_id and count_col:
+            try:
+                result[sp_id] = int(row[count_col])
+            except (ValueError, KeyError):
+                result[sp_id] = '—'
+    return result, col_label
+
+
 # ── SVG chart generators ──────────────────────────────────────────────────────
 
 def busco_stacked_bar_svg(rows, mode_label=""):
@@ -426,7 +454,7 @@ def tiara_summary_html(data):
     return f'<div style="overflow-x:auto"><table class="table">{header}{body}</table></div>'
 
 
-def summary_table_html(busco_rows, tidk_data):
+def summary_table_html(busco_rows, tidk_data, busco_seqs_data=None, busco_seqs_col=None):
     """Cross-tool summary table shown on the Overview tab."""
     # Collect unique species from all data sources
     species_set = {r.get("Input_file", "") for r in busco_rows} | set(tidk_data.keys())
@@ -434,8 +462,11 @@ def summary_table_html(busco_rows, tidk_data):
 
     busco_by_species = {r.get("Input_file", ""): r for r in busco_rows}
 
-    header = _th(["Species", "BUSCO complete (%)", "BUSCO lineage",
-                   "Scaffold N50", "# scaffolds", "Telomeric repeat"])
+    cols = ["Species", "BUSCO complete (%)", "BUSCO lineage",
+            "Scaffold N50", "# scaffolds", "Telomeric repeat"]
+    if busco_seqs_data is not None:
+        cols.append(busco_seqs_col or "Seqs above threshold")
+    header = _th(cols)
     rows_html = []
     for sp in species_list:
         br = busco_by_species.get(sp, {})
@@ -446,10 +477,12 @@ def summary_table_html(busco_rows, tidk_data):
         n50 = br.get("Scaffold N50", "—") or "—"
         n_scaffolds = br.get("Number of scaffolds", "—") or "—"
         lineage = br.get("Dataset", "—") or "—"
-        # get telomeric repeat from tidk data (first row's telomeric_repeat column)
         tidk_rows = tidk_data.get(sp, [])
         repeat = tidk_rows[0].get("telomeric_repeat", "—") if tidk_rows else "—"
-        rows_html.append(_td([sp, complete, lineage, n50, n_scaffolds, repeat]))
+        cells = [sp, complete, lineage, n50, n_scaffolds, repeat]
+        if busco_seqs_data is not None:
+            cells.append(str(busco_seqs_data.get(sp, "—")))
+        rows_html.append(_td(cells))
     body = "\n".join(rows_html)
     return f'<table class="table">{header}{body}</table>'
 
@@ -561,7 +594,8 @@ function tidkSetMode(spId, mode) {
 # ── Main HTML assembly ────────────────────────────────────────────────────────
 
 def build_html(busco_rows, tidk_data, tidk_apriori_data=None,
-               fcsgx_data=None, fcsadp_data=None, tiara_data=None):
+               fcsgx_data=None, fcsadp_data=None, tiara_data=None,
+               busco_seqs_data=None, busco_seqs_col=None):
     tabs = []
     panels = []
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
@@ -573,7 +607,7 @@ def build_html(busco_rows, tidk_data, tidk_apriori_data=None,
     badges = " ".join(
         f'<span class="badge badge-blue">{lg}</span>' for lg in lineages
     )
-    summary_tbl = summary_table_html(busco_rows, tidk_data) if (busco_rows or tidk_data) else "<p>No data available.</p>"
+    summary_tbl = summary_table_html(busco_rows, tidk_data, busco_seqs_data, busco_seqs_col) if (busco_rows or tidk_data) else "<p>No data available.</p>"
 
     panels.append(
         f'<div id="overview" class="tab-panel active">'
@@ -775,6 +809,11 @@ def main():
         help="Tiara *.txt classification files (one per species, omit to hide tab)",
     )
     parser.add_argument(
+        "--busco_seqs_table", default=None,
+        metavar="TSV",
+        help="ortho_seqs.py output TSV (sequences above BUSCO threshold)",
+    )
+    parser.add_argument(
         "--output", default="genomeqc_report.html",
         metavar="HTML",
         help="Output HTML file path (default: genomeqc_report.html)",
@@ -793,11 +832,14 @@ def main():
     fcsadp_data = parse_decontam_tsv(args.fcsadp_reports) if args.fcsadp_reports is not None else None
     tiara_data  = parse_decontam_tsv(args.tiara_reports)  if args.tiara_reports  is not None else None
 
+    busco_seqs_data, busco_seqs_col = parse_busco_seqs_table(args.busco_seqs_table) if args.busco_seqs_table else (None, None)
+
     if not busco_rows and not tidk_data and not tidk_apriori_data:
         print("WARNING: no input data found; generating empty report.", file=sys.stderr)
 
     html = build_html(busco_rows, tidk_data, tidk_apriori_data,
-                      fcsgx_data=fcsgx_data, fcsadp_data=fcsadp_data, tiara_data=tiara_data)
+                      fcsgx_data=fcsgx_data, fcsadp_data=fcsadp_data, tiara_data=tiara_data,
+                      busco_seqs_data=busco_seqs_data, busco_seqs_col=busco_seqs_col)
 
     Path(args.output).write_text(html)
     print(f"Report written to {args.output}", file=sys.stderr)
