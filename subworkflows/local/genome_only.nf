@@ -2,6 +2,7 @@ include { QUAST                               } from '../../modules/nf-core/quas
 include { BUSCO_BUSCO                         } from '../../modules/nf-core/busco/busco/main'
 include { GENOME_ONLY_BUSCO_IDEOGRAM          } from '../../modules/local/genome_only_busco_ideogram'
 include { ORTHOFINDER                         } from '../../modules/nf-core/orthofinder/main'
+include { ORTHOFINDER_V2                      } from '../../modules/local/orthofinder_v2.nf'
 include { BUSCO_TSV_TO_GFF                    } from '../../modules/local/busco_tsv_to_gff/main'
 include { ORTHOLOGOUS_CHROMOSOMES             } from '../../modules/local/orthologous_chromosomes'
 include { GAWK                                } from '../../modules/nf-core/gawk/main'
@@ -88,11 +89,18 @@ workflow GENOME_ONLY {
                       }
 
     //Run orthofinder
-    ORTHOFINDER (
-        ch_busco_proteins,
-        [[],[]]
-    )
-
+    if (params.ortho_version == 'v3') {
+        ORTHOFINDER (
+            ch_busco_proteins,
+            [[],[]]
+        )
+        ch_orthofinder = ORTHOFINDER.out.orthofinder
+    } else if (params.ortho_version == 'v2' ) {
+        ORTHOFINDER_V2 (
+            ch_busco_proteins
+        )
+        ch_orthofinder = ORTHOFINDER_V2.out.orthofinder
+    }
     // Transform tsv to gff for orthologous chromosomes module
     BUSCO_TSV_TO_GFF (
         BUSCO_BUSCO.out.busco_dir
@@ -102,16 +110,16 @@ workflow GENOME_ONLY {
     // MODULE: Run ORTHOLOGOUS_CHROMOSOMES
     //
 
-    ORTHOLOGOUS_CHROMOSOMES (
-        ORTHOFINDER.out.orthofinder.map { _meta, folder ->
-            file("${folder}/Orthogroups/Orthogroups.tsv")
-        },
-        BUSCO_TSV_TO_GFF.out.gff.map { _meta, gff -> gff }.collect()
-    )
-    ch_tree_data = ch_tree_data.mix(ORTHOLOGOUS_CHROMOSOMES.out.species_summary)
+    //ORTHOLOGOUS_CHROMOSOMES (
+    //    ORTHOFINDER.out.orthofinder.map { _meta, folder ->
+    //        file("${folder}/Orthogroups/Orthogroups.tsv")
+    //    },
+    //    BUSCO_TSV_TO_GFF.out.gff.map { _meta, gff -> gff }.collect()
+    //)
+    //ch_tree_data = ch_tree_data.mix(ORTHOLOGOUS_CHROMOSOMES.out.species_summary)
 
     emit:
-    orthofinder             = ORTHOFINDER.out.orthofinder         // channel: [ val(meta), [folder] ]
+    orthofinder             = ch_orthofinder         // channel: [ val(meta), [folder] ]
     tree_data               = ch_tree_data.flatten().collect()
     quast_results           = QUAST.out.results                   // channel: [ val(meta), [tsv] ]
     quast_tsv               = QUAST.out.tsv                       // channel: [ val(meta), path(tsv) ]
