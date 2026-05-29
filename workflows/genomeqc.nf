@@ -344,6 +344,12 @@ workflow GENOMEQC {
                                     prot      : prot_files ? tuple( meta, prot_files ) : [[],[]]
                             }
 
+        ch_busco_geno       = GENOME_ONLY.out.busco_short_summaries
+                            | map { _meta, file -> file }
+                            | collect
+                            | map { files -> tuple( [id:"busco_geno"], files )}
+                            | ifEmpty([[],[]]) // If no busco results are found, return an empty channel instead of failing
+
         // Run TREE SUMMARY for genome and annotation
         TREE_SUMMARY_GENO_ANNO (
             GENOME_AND_ANNOTATION.out.orthofinder,
@@ -355,8 +361,8 @@ workflow GENOMEQC {
         // Run TREE SUMMARY for genome only
         TREE_SUMMARY_GENO (
             GENOME_ONLY.out.orthofinder,
-            [[],[]], // No busco for genome only (busco runs on genome)
-            [[],[]], // No busco for genome only (busco runs on genome)
+            ch_busco_geno, // If no busco results are found, return an empty channel instead of failing
+            [[],[]], // No busco proteins on genome only
             ch_tree_genome
         )
 
