@@ -6,13 +6,14 @@ process EXCEL_REPORT {
     publishDir "$params.outdir/report", mode: "${params.publish_dir_mode}", pattern: "*.xlsx"
 
     input:
-    path busco_tables,        stageAs: "busco/*"    // BUSCO batch_summary_modified.txt files
-    path quast_tsvs,          stageAs: "quast/*"    // per-species QUAST TSV files
-    path agat_stats,          stageAs: "agat/*"     // AGAT spstatistics *.txt files
-    path tidk_tsvs,           stageAs: "tidk/*"     // tidk aposteriori search TSV files
-    path fcs_gx_reports,      stageAs: "fcsgx/*"    // FCS-GX *.fcs_gx_report.txt (optional)
-    path fcs_adaptor_reports, stageAs: "fcsadaptor/*" // FCS-Adaptor *.fcs_adaptor_report.txt (optional)
-    path tiara_reports,       stageAs: "tiara/*"    // Tiara classification *.txt (optional)
+    path busco_tables,        stageAs: "busco/*"       // BUSCO batch_summary_modified.txt files
+    path quast_tsvs,          stageAs: "quast/*"       // per-species QUAST TSV files
+    path agat_stats,          stageAs: "agat/*"        // AGAT spstatistics *.txt files
+    path tidk_tsvs,           stageAs: "tidk/*"        // tidk aposteriori search TSV files
+    path fcs_gx_reports,      stageAs: "fcsgx/*"       // FCS-GX *.fcs_gx_report.txt (optional)
+    path fcs_adaptor_reports, stageAs: "fcsadaptor/*"  // FCS-Adaptor *.fcs_adaptor_report.txt (optional)
+    path tiara_reports,       stageAs: "tiara/*"       // Tiara classification *.txt (optional)
+    path busco_seqs_table,    stageAs: "busco_seqs/*"  // ortho_seqs.py output (optional)
 
     output:
     path "genomeqc_tables.xlsx", emit: excel
@@ -22,13 +23,14 @@ process EXCEL_REPORT {
     task.ext.when == null || task.ext.when
 
     script:
-    def busco_arg   = busco_tables        ? "--busco_tables busco/*"              : ""
-    def quast_arg   = quast_tsvs          ? "--quast_tsvs quast/*"                : ""
-    def agat_arg    = agat_stats          ? "--agat_stats agat/*"                 : ""
-    def tidk_arg    = tidk_tsvs           ? "--tidk_tsvs tidk/*"                  : ""
-    def fcsgx_arg   = fcs_gx_reports      ? "--fcs_gx_reports fcsgx/*"            : ""
-    def fcsadp_arg  = fcs_adaptor_reports ? "--fcs_adaptor_reports fcsadaptor/*"  : ""
-    def tiara_arg   = tiara_reports       ? "--tiara_reports tiara/*"             : ""
+    def busco_arg      = busco_tables        ? "--busco_tables busco/*"              : ""
+    def quast_arg      = quast_tsvs          ? "--quast_tsvs quast/*"                : ""
+    def agat_arg       = agat_stats          ? "--agat_stats agat/*"                 : ""
+    def tidk_arg       = tidk_tsvs           ? "--tidk_tsvs tidk/*"                  : ""
+    def fcsgx_arg      = fcs_gx_reports      ? "--fcs_gx_reports fcsgx/*"            : ""
+    def fcsadp_arg     = fcs_adaptor_reports ? "--fcs_adaptor_reports fcsadaptor/*"  : ""
+    def tiara_arg      = tiara_reports       ? "--tiara_reports tiara/*"             : ""
+    def busco_seqs_arg = busco_seqs_table    ? "--busco_seqs_table busco_seqs/*"     : ""
     """
     generate_excel.py \\
         ${busco_arg} \\
@@ -38,6 +40,7 @@ process EXCEL_REPORT {
         ${fcsgx_arg} \\
         ${fcsadp_arg} \\
         ${tiara_arg} \\
+        ${busco_seqs_arg} \\
         --output genomeqc_tables.xlsx
     """
 }

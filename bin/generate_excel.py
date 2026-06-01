@@ -138,6 +138,106 @@ class _XLSX:
         )
 
 
+# ── Summary-table parsers (mirror generate_report.py) ────────────────────────
+
+def _parse_busco_batch_summaries(paths):
+    """Return list of row-dicts from BUSCO batch_summary_modified.txt files."""
+    rows = []
+    for p in paths:
+        with open(p) as fh:
+            lines = fh.readlines()
+        if len(lines) < 2:
+            continue
+        header = lines[0].strip().split("\t")
+        for line in lines[1:]:
+            line = line.strip()
+            if not line:
+                continue
+            parts = line.split("\t")
+            rows.append(dict(zip(header, parts + [""] * max(0, len(header) - len(parts)))))
+    rows.sort(key=lambda r: r.get("Input_file", ""))
+    return rows
+
+
+def _parse_tidk_tsvs(paths):
+    """Return {species: [row_dict, ...]} from tidk aposteriori search TSV files."""
+    result = {}
+    for p in paths:
+        species = Path(p).stem.split(".")[0]
+        rows = []
+        header = None
+        with open(p) as fh:
+            for line in fh:
+                line = line.rstrip("\n")
+                if not line or line.startswith("##"):
+                    continue
+                if header is None:
+                    header = line.lstrip("#").lstrip().split("\t")
+                    continue
+                parts = line.split("\t")
+                rows.append(dict(zip(header, parts + [""] * max(0, len(header) - len(parts)))))
+        if header is not None:
+            result[species] = rows
+    return result
+
+
+def _parse_busco_seqs_table(path):
+    """Return ({species: count}, col_label) from ortho_seqs.py TSV output."""
+    result = {}
+    col_label = "Seqs above threshold"
+    with open(path) as fh:
+        lines = fh.readlines()
+    if not lines:
+        return result, col_label
+    header = lines[0].strip().split("\t")
+    count_col = next((h for h in header if h.startswith("Num_Seqs_Above_")), None)
+    if count_col:
+        threshold = count_col.replace("Num_Seqs_Above_", "")
+        col_label = f"Seqs >{threshold} BUSCOs"
+    for line in lines[1:]:
+        line = line.strip()
+        if not line:
+            continue
+        parts = line.split("\t")
+        row = dict(zip(header, parts))
+        sp_id = row.get("Id", "")
+        if sp_id and count_col:
+            try:
+                result[sp_id] = int(row[count_col])
+            except (ValueError, KeyError):
+                result[sp_id] = "—"
+    return result, col_label
+
+
+def _summary_rows(busco_rows, tidk_data, busco_seqs_data=None, busco_seqs_col=None):
+    """Build the summary table rows (header + data) mirroring the HTML overview."""
+    species_set = {r.get("Input_file", "") for r in busco_rows} | set(tidk_data.keys())
+    species_list = sorted(s for s in species_set if s)
+    busco_by_species = {r.get("Input_file", ""): r for r in busco_rows}
+
+    cols = ["Species", "BUSCO complete (%)", "BUSCO lineage",
+            "Scaffold N50", "# scaffolds", "Telomeric repeat"]
+    if busco_seqs_data is not None:
+        cols.append(busco_seqs_col or "Seqs above threshold")
+    rows = [cols]
+    for sp in species_list:
+        br = busco_by_species.get(sp, {})
+        try:
+            complete = f"{float(br.get('Complete', 0)):.1f}%"
+        except (ValueError, TypeError):
+            complete = br.get("Complete", "—") or "—"
+        n50        = br.get("Scaffold N50", "—") or "—"
+        n_scaffolds = br.get("Number of scaffolds", "—") or "—"
+        lineage    = br.get("Dataset", "—") or "—"
+        tidk_sp    = tidk_data.get(sp, [])
+        repeat     = tidk_sp[0].get("telomeric_repeat", "—") if tidk_sp else "—"
+        cells = [sp, complete, lineage, n50, n_scaffolds, repeat]
+        if busco_seqs_data is not None:
+            cells.append(str(busco_seqs_data.get(sp, "—")))
+        rows.append(cells)
+    return rows
+
+
 # ── TSV/TXT readers ───────────────────────────────────────────────────────────
 
 def _read_tsv(path, skip_comment=True):
@@ -243,6 +343,8 @@ def main():
     )
     ap.add_argument("--busco_tables",         nargs="*", default=[], metavar="TSV",
                     help="BUSCO batch_summary_modified.txt files")
+    ap.add_argument("--busco_seqs_table",     default=None, metavar="TSV",
+                    help="ortho_seqs.py output TSV (sequences above BUSCO threshold)")
     ap.add_argument("--quast_tsvs",           nargs="*", default=[], metavar="TSV",
                     help="Per-species QUAST report TSV files")
     ap.add_argument("--agat_stats",           nargs="*", default=[], metavar="TXT",
@@ -261,6 +363,18 @@ def main():
 
     wb = _XLSX()
     added = 0
+
+    # ── Summary sheet (first) ─────────────────────────────────────────────────
+    busco_rows_dicts = _parse_busco_batch_summaries(args.busco_tables) if args.busco_tables else []
+    tidk_data_dicts  = _parse_tidk_tsvs(args.tidk_tsvs)               if args.tidk_tsvs  else {}
+    busco_seqs_data, busco_seqs_col = (
+        _parse_busco_seqs_table(args.busco_seqs_table)
+        if args.busco_seqs_table else (None, None)
+    )
+    if busco_rows_dicts or tidk_data_dicts:
+        summary = _summary_rows(busco_rows_dicts, tidk_data_dicts, busco_seqs_data, busco_seqs_col)
+        wb.add_sheet("Summary", summary)
+        added += 1
 
     if args.busco_tables:
         rows = _combine_tsv_files(args.busco_tables, add_species_col=False)

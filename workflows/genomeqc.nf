@@ -232,7 +232,7 @@ workflow GENOMEQC {
     // SUBWORKFLOWS: Run genome only or genome + annotation subworkflows
     //
     // Run genome only or genome + gxf
-    if (params.genome_only) { // Does this work or should I remove it?
+    if (params.genome_only) {
         GENOME_ONLY (
             ch_input_anno.fasta.mix(ch_input_geno.fasta)
         )
@@ -277,11 +277,12 @@ workflow GENOMEQC {
         EXCEL_REPORT_GENOME (
             ch_report_busco_go,
             ch_excel_quast_go,
-            channel.value([]),     // no AGAT in genome-only mode
+            [],     // no AGAT in genome-only mode
             ch_tidk_go,
             ch_fcsgx_go,
             ch_fcsadp_go,
-            ch_tiara_go
+            ch_tiara_go,
+            BUSCO_SEQS_GENOME.out.table.map { _meta, f -> f }.ifEmpty([])      // no busco_seqs in genome-only mode
         )
     } else {
         GENOME_ONLY (
@@ -315,7 +316,7 @@ workflow GENOMEQC {
         ch_tree_genome      = GENOME_ONLY.out.tree_data
                             | concat(BUSCO_SEQS_GENOME.out.table.map { _meta, table -> table})
                             | collect
-        ch_tree_genome.view()
+
         // Optional channel for HTML report: empty list if BUSCO_SEQS_GENOME_ANNO produced no output
         ch_busco_seqs_ga_file = BUSCO_SEQS_GENOME_ANNO.out.table
                               | mix (BUSCO_SEQS_GENOME.out.table)
@@ -427,7 +428,8 @@ workflow GENOMEQC {
             ch_tidk,
             ch_fcsgx,
             ch_fcsadp,
-            ch_tiara
+            ch_tiara,
+            ch_busco_seqs_ga_file
         )
     }
 
