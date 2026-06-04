@@ -8,7 +8,8 @@ include { AGAT_SPSTATISTICS                   } from '../../modules/nf-core/agat
 include { GENOME_ANNOTATION_BUSCO_IDEOGRAM    } from '../../modules/local/genome_annotation_busco_ideogram'
 include { GFFREAD                             } from '../../modules/nf-core/gffread/main'
 include { GFFREAD as GFFREAD_VALIDATE         } from '../../modules/nf-core/gffread/main'
-include { ORTHOFINDER                         } from '../../modules/nf-core/orthofinder/main'
+include { ORTHOFINDER as ORTHOFINDER_V2       } from '../../modules/nf-core/orthofinder/main'
+include { ORTHOFINDER as ORTHOFINDER_V3       } from '../../modules/nf-core/orthofinder/main'
 include { GENE_OVERLAPS                       } from '../../modules/local/gene_overlaps'
 include { ORTHOLOGOUS_CHROMOSOMES             } from '../../modules/local/orthologous_chromosomes'
 include { GAWK as GAWK_GENO                   } from '../../modules/nf-core/gawk/main'
@@ -145,17 +146,24 @@ workflow GENOME_AND_ANNOTATION {
         }
 
     // Run orthofinder
-    ORTHOFINDER (
-        ortho_ch,
-        [[],[]]
-    )
+    if (params.ortho_version == 'v3') {
+        ORTHOFINDER_V3 (
+            ortho_ch,
+            [[],[]]
+        )
+        ch_orthofinder = ORTHOFINDER_V3.out.orthofinder
+    } else if (params.ortho_version == 'v2' ) {
+        ORTHOFINDER_V2 (
+            ortho_ch
+        )
+        ch_orthofinder = ORTHOFINDER_V2.out.orthofinder
+    }
 
     //
     // MODULE: Run ORTHOLOGOUS_CHROMOSOMES
     //
-
     ORTHOLOGOUS_CHROMOSOMES (
-        ORTHOFINDER.out.orthofinder.map { _meta, folder ->
+        ch_orthofinder.map { _meta, folder ->
             file("${folder}/Orthogroups/Orthogroups.tsv")
         },
         AGAT_SPKEEPLONGESTISOFORM.out.gff.map { _meta, gff -> gff }.collect()
@@ -246,7 +254,7 @@ workflow GENOME_AND_ANNOTATION {
     GENOME_ANNOTATION_BUSCO_IDEOGRAM ( ch_plot_input )
 
     emit:
-    orthofinder                = ORTHOFINDER.out.orthofinder         // channel: [ val(meta), [folder] ]
+    orthofinder                = ch_orthofinder         // channel: [ val(meta), [folder] ]
     tree_data                  = ch_tree_data.flatten().collect()
     quast_results              = QUAST.out.results                   // channel: [ val(meta), [tsv] ]
     quast_tsv                  = QUAST.out.tsv                       // channel: [ val(meta), path(tsv) ]
