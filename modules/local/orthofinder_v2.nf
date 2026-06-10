@@ -1,8 +1,6 @@
 process ORTHOFINDER_V2 {
     tag "$meta.id"
     label 'process_high'
-    label 'process_med_long'
-    label 'process_high_memory'
 
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/orthofinder:2.5.5--hdfd78af_2' :
@@ -35,8 +33,8 @@ process ORTHOFINDER_V2 {
         -n $prefix
 
     mv \\
-        input/OrthoFinder/Results_$prefix \\
-        $prefix
+    input/OrthoFinder/Results_$prefix \\
+    $prefix
     """
 
     stub:
