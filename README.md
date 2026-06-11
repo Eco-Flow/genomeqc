@@ -47,7 +47,7 @@ The pipeline takes a list of genomes and annotations (from local files or ncbi a
    2. **Gene Overlaps**: Finds the number of overlapping genes.
 4. Extracts longest protein isoform: [GffRead](https://github.com/gpertea/gffread).
 5. Finds orthologous genes: [Orthofinder](https://github.com/davidemms/OrthoFinder).
-6. Plots an orthology-based - if annotation is given - or BUSCO marker-based - if no annotation is given -  phylogenetic tree with summary statistics: **Tree Summary**.
+6. Plots an orthology-based - if annotation is given - or BUSCO marker-based - if no annotation is given - phylogenetic tree with summary statistics: **Tree Summary**.
 7. Summary with [MultiQC](http://multiqc.info).
 
 The pipeline outputs an executable that launches a shiny app with the tree plot and the summary statistics. The parameters of the plot can be modified, and summary statistics can be added or removed in real time. Once the plot has been adjusted, it can be saved as png/svg. The tree plot needs **at least three assemblies to be plotted**, and it servers as a quick overview of the quality of all assemblies.
