@@ -260,6 +260,7 @@ workflow GENOMEQC {
 
         HTML_REPORT_GENOME (
             ch_report_busco_go,
+            channel.value([]),     // no protein BUSCO in genome-only mode
             ch_report_tidk_tsv_go,
             ch_report_tidk_apriori_go,
             ch_fcsgx_go,
@@ -276,6 +277,7 @@ workflow GENOMEQC {
 
         EXCEL_REPORT_GENOME (
             ch_report_busco_go,
+            channel.value([]),     // no protein BUSCO in genome-only mode
             ch_excel_quast_go,
             [],     // no AGAT in genome-only mode
             ch_tidk_go,
@@ -396,6 +398,13 @@ workflow GENOMEQC {
                         | mix( GENOME_ONLY.out.busco_batch_summaries.map { _meta, f -> f } )
                         | collect
                         | first
+        // Protein BUSCO only exists for annotated genomes; ifEmpty keeps the
+        // report running when no annotations are present in this branch.
+        ch_report_busco_prot = GENOME_AND_ANNOTATION.out.busco_short_summaries_prot
+                        | map { _meta, f -> f }
+                        | collect
+                        | ifEmpty( [] )
+                        | first
         ch_tidk                = params.skip_tidk ? channel.value([]) : FASTA_EXPLORE_SEARCH_PLOT_TIDK.out.aposteriori_tsv.map { _meta, f -> f }.collect().first()
         ch_report_tidk_apriori = (params.skip_tidk || !params.repeat) ? channel.value([]) : FASTA_EXPLORE_SEARCH_PLOT_TIDK.out.apriori_tsv.map { _meta, f -> f }.collect()
 
@@ -405,6 +414,7 @@ workflow GENOMEQC {
 
         HTML_REPORT_GENOME_ANNO (
             ch_report_busco,
+            ch_report_busco_prot,
             ch_tidk,
             ch_report_tidk_apriori,
             ch_fcsgx,
@@ -423,6 +433,7 @@ workflow GENOMEQC {
 
         EXCEL_REPORT_GENOME_ANNO (
             ch_report_busco,
+            ch_report_busco_prot,
             ch_excel_quast,
             ch_excel_agat,
             ch_tidk,

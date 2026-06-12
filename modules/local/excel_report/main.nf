@@ -6,14 +6,15 @@ process EXCEL_REPORT {
     publishDir "$params.outdir/report", mode: "${params.publish_dir_mode}", pattern: "*.xlsx"
 
     input:
-    path busco_tables,        stageAs: "busco/*"       // BUSCO batch_summary_modified.txt files
-    path quast_tsvs,          stageAs: "quast/*"       // per-species QUAST TSV files
-    path agat_stats,          stageAs: "agat/*"        // AGAT spstatistics *.txt files
-    path tidk_tsvs,           stageAs: "tidk/*"        // tidk aposteriori search TSV files
-    path fcs_gx_reports,      stageAs: "fcsgx/*"       // FCS-GX *.fcs_gx_report.txt (optional)
-    path fcs_adaptor_reports, stageAs: "fcsadaptor/*"  // FCS-Adaptor *.fcs_adaptor_report.txt (optional)
-    path tiara_reports,       stageAs: "tiara/*"       // Tiara classification *.txt (optional)
-    path busco_seqs_table,    stageAs: "busco_seqs/*"  // ortho_seqs.py output (optional)
+    path busco_tables,        stageAs: "busco/*"      // genome BUSCO batch_summary_modified.txt files
+    path busco_prot_tables,   stageAs: "busco_prot/*" // protein BUSCO batch_summary_modified.txt files (optional)
+    path quast_tsvs,          stageAs: "quast/*"      // per-species QUAST TSV files
+    path agat_stats,          stageAs: "agat/*"       // AGAT spstatistics *.txt files
+    path tidk_tsvs,           stageAs: "tidk/*"       // tidk aposteriori search TSV files
+    path fcs_gx_reports,      stageAs: "fcsgx/*"      // FCS-GX *.fcs_gx_report.txt (optional)
+    path fcs_adaptor_reports, stageAs: "fcsadaptor/*" // FCS-Adaptor *.fcs_adaptor_report.txt (optional)
+    path tiara_reports,       stageAs: "tiara/*"      // Tiara classification *.txt (optional)
+    path busco_seqs_table,    stageAs: "busco_seqs/*" // ortho_seqs.py output (optional)
 
     output:
     path "genomeqc_tables.xlsx", emit: excel
@@ -24,6 +25,7 @@ process EXCEL_REPORT {
 
     script:
     def busco_arg      = busco_tables        ? "--busco_tables busco/*"              : ""
+    def busco_prot_arg = busco_prot_tables   ? "--busco_prot_tables busco_prot/*"    : ""
     def quast_arg      = quast_tsvs          ? "--quast_tsvs quast/*"                : ""
     def agat_arg       = agat_stats          ? "--agat_stats agat/*"                 : ""
     def tidk_arg       = tidk_tsvs           ? "--tidk_tsvs tidk/*"                  : ""
@@ -34,6 +36,7 @@ process EXCEL_REPORT {
     """
     generate_excel.py \\
         ${busco_arg} \\
+        ${busco_prot_arg} \\
         ${quast_arg} \\
         ${agat_arg} \\
         ${tidk_arg} \\

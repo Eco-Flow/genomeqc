@@ -6,13 +6,14 @@ process HTML_REPORT {
     publishDir "$params.outdir/report", mode: "${params.publish_dir_mode}", pattern: "*.html"
 
     input:
-    path busco_tables,       stageAs: "busco/*"           // batch_summary_modified.txt files (one per species)
-    path tidk_tsvs,          stageAs: "tidk/*"            // tidk aposteriori search TSV files
-    path tidk_apriori_tsvs,  stageAs: "tidk_apriori/*"   // tidk apriori search TSV files (optional)
-    path fcsgx_reports,      stageAs: "fcsgx/*"           // FCS-GX report files (optional)
-    path fcsadp_reports,     stageAs: "fcsadp/*"          // FCS-Adaptor report files (optional)
-    path tiara_reports,      stageAs: "tiara/*"           // Tiara classification files (optional)
-    path busco_seqs_table,   stageAs: "busco_seqs/*"      // ortho_seqs.py output (optional)
+    path busco_tables,       stageAs: "busco/*"         // genome BUSCO batch_summary_modified.txt files (one per species)
+    path busco_prot_tables,  stageAs: "busco_prot/*"    // protein BUSCO batch_summary_modified.txt files (optional)
+    path tidk_tsvs,          stageAs: "tidk/*"          // tidk aposteriori search TSV files
+    path tidk_apriori_tsvs,  stageAs: "tidk_apriori/*"  // tidk apriori search TSV files (optional)
+    path fcsgx_reports,      stageAs: "fcsgx/*"         // FCS-GX report files (optional)
+    path fcsadp_reports,     stageAs: "fcsadp/*"        // FCS-Adaptor report files (optional)
+    path tiara_reports,      stageAs: "tiara/*"         // Tiara classification files (optional)
+    path busco_seqs_table,   stageAs: "busco_seqs/*"    // ortho_seqs.py output (optional)
 
     output:
     path "genomeqc_report.html", emit: report
@@ -23,6 +24,7 @@ process HTML_REPORT {
 
     script:
     def busco_arg        = busco_tables      ? "--busco_tables busco/*"             : ""
+    def busco_prot_arg   = busco_prot_tables ? "--busco_prot_tables busco_prot/*"   : ""
     def tidk_tsv_arg     = tidk_tsvs         ? "--tidk_tsvs tidk/*"                 : ""
     def tidk_apriori_arg = tidk_apriori_tsvs ? "--tidk_apriori_tsvs tidk_apriori/*" : ""
     def fcsgx_arg        = fcsgx_reports     ? "--fcsgx_reports fcsgx/*"            : ""
@@ -32,6 +34,7 @@ process HTML_REPORT {
     """
     generate_report.py \\
         ${busco_arg} \\
+        ${busco_prot_arg} \\
         ${tidk_tsv_arg} \\
         ${tidk_apriori_arg} \\
         ${fcsgx_arg} \\

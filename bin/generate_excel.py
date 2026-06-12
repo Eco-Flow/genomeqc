@@ -209,29 +209,46 @@ def _parse_busco_seqs_table(path):
     return result, col_label
 
 
-def _summary_rows(busco_rows, tidk_data, busco_seqs_data=None, busco_seqs_col=None):
-    """Build the summary table rows (header + data) mirroring the HTML overview."""
-    species_set = {r.get("Input_file", "") for r in busco_rows} | set(tidk_data.keys())
-    species_list = sorted(s for s in species_set if s)
-    busco_by_species = {r.get("Input_file", ""): r for r in busco_rows}
+def _busco_complete_pct(row):
+    """Format a BUSCO row's Complete value as a percentage, or em-dash if absent."""
+    if not row:
+        return "—"
+    try:
+        return f"{float(row.get('Complete', 0)):.1f}%"
+    except (ValueError, TypeError):
+        return row.get("Complete", "—") or "—"
 
-    cols = ["Species", "BUSCO complete (%)", "BUSCO lineage",
-            "Scaffold N50", "# scaffolds", "Telomeric repeat"]
+
+def _summary_rows(busco_rows, tidk_data, busco_seqs_data=None, busco_seqs_col=None,
+                  busco_prot_rows=None):
+    """Build the summary table rows (header + data) mirroring the HTML overview."""
+    has_prot = bool(busco_prot_rows)
+    species_set = {r.get("Input_file", "") for r in busco_rows} | set(tidk_data.keys())
+    if has_prot:
+        species_set |= {r.get("Input_file", "") for r in busco_prot_rows}
+    species_list = sorted(s for s in species_set if s)
+    busco_by_species      = {r.get("Input_file", ""): r for r in busco_rows}
+    busco_prot_by_species = {r.get("Input_file", ""): r for r in (busco_prot_rows or [])}
+
+    genome_col = "BUSCO genome complete (%)" if has_prot else "BUSCO complete (%)"
+    cols = ["Species", genome_col]
+    if has_prot:
+        cols.append("BUSCO proteins complete (%)")
+    cols += ["BUSCO lineage", "Scaffold N50", "# scaffolds", "Telomeric repeat"]
     if busco_seqs_data is not None:
         cols.append(busco_seqs_col or "Seqs above threshold")
     rows = [cols]
     for sp in species_list:
         br = busco_by_species.get(sp, {})
-        try:
-            complete = f"{float(br.get('Complete', 0)):.1f}%"
-        except (ValueError, TypeError):
-            complete = br.get("Complete", "—") or "—"
         n50        = br.get("Scaffold N50", "—") or "—"
         n_scaffolds = br.get("Number of scaffolds", "—") or "—"
         lineage    = br.get("Dataset", "—") or "—"
         tidk_sp    = tidk_data.get(sp, [])
         repeat     = tidk_sp[0].get("telomeric_repeat", "—") if tidk_sp else "—"
-        cells = [sp, complete, lineage, n50, n_scaffolds, repeat]
+        cells = [sp, _busco_complete_pct(br)]
+        if has_prot:
+            cells.append(_busco_complete_pct(busco_prot_by_species.get(sp, {})))
+        cells += [lineage, n50, n_scaffolds, repeat]
         if busco_seqs_data is not None:
             cells.append(str(busco_seqs_data.get(sp, "—")))
         rows.append(cells)
@@ -342,7 +359,9 @@ def main():
         description="Generate an Excel workbook with raw GenomeQC result tables."
     )
     ap.add_argument("--busco_tables",         nargs="*", default=[], metavar="TSV",
-                    help="BUSCO batch_summary_modified.txt files")
+                    help="BUSCO (genome) batch_summary_modified.txt files")
+    ap.add_argument("--busco_prot_tables",    nargs="*", default=[], metavar="TSV",
+                    help="BUSCO (proteins) batch_summary_modified.txt files")
     ap.add_argument("--busco_seqs_table",     default=None, metavar="TSV",
                     help="ortho_seqs.py output TSV (sequences above BUSCO threshold)")
     ap.add_argument("--quast_tsvs",           nargs="*", default=[], metavar="TSV",
@@ -365,21 +384,29 @@ def main():
     added = 0
 
     # ── Summary sheet (first) ─────────────────────────────────────────────────
-    busco_rows_dicts = _parse_busco_batch_summaries(args.busco_tables) if args.busco_tables else []
+    busco_rows_dicts      = _parse_busco_batch_summaries(args.busco_tables)      if args.busco_tables      else []
+    busco_prot_rows_dicts = _parse_busco_batch_summaries(args.busco_prot_tables) if args.busco_prot_tables else []
     tidk_data_dicts  = _parse_tidk_tsvs(args.tidk_tsvs)               if args.tidk_tsvs  else {}
     busco_seqs_data, busco_seqs_col = (
         _parse_busco_seqs_table(args.busco_seqs_table)
         if args.busco_seqs_table else (None, None)
     )
-    if busco_rows_dicts or tidk_data_dicts:
-        summary = _summary_rows(busco_rows_dicts, tidk_data_dicts, busco_seqs_data, busco_seqs_col)
+    if busco_rows_dicts or busco_prot_rows_dicts or tidk_data_dicts:
+        summary = _summary_rows(busco_rows_dicts, tidk_data_dicts, busco_seqs_data, busco_seqs_col,
+                                busco_prot_rows_dicts)
         wb.add_sheet("Summary", summary)
         added += 1
 
     if args.busco_tables:
         rows = _combine_tsv_files(args.busco_tables, add_species_col=False)
         if rows:
-            wb.add_sheet("BUSCO", rows)
+            wb.add_sheet("BUSCO_Genome" if args.busco_prot_tables else "BUSCO", rows)
+            added += 1
+
+    if args.busco_prot_tables:
+        rows = _combine_tsv_files(args.busco_prot_tables, add_species_col=False)
+        if rows:
+            wb.add_sheet("BUSCO_Proteins", rows)
             added += 1
 
     if args.quast_tsvs:

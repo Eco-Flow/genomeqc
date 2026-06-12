@@ -402,6 +402,21 @@ def busco_table_html(rows):
     return f'<table class="table">{header}{body}</table>'
 
 
+def busco_panel_html(tab_id, rows, mode_label):
+    """Build a BUSCO tab panel (chart + table) for the given mode."""
+    chart = busco_stacked_bar_svg(rows, mode_label=mode_label)
+    table = busco_table_html(rows)
+    return (
+        f'<div id="{tab_id}" class="tab-panel">'
+        f'<div class="card"><h2>Completeness chart</h2>{chart}</div>'
+        f'<div class="card"><h2>Completeness table</h2>'
+        f'<p style="margin-bottom:10px;font-size:12px;color:#888">Hover chart bars for tooltips. '
+        f'C(S) = Complete single-copy &nbsp;·&nbsp; C(D) = Complete duplicated &nbsp;·&nbsp; '
+        f'F = Fragmented &nbsp;·&nbsp; M = Missing</p>'
+        f'{table}</div></div>'
+    )
+
+
 def decontam_table_html(data, no_hit_msg="No contamination detected."):
     """Render per-species tables for FCS-GX or FCS-Adaptor data."""
     if not data:
@@ -454,32 +469,51 @@ def tiara_summary_html(data):
     return f'<div style="overflow-x:auto"><table class="table">{header}{body}</table></div>'
 
 
-def summary_table_html(busco_rows, tidk_data, busco_seqs_data=None, busco_seqs_col=None):
+def _busco_complete_pct(row):
+    """Format a BUSCO row's Complete value as a percentage, or em-dash if absent."""
+    if not row:
+        return "—"
+    try:
+        return f"{float(row.get('Complete', 0)):.1f}%"
+    except ValueError:
+        return row.get("Complete", "—")
+
+
+def summary_table_html(busco_rows, tidk_data, busco_seqs_data=None, busco_seqs_col=None,
+                       busco_prot_rows=None):
     """Cross-tool summary table shown on the Overview tab."""
+    has_prot = bool(busco_prot_rows)
     # Collect unique species from all data sources
     species_set = {r.get("Input_file", "") for r in busco_rows} | set(tidk_data.keys())
+    if has_prot:
+        species_set |= {r.get("Input_file", "") for r in busco_prot_rows}
     species_list = sorted(s for s in species_set if s)
 
-    busco_by_species = {r.get("Input_file", ""): r for r in busco_rows}
+    busco_by_species      = {r.get("Input_file", ""): r for r in busco_rows}
+    busco_prot_by_species = {r.get("Input_file", ""): r for r in (busco_prot_rows or [])}
 
-    cols = ["Species", "BUSCO complete (%)", "BUSCO lineage",
-            "Scaffold N50", "# scaffolds", "Telomeric repeat"]
+    # When protein BUSCO is present, disambiguate the genome column and add a
+    # protein completeness column right after it.
+    genome_col = "BUSCO genome complete (%)" if has_prot else "BUSCO complete (%)"
+    cols = ["Species", genome_col]
+    if has_prot:
+        cols.append("BUSCO proteins complete (%)")
+    cols += ["BUSCO lineage", "Scaffold N50", "# scaffolds", "Telomeric repeat"]
     if busco_seqs_data is not None:
         cols.append(busco_seqs_col or "Seqs above threshold")
     header = _th(cols)
     rows_html = []
     for sp in species_list:
         br = busco_by_species.get(sp, {})
-        try:
-            complete = f"{float(br.get('Complete', 0)):.1f}%"
-        except ValueError:
-            complete = br.get("Complete", "—")
         n50 = br.get("Scaffold N50", "—") or "—"
         n_scaffolds = br.get("Number of scaffolds", "—") or "—"
         lineage = br.get("Dataset", "—") or "—"
         tidk_rows = tidk_data.get(sp, [])
         repeat = tidk_rows[0].get("telomeric_repeat", "—") if tidk_rows else "—"
-        cells = [sp, complete, lineage, n50, n_scaffolds, repeat]
+        cells = [sp, _busco_complete_pct(br)]
+        if has_prot:
+            cells.append(_busco_complete_pct(busco_prot_by_species.get(sp, {})))
+        cells += [lineage, n50, n_scaffolds, repeat]
         if busco_seqs_data is not None:
             cells.append(str(busco_seqs_data.get(sp, "—")))
         rows_html.append(_td(cells))
@@ -506,7 +540,7 @@ nav.tabs button.active{color:#1565C0;border-bottom-color:#1565C0;font-weight:600
 .card h2{font-size:16px;font-weight:600;margin-bottom:14px;color:#1565C0}
 .card h3{font-size:14px;font-weight:600;margin:16px 0 8px;color:#333}
 table.table{width:100%;border-collapse:collapse;font-size:13px}
-table.table th{background:#e3f2fd;color:#1565C0;padding:8px 10px;text-align:left;font-weight:600;white-space:nowrap}
+table.table th{background:#e3f2fd;color:#1565C0;padding:8px 10px;text-align:left;font-weight:600;white-space:normal;vertical-align:bottom;overflow-wrap:break-word}
 table.table td{padding:7px 10px;border-bottom:1px solid #f0f0f0}
 table.table tr:hover td{background:#fafafa}
 .badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600}
@@ -595,19 +629,25 @@ function tidkSetMode(spId, mode) {
 
 def build_html(busco_rows, tidk_data, tidk_apriori_data=None,
                fcsgx_data=None, fcsadp_data=None, tiara_data=None,
-               busco_seqs_data=None, busco_seqs_col=None):
+               busco_seqs_data=None, busco_seqs_col=None,
+               busco_prot_rows=None):
     tabs = []
     panels = []
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
 
     # ── Overview tab ──────────────────────────────────────────────────────────
     tabs.append(("overview", "Overview"))
-    n_species = len({r.get("Input_file") for r in busco_rows} | set(tidk_data.keys()))
+    n_species = len({r.get("Input_file") for r in busco_rows}
+                    | {r.get("Input_file") for r in (busco_prot_rows or [])}
+                    | set(tidk_data.keys()))
     lineages  = sorted({r.get("Dataset", "") for r in busco_rows if r.get("Dataset")})
     badges = " ".join(
         f'<span class="badge badge-blue">{lg}</span>' for lg in lineages
     )
-    summary_tbl = summary_table_html(busco_rows, tidk_data, busco_seqs_data, busco_seqs_col) if (busco_rows or tidk_data) else "<p>No data available.</p>"
+    summary_tbl = (
+        summary_table_html(busco_rows, tidk_data, busco_seqs_data, busco_seqs_col, busco_prot_rows)
+        if (busco_rows or busco_prot_rows or tidk_data) else "<p>No data available.</p>"
+    )
 
     panels.append(
         f'<div id="overview" class="tab-panel active">'
@@ -617,24 +657,22 @@ def build_html(busco_rows, tidk_data, tidk_apriori_data=None,
         f'BUSCO lineage(s): {badges or "—"} &nbsp;·&nbsp; '
         f'<span class="tag">Generated {now}</span></p>'
         f'</div>'
-        f'<div class="card"><h2>Per-species overview</h2>{summary_tbl}</div>'
+        f'<div class="card"><h2>Per-species overview</h2>'
+        f'<div style="overflow-x:auto">{summary_tbl}</div></div>'
         f'</div>'
     )
 
-    # ── BUSCO tab ─────────────────────────────────────────────────────────────
+    # ── BUSCO tab(s) ──────────────────────────────────────────────────────────
+    # When protein BUSCO is present (genome + annotation mode), show genome and
+    # protein completeness in separate tabs; otherwise a single "BUSCO" tab.
     if busco_rows:
-        tabs.append(("busco", "BUSCO"))
-        chart = busco_stacked_bar_svg(busco_rows)
-        table = busco_table_html(busco_rows)
-        panels.append(
-            f'<div id="busco" class="tab-panel">'
-            f'<div class="card"><h2>Completeness chart</h2>{chart}</div>'
-            f'<div class="card"><h2>Completeness table</h2>'
-            f'<p style="margin-bottom:10px;font-size:12px;color:#888">Hover chart bars for tooltips. '
-            f'C(S) = Complete single-copy &nbsp;·&nbsp; C(D) = Complete duplicated &nbsp;·&nbsp; '
-            f'F = Fragmented &nbsp;·&nbsp; M = Missing</p>'
-            f'{table}</div></div>'
-        )
+        genome_label = "BUSCO (Genome)" if busco_prot_rows else "BUSCO"
+        tabs.append(("busco", genome_label))
+        panels.append(busco_panel_html("busco", busco_rows, "Genome" if busco_prot_rows else ""))
+
+    if busco_prot_rows:
+        tabs.append(("busco_prot", "BUSCO (Proteins)"))
+        panels.append(busco_panel_html("busco_prot", busco_prot_rows, "Proteins"))
 
     # ── Telomeres tab ─────────────────────────────────────────────────────────
     all_tidk_species = sorted(set(tidk_data.keys()) | set((tidk_apriori_data or {}).keys()))
@@ -781,7 +819,12 @@ def main():
     parser.add_argument(
         "--busco_tables", nargs="*", default=[],
         metavar="TSV",
-        help="BUSCO batch_summary_modified.txt files (one per species or combined)",
+        help="BUSCO (genome) batch_summary_modified.txt files (one per species or combined)",
+    )
+    parser.add_argument(
+        "--busco_prot_tables", nargs="*", default=[],
+        metavar="TSV",
+        help="BUSCO (proteins) batch_summary_modified.txt files (one per species or combined)",
     )
     parser.add_argument(
         "--tidk_tsvs", nargs="*", default=[],
@@ -820,8 +863,9 @@ def main():
     )
     args = parser.parse_args()
 
-    # Parse BUSCO
-    busco_rows = parse_busco_batch_summaries(args.busco_tables) if args.busco_tables else []
+    # Parse BUSCO (genome and protein)
+    busco_rows      = parse_busco_batch_summaries(args.busco_tables)      if args.busco_tables      else []
+    busco_prot_rows = parse_busco_batch_summaries(args.busco_prot_tables) if args.busco_prot_tables else []
 
     # Parse tidk TSVs
     tidk_data         = parse_tidk_tsvs(args.tidk_tsvs)         if args.tidk_tsvs         else {}
@@ -834,12 +878,13 @@ def main():
 
     busco_seqs_data, busco_seqs_col = parse_busco_seqs_table(args.busco_seqs_table) if args.busco_seqs_table else (None, None)
 
-    if not busco_rows and not tidk_data and not tidk_apriori_data:
+    if not busco_rows and not busco_prot_rows and not tidk_data and not tidk_apriori_data:
         print("WARNING: no input data found; generating empty report.", file=sys.stderr)
 
     html = build_html(busco_rows, tidk_data, tidk_apriori_data,
                       fcsgx_data=fcsgx_data, fcsadp_data=fcsadp_data, tiara_data=tiara_data,
-                      busco_seqs_data=busco_seqs_data, busco_seqs_col=busco_seqs_col)
+                      busco_seqs_data=busco_seqs_data, busco_seqs_col=busco_seqs_col,
+                      busco_prot_rows=busco_prot_rows)
 
     Path(args.output).write_text(html)
     print(f"Report written to {args.output}", file=sys.stderr)
