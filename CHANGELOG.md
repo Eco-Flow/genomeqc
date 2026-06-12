@@ -11,6 +11,8 @@ Initial release of nf-core/genomeqc, created with the [nf-core](https://nf-co.re
 
 ### `Fixed`
 
+- Fixed BUSCO not showing in the tree
+
 ### `Dependencies`
 
 ### `Deprecated`
