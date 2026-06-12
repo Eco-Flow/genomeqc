@@ -1,7 +1,7 @@
 include { QUAST                               } from '../../modules/nf-core/quast/main'
 include { BUSCO_BUSCO                         } from '../../modules/nf-core/busco/busco/main'
 include { GENOME_ONLY_BUSCO_IDEOGRAM          } from '../../modules/local/genome_only_busco_ideogram'
-include { ORTHOFINDER                         } from '../../modules/nf-core/orthofinder/main'
+include { ORTHOFINDER as ORTHOFINDER_V3       } from '../../modules/nf-core/orthofinder/main'
 include { ORTHOFINDER_V2                      } from '../../modules/local/orthofinder_v2.nf'
 include { BUSCO_TSV_TO_GFF                    } from '../../modules/local/busco_tsv_to_gff/main'
 include { ORTHOLOGOUS_CHROMOSOMES             } from '../../modules/local/orthologous_chromosomes'
@@ -90,11 +90,11 @@ workflow GENOME_ONLY {
 
     //Run orthofinder
     if (params.ortho_version == 'v3') {
-        ORTHOFINDER (
+        ORTHOFINDER_V3 (
             ch_busco_proteins,
             [[],[]]
         )
-        ch_orthofinder = ORTHOFINDER.out.orthofinder
+        ch_orthofinder = ORTHOFINDER_V3.out.orthofinder
     } else if (params.ortho_version == 'v2' ) {
         ORTHOFINDER_V2 (
             ch_busco_proteins
@@ -110,12 +110,12 @@ workflow GENOME_ONLY {
     // MODULE: Run ORTHOLOGOUS_CHROMOSOMES
     //
 
-    //ORTHOLOGOUS_CHROMOSOMES (
-    //    ORTHOFINDER.out.orthofinder.map { _meta, folder ->
-    //        file("${folder}/Orthogroups/Orthogroups.tsv")
-    //    },
-    //    BUSCO_TSV_TO_GFF.out.gff.map { _meta, gff -> gff }.collect()
-    //)
+    ORTHOLOGOUS_CHROMOSOMES (
+        ch_orthofinder.map { _meta, folder ->
+            file("${folder}/Orthogroups/Orthogroups.tsv")
+        },
+        BUSCO_TSV_TO_GFF.out.gff.map { _meta, gff -> gff }.collect()
+    )
     //ch_tree_data = ch_tree_data.mix(ORTHOLOGOUS_CHROMOSOMES.out.species_summary)
 
     emit:

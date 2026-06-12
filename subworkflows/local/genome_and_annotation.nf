@@ -168,7 +168,7 @@ workflow GENOME_AND_ANNOTATION {
         },
         AGAT_SPKEEPLONGESTISOFORM.out.gff.map { _meta, gff -> gff }.collect()
     )
-    ch_tree_data = ch_tree_data.mix(ORTHOLOGOUS_CHROMOSOMES.out.species_summary)
+    //ch_tree_data = ch_tree_data.mix(ORTHOLOGOUS_CHROMOSOMES.out.species_summary)
 
     //
     // MODULE: Run BUSCO for genome annotation
