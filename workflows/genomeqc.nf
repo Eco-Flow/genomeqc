@@ -177,7 +177,7 @@ workflow GENOMEQC {
             ch_input_decon,
             params.ramdisk ?: [],
             params.gxdb ?: [],
-            file(params.gxdb_manifiest) ?: []
+            params.gxdb_manifiest ? file(params.gxdb_manifiest) : []
         )
     }
 
@@ -290,6 +290,12 @@ workflow GENOMEQC {
                                     geno      : geno_files ? tuple( meta, geno_files ) : [[],[]]
                                     prot      : prot_files ? tuple( meta, prot_files ) : [[],[]]
                             }
+        // Prepare busco channel for genome only
+        ch_busco_geno       = GENOME_ONLY.out.busco_short_summaries
+                            | map { _meta, file -> file }
+                            | collect
+                            | map { files -> tuple( [id:"busco_geno"], files )}
+                            | ifEmpty([[],[]]) // If no busco results are found, return an empty channel instead of failing
 
         // Run TREE SUMMARY for genome and annotation
         TREE_SUMMARY_GENO_ANNO (
@@ -302,7 +308,7 @@ workflow GENOMEQC {
         // Run TREE SUMMARY for genome only
         TREE_SUMMARY_GENO (
             GENOME_ONLY.out.orthofinder,
-            [[],[]], // No busco for genome only (busco runs on genome)
+            ch_busco_geno, // If no busco results are found, return an empty channel instead of failing
             [[],[]], // No busco for genome only (busco runs on genome)
             ch_tree_genome
         )
