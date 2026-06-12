@@ -27,6 +27,8 @@ This is the first release of the pipeline, which compares the quality of multipl
 
 ### `Fixed`
 
+- Fixed BUSCO not showing in the tree
+
 ### `Dependencies`
 
 ### `Deprecated`

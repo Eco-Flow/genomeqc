@@ -346,6 +346,12 @@ workflow GENOMEQC {
                                     geno      : geno_files ? tuple( meta, geno_files ) : [[],[]]
                                     prot      : prot_files ? tuple( meta, prot_files ) : [[],[]]
                             }
+        // Prepare busco channel for genome only
+        ch_busco_geno       = GENOME_ONLY.out.busco_short_summaries
+                            | map { _meta, file -> file }
+                            | collect
+                            | map { files -> tuple( [id:"busco_geno"], files )}
+                            | ifEmpty([[],[]]) // If no busco results are found, return an empty channel instead of failing
 
         ch_busco_geno       = GENOME_ONLY.out.busco_short_summaries
                             | map { _meta, file -> file }
@@ -365,7 +371,7 @@ workflow GENOMEQC {
         TREE_SUMMARY_GENO (
             GENOME_ONLY.out.orthofinder,
             ch_busco_geno, // If no busco results are found, return an empty channel instead of failing
-            [[],[]], // No busco proteins on genome only
+            [[],[]], // No busco proteins for genome only (busco runs on genome)
             ch_tree_genome
         )
 
