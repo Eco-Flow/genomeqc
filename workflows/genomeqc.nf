@@ -441,7 +441,7 @@ workflow GENOMEQC {
             ch_report_busco,
             ch_report_busco_prot,
             ch_excel_quast,
-            ch_excel_agat,
+            ch_excel_agat.ifEmpty([]),
             ch_tidk,
             ch_fcsgx,
             ch_fcsadp,
