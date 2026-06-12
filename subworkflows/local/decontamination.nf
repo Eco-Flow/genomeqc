@@ -71,11 +71,10 @@ workflow DECONTAMINATION {
         FCSGX_CLEANGENOME.out.cleaned
     )
 
-//    emit:
-    // TODO nf-core: edit emitted channels
-    //clean_fasta      = FCS_CLEANADAPTOR.out.clean_fasta           // channel: [ val(meta), [ clean_fasta ] ]
-    //fcs_gx_report    = FCS_FCSGX.out.fcs_gx_report          // channel: [ val(meta), [ fcs_gx_report ] ]
-    //adaptor_report   = FCS_FCSADAPTOR.out.adaptor_report          // channel: [ val(meta), [ adaptor_report ] ]
-    //cleaned          = FCSGX_CLEANGENOME.out.cleaned            // channel: [val(meta),    [cleaned]
+    emit:
+    fcs_gx_report    = FCSGX_RUNGX.out.fcsgx_report         // channel: [ val(meta), path(*.fcs_gx_report.txt) ]
+    adaptor_report   = FCS_FCSADAPTOR.out.adaptor_report     // channel: [ val(meta), path(*.fcs_adaptor_report.txt) ]
+    tiara_raw        = TIARA_RAW.out.classifications          // channel: [ val(meta), path(*.txt) ]
+    tiara_cleaned    = TIARA_CLEANED.out.classifications      // channel: [ val(meta), path(*.txt) ]
 
 }
