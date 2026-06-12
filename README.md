@@ -25,37 +25,15 @@
 
 The pipeline takes a list of genomes and annotations (from local files or ncbi accessions), and runs commonly used tools to assess their quality.
 
-Depending on the inputs provided, there are two ways this pipeline can run:
-
-1.  Genome only (minmal run, only fasta files are supplied)
-2.  Genome and Annotation (both fasta and gtf/gff files are supplied)
-
 <picture>
    <source media="(prefers-color-scheme: dark)" srcset="docs/images/nf-core-genomeqc_metro_map_v3_logo_dark.png">
    <img alt="nf-core/genomeqc" src="docs/images/nf-core-genomeqc_metro_map_v3.png">
 </picture>
 
-**1. Genome Only:**
-
-1. Downloads the genome files from NCBI: [NCBI genome download](https://github.com/kblin/ncbi-genome-download) - Or **provide your own genomes**.
-2. Describes genome assembly:
-   1. [BUSCO](https://busco.ezlab.org/): Evaluates genome completeness based on **single copy markers**.
-   2. **BUSCO Ideogram**: Plots the location of BUSCO markers in the assembly.
-   3. [tidk](https://github.com/tolkit/telomeric-identifier) (optional): Identifies and visualises telomeric repeats.
-   4. [QUAST](https://github.com/ablab/quast): Computes contiguity and integrity statistics such as N50, N90, GC%, and the number of sequences.
-   5. Contamination screening:
-      - [FCS-GX](https://github.com/ncbi/fcs/wiki/FCS-GX-quickstart): Detection and removal of foreign organism contamination.
-      - [FCS-adaptor](https://github.com/ncbi/fcs/wiki/FCS-adaptor-quickstart): Detection and removal of adaptor and vector contamination.
-      - [Tiara](https://ibe-uw.github.io/tiara/): DNA sequence classification.
-3. Plots a BUSCO marker-based phylogenetic tree with assembly summary statistics: **Tree Summary**.
-4. Summary with [MultiQC](http://multiqc.info).
-
-**2. Genome and Annotation:**
-
 1. Downloads the genome and gene annotation files from NCBI: [NCBI genome download](https://github.com/kblin/ncbi-genome-download) - Or **provide your own genomes and annotations**.
 2. Describes genome assembly:
-   1. [BUSCO](https://busco.ezlab.org/): Evaluates genome completeness based on **single copy markers**.
-   2. **BUSCO Ideogram**: Plots the location of markers on the assembly.
+   1. [BUSCO](https://busco.ezlab.org/): Evaluates genome/proteome completeness based on **single copy markers**.
+   2. **BUSCO Ideogram**: Plots the location of BUSCO markers on the assembly.
    3. [Merqury](https://github.com/marbl/merqury) (optional): Evaluates genome completeness based on sequencing reads.
    4. [tidk](https://github.com/tolkit/telomeric-identifier) (optional): Identifies and visualises telomeric repeats.
    5. [QUAST](https://github.com/ablab/quast): Computes contiguity and integrity statistics: N50, N90, GC%, number of sequences.
@@ -69,10 +47,12 @@ Depending on the inputs provided, there are two ways this pipeline can run:
    2. **Gene Overlaps**: Finds the number of overlapping genes.
 4. Extracts longest protein isoform: [GffRead](https://github.com/gpertea/gffread).
 5. Finds orthologous genes: [Orthofinder](https://github.com/davidemms/OrthoFinder).
-6. Plots an orthology-based phylogenetic tree with assembly and annotation summary statistics: **Tree Summary**.
+6. Plots an orthology-based - if annotation is given - or BUSCO marker-based - if no annotation is given - phylogenetic tree with summary statistics: **Tree Summary**.
 7. Summary with [MultiQC](http://multiqc.info).
 
-The pipeline outputs an executable that launches a shiny app with the tree plot and the summary statistics. The plot's parameters can be modified, and summary statistics can be added or removed in real time. Once the plot has been adjusted, it can be saved as png/svg.
+The pipeline outputs an executable that launches a shiny app with the tree plot and the summary statistics. The parameters of the plot can be modified, and summary statistics can be added or removed in real time. Once the plot has been adjusted, it can be saved as png/svg. The tree plot needs **at least three assemblies to be plotted**, and it servers as a quick overview of the quality of all assemblies.
+
+If **no annotation** is given as input, the pipeline will ignore the steps **involving gene statistics**.
 
 > [!WARNING]
 > We strongly suggest users to specify the lineage using the `--busco_lineage` parameter, as setting the lineage to `auto` (default value) might cause problems with `BUSCO` during the lineage determination step.
@@ -161,8 +141,6 @@ We thank the following people for their extensive assistance in the development 
 - [Stephen Turner](https://github.com/stephenturner/) ([Colossal Biosciences](https://colossal.com/))
 - [Felipe Perez Cobos](https://github.com/fperezcobos) ([Institute of Agrifood Research and Technology](https://www.irta.cat/en/))
 - [Simon Murray](https://github.com/SimonDMurray) ([Nextflow Ambassador](https://www.nextflow.io/our_ambassadors.html))
-
-<!-- TODO nf-core: If applicable, make list of people who have also contributed -->
 
 ## Contributions and Support
 
