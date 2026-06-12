@@ -3,7 +3,6 @@ process HTML_REPORT {
     label 'process_single'
 
     container 'ecoflowucl/genomeqc_tree:v1.4'
-    publishDir "$params.outdir/report", mode: "${params.publish_dir_mode}", pattern: "*.html"
 
     input:
     path busco_tables,       stageAs: "busco/*"         // genome BUSCO batch_summary_modified.txt files (one per species)

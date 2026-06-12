@@ -3,7 +3,6 @@ process EXCEL_REPORT {
     label 'process_single'
 
     container 'ecoflowucl/genomeqc_tree:v1.4'
-    publishDir "$params.outdir/report", mode: "${params.publish_dir_mode}", pattern: "*.xlsx"
 
     input:
     path busco_tables,        stageAs: "busco/*"      // genome BUSCO batch_summary_modified.txt files
@@ -19,6 +18,7 @@ process EXCEL_REPORT {
     output:
     path "genomeqc_tables.xlsx", emit: excel
     tuple val("${task.process}"), val('python'), eval('python3 --version | sed "s/Python //g"'), emit: versions_python, topic: versions
+
 
     when:
     task.ext.when == null || task.ext.when
