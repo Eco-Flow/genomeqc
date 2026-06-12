@@ -190,7 +190,8 @@ workflow GENOMEQC {
     if (!params.skip_tidk) {
         FASTA_EXPLORE_SEARCH_PLOT_TIDK (
             ch_fasta,
-            ch_repeat
+            ch_repeat,
+            params.tidk_clade ? params.tidk_clade : []
         )
     }
 
