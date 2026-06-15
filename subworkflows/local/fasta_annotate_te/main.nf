@@ -57,6 +57,10 @@ workflow FASTA_ANNOTATE_TE {
                               | combine(ch_famdb_fasta)
                               | map { meta, modeler, famdb -> tuple(meta, [famdb, modeler]) }
 
+        // Whether ch_famdb_fasta emits anything is only known at runtime (it depends on
+        // ch_rm_db/ch_famdb_lib), so ch_famdb_with_modeler may end up empty for every meta.
+        // Join against the modeler-only list with remainder:true and fall back to it
+        // whenever the famdb pairing didn't materialize, so CAT_CAT always gets a library.
         ch_combined_libs = ch_modeler_fasta
                          | map { meta, fasta -> tuple(meta, [fasta]) }
                          | join(ch_famdb_with_modeler, by: 0, remainder: true)

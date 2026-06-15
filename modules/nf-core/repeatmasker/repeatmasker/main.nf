@@ -3,13 +3,13 @@ process REPEATMASKER_REPEATMASKER {
     label 'process_high'
 
     conda "${moduleDir}/environment.yml"
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/repeatmasker:4.2.2--pl5321hdfd78af_0':
-        'biocontainers/repeatmasker:4.2.2--pl5321hdfd78af_0' }"
+    container "${ workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container ?
+        'https://depot.galaxyproject.org/singularity/repeatmasker:4.1.5--pl5321hdfd78af_0':
+        'quay.io/biocontainers/repeatmasker:4.1.5--pl5321hdfd78af_0' }"
 
     input:
     tuple val(meta), path(fasta)
-    tuple val(meta), path(lib)
+    tuple val(meta2), path(lib)
 
     output:
     tuple val(meta), path("${prefix}.masked")   , emit: masked
