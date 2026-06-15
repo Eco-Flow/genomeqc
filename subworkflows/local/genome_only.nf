@@ -1,7 +1,8 @@
 include { QUAST                               } from '../../modules/nf-core/quast/main'
 include { BUSCO_BUSCO                         } from '../../modules/nf-core/busco/busco/main'
 include { GENOME_ONLY_BUSCO_IDEOGRAM          } from '../../modules/local/genome_only_busco_ideogram'
-include { ORTHOFINDER                         } from '../../modules/nf-core/orthofinder/main'
+include { ORTHOFINDER as ORTHOFINDER_V3       } from '../../modules/nf-core/orthofinder/main'
+include { ORTHOFINDER_V2                      } from '../../modules/local/orthofinder_v2.nf'
 include { BUSCO_TSV_TO_GFF                    } from '../../modules/local/busco_tsv_to_gff/main'
 include { ORTHOLOGOUS_CHROMOSOMES             } from '../../modules/local/orthologous_chromosomes'
 include { GAWK                                } from '../../modules/nf-core/gawk/main'
@@ -89,11 +90,18 @@ workflow GENOME_ONLY {
                       }
 
     //Run orthofinder
-    ORTHOFINDER (
-        ch_busco_proteins,
-        [[],[]]
-    )
-
+    if (params.ortho_version == 'v3') {
+        ORTHOFINDER_V3 (
+            ch_busco_proteins,
+            [[],[]]
+        )
+        ch_orthofinder = ORTHOFINDER_V3.out.orthofinder
+    } else if (params.ortho_version == 'v2' ) {
+        ORTHOFINDER_V2 (
+            ch_busco_proteins
+        )
+        ch_orthofinder = ORTHOFINDER_V2.out.orthofinder
+    }
     // Transform tsv to gff for orthologous chromosomes module
     BUSCO_TSV_TO_GFF (
         BUSCO_BUSCO.out.busco_dir
@@ -104,18 +112,20 @@ workflow GENOME_ONLY {
     //
 
     ORTHOLOGOUS_CHROMOSOMES (
-        ORTHOFINDER.out.orthofinder.map { _meta, folder ->
+        ch_orthofinder.map { _meta, folder ->
             file("${folder}/Orthogroups/Orthogroups.tsv")
         },
         BUSCO_TSV_TO_GFF.out.gff.map { _meta, gff -> gff }.collect()
     )
-    ch_tree_data = ch_tree_data.mix(ORTHOLOGOUS_CHROMOSOMES.out.species_summary)
+    //ch_tree_data = ch_tree_data.mix(ORTHOLOGOUS_CHROMOSOMES.out.species_summary)
     }
+    
     emit:
-    orthofinder             = !params.skip_busco ? ORTHOFINDER.out.orthofinder : channel.empty()        // channel: [ val(meta), [folder] ]
+    orthofinder             = !params.skip_busco ? ch_orthofinder : channel.empty()        // channel: [ val(meta), [folder] ]
     tree_data               = !params.skip_busco ? ch_tree_data.flatten().collect() : channel.empty()
     quast_results           = QUAST.out.results                   // channel: [ val(meta), [tsv] ]
     busco_short_summaries   = !params.skip_busco ? BUSCO_BUSCO.out.short_summaries_txt : channel.empty() // channel: [ val(meta), [txt] ]
     buscos_per_seqs         = !params.skip_busco ? GENOME_ONLY_BUSCO_IDEOGRAM.out.busco_mappings.collect { meta, table -> table} : channel.empty() // channel: [ csv ]
+    quast_tsv               = QUAST.out.tsv                       // channel: [ val(meta), path(tsv) ]
 
 }

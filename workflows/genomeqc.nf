@@ -3,33 +3,37 @@
     IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-include { MERYL_UNIONSUM                         } from '../modules/nf-core/meryl/unionsum/main'
-include { MERYL_COUNT                            } from '../modules/nf-core/meryl/count/main'
-include { MERQURY_MERQURY                        } from '../modules/nf-core/merqury/merqury/main'
-include { CREATE_PATH                            } from '../modules/local/create_path'
-include { NCBIGENOMEDOWNLOAD                     } from '../modules/nf-core/ncbigenomedownload/main'
-include { PIGZ_UNCOMPRESS as UNCOMPRESS_FASTA    } from '../modules/nf-core/pigz/uncompress/main'
-include { PIGZ_UNCOMPRESS as UNCOMPRESS_GXF      } from '../modules/nf-core/pigz/uncompress/main'
-include { GENOME_ONLY                            } from '../subworkflows/local/genome_only'
-include { GENOME_AND_ANNOTATION                  } from '../subworkflows/local/genome_and_annotation'
-include { TREE_SUMMARY as TREE_SUMMARY_GENO_ANNO } from '../modules/local/tree_summary'
-include { TREE_SUMMARY as TREE_SUMMARY_GENO      } from '../modules/local/tree_summary'
-include { validateInputSamplesheet               } from '../subworkflows/local/utils_nfcore_genomeqc_pipeline'
-include { FASTA_EXPLORE_SEARCH_PLOT_TIDK         } from '../subworkflows/nf-core/fasta_explore_search_plot_tidk/main'
-include { DECONTAMINATION                        } from '../subworkflows/local/decontamination'
-include { FCSGX_FETCHDB                          } from '../modules/nf-core/fcsgx/fetchdb/main'
-include { BUSCO_SEQS as BUSCO_SEQS_GENOME_ANNO   } from '../modules/local/buscos_seqs/main'
-include { BUSCO_SEQS as BUSCO_SEQS_GENOME        } from '../modules/local/buscos_seqs/main'
-include { SHINY_APP as SHINY_APP_GENOME_ANNO     } from '../modules/local/shiny_app/main'
-include { SHINY_APP as SHINY_APP_GENOME          } from '../modules/local/shiny_app/main'
-include { HITE                                   } from '../modules/local/hite/main'
-include { FASTA_ANNOTATE_TE                      } from '../subworkflows/local/fasta_annotate_te/main'
-include { MULTIQC                                } from '../modules/nf-core/multiqc/main'
-include { paramsSummaryMap                       } from 'plugin/nf-schema'
-include { paramsSummaryMultiqc                   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
-include { softwareVersionsToYAML                 } from '../subworkflows/nf-core/utils_nfcore_pipeline'
-include { methodsDescriptionText                 } from '../subworkflows/local/utils_nfcore_genomeqc_pipeline'
-include { multimapChannel                        } from '../subworkflows/local/utils_nfcore_genomeqc_pipeline'
+
+include { MERYL_UNIONSUM                           } from '../modules/nf-core/meryl/unionsum/main'
+include { MERYL_COUNT                              } from '../modules/nf-core/meryl/count/main'
+include { MERQURY_MERQURY                          } from '../modules/nf-core/merqury/merqury/main'
+include { CREATE_PATH                              } from '../modules/local/create_path'
+include { NCBIGENOMEDOWNLOAD                       } from '../modules/nf-core/ncbigenomedownload/main'
+include { PIGZ_UNCOMPRESS as UNCOMPRESS_FASTA      } from '../modules/nf-core/pigz/uncompress/main'
+include { PIGZ_UNCOMPRESS as UNCOMPRESS_GXF        } from '../modules/nf-core/pigz/uncompress/main'
+include { GENOME_ONLY                              } from '../subworkflows/local/genome_only'
+include { GENOME_AND_ANNOTATION                    } from '../subworkflows/local/genome_and_annotation'
+include { TREE_SUMMARY as TREE_SUMMARY_GENO_ANNO   } from '../modules/local/tree_summary'
+include { TREE_SUMMARY as TREE_SUMMARY_GENO        } from '../modules/local/tree_summary'
+include { FASTA_EXPLORE_SEARCH_PLOT_TIDK           } from '../subworkflows/nf-core/fasta_explore_search_plot_tidk/main'
+include { DECONTAMINATION                          } from '../subworkflows/local/decontamination'
+include { BUSCO_SEQS as BUSCO_SEQS_GENOME_ANNO     } from '../modules/local/buscos_seqs/main'
+include { BUSCO_SEQS as BUSCO_SEQS_GENOME          } from '../modules/local/buscos_seqs/main'
+include { SHINY_APP as SHINY_APP_GENOME_ANNO       } from '../modules/local/shiny_app/main'
+include { SHINY_APP as SHINY_APP_GENOME            } from '../modules/local/shiny_app/main'
+include { HTML_REPORT as HTML_REPORT_GENOME_ANNO   } from '../modules/local/html_report/main'
+include { HTML_REPORT as HTML_REPORT_GENOME        } from '../modules/local/html_report/main'
+include { EXCEL_REPORT as EXCEL_REPORT_GENOME_ANNO } from '../modules/local/excel_report/main'
+include { EXCEL_REPORT as EXCEL_REPORT_GENOME      } from '../modules/local/excel_report/main'
+include { HITE                                     } from '../modules/local/hite/main'
+include { FASTA_ANNOTATE_TE                        } from '../subworkflows/local/fasta_annotate_te/main'
+include { MULTIQC                                  } from '../modules/nf-core/multiqc/main'
+include { validateInputSamplesheet                 } from '../subworkflows/local/utils_nfcore_genomeqc_pipeline'
+include { paramsSummaryMap                         } from 'plugin/nf-schema'
+include { paramsSummaryMultiqc                     } from '../subworkflows/nf-core/utils_nfcore_pipeline'
+include { softwareVersionsToYAML                   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
+include { methodsDescriptionText                   } from '../subworkflows/local/utils_nfcore_genomeqc_pipeline'
+include { multimapChannel                          } from '../subworkflows/local/utils_nfcore_genomeqc_pipeline'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -179,7 +183,7 @@ workflow GENOMEQC {
             ch_input_decon,
             params.ramdisk ?: [],
             params.gxdb ?: [],
-            file(params.gxdb_manifiest) ?: []
+            params.gxdb_manifiest ? file(params.gxdb_manifiest) : []
         )
     }
 
@@ -261,13 +265,60 @@ workflow GENOMEQC {
     // SUBWORKFLOWS: Run genome only or genome + annotation subworkflows
     //
     // Run genome only or genome + gxf
-    if (params.genome_only) { // Does this work or should I remove it?
+    if (params.genome_only) {
         GENOME_ONLY (
             ch_input_anno.fasta.mix(ch_input_geno.fasta)
         )
         ch_multiqc_files = ch_multiqc_files
                          | mix(GENOME_ONLY.out.quast_results.map { _meta, results -> results })
                          | mix(GENOME_ONLY.out.busco_short_summaries.map { _meta, txt -> txt })
+
+        //
+        // MODULE: Run HTML REPORT (genome only mode)
+        //
+        ch_report_busco_go = GENOME_ONLY.out.busco_batch_summaries
+                           | map { _meta, f -> f }
+                           | collect
+                           | first
+        ch_report_tidk_tsv_go        = params.skip_tidk ? channel.value([]) : FASTA_EXPLORE_SEARCH_PLOT_TIDK.out.aposteriori_tsv.map { _meta, f -> f }.collect().first()
+        ch_report_tidk_apriori_go    = (params.skip_tidk || !params.repeat) ? channel.value([]) : FASTA_EXPLORE_SEARCH_PLOT_TIDK.out.apriori_tsv.map { _meta, f -> f }.collect().first()
+
+        ch_fcsgx_go  = (params.gxdb || params.gxdb_manifiest) ? DECONTAMINATION.out.fcs_gx_report.map { _meta, f -> f }.collect().first()  : channel.value([])
+        ch_fcsadp_go = (params.gxdb || params.gxdb_manifiest) ? DECONTAMINATION.out.adaptor_report.map { _meta, f -> f }.collect().first()  : channel.value([])
+        ch_tiara_go  = (params.gxdb || params.gxdb_manifiest) ? DECONTAMINATION.out.tiara_cleaned.map  { _meta, f -> f }.collect().first()  : channel.value([])
+
+        BUSCO_SEQS_GENOME (
+            GENOME_ONLY.out.buscos_per_seqs.map { tables -> [[id:"tables"], tables] }
+        )
+
+        HTML_REPORT_GENOME (
+            ch_report_busco_go,
+            channel.value([]),     // no protein BUSCO in genome-only mode
+            ch_report_tidk_tsv_go,
+            ch_report_tidk_apriori_go,
+            ch_fcsgx_go,
+            ch_fcsadp_go,
+            ch_tiara_go,
+            BUSCO_SEQS_GENOME.out.table.map { _meta, f -> f }.ifEmpty([])
+        )
+
+        //
+        // MODULE: Run EXCEL REPORT (genome only mode)
+        //
+        ch_excel_quast_go = GENOME_ONLY.out.quast_tsv.map { _meta, f -> f }.collect()
+        ch_tidk_go        = params.skip_tidk ? channel.value([]) : FASTA_EXPLORE_SEARCH_PLOT_TIDK.out.aposteriori_tsv.map { _meta, f -> f }.collect().first()
+
+        EXCEL_REPORT_GENOME (
+            ch_report_busco_go,
+            channel.value([]),     // no protein BUSCO in genome-only mode
+            ch_excel_quast_go,
+            [],     // no AGAT in genome-only mode
+            ch_tidk_go,
+            ch_fcsgx_go,
+            ch_fcsadp_go,
+            ch_tiara_go,
+            BUSCO_SEQS_GENOME.out.table.map { _meta, f -> f }.ifEmpty([])      // no busco_seqs in genome-only mode
+        )
     } else {
         GENOME_ONLY (
             ch_input_geno.fasta
@@ -303,6 +354,12 @@ workflow GENOMEQC {
                             | collect
         }
 
+        // Optional channel for HTML report: empty list if BUSCO_SEQS_GENOME_ANNO produced no output
+        ch_busco_seqs_ga_file = BUSCO_SEQS_GENOME_ANNO.out.table
+                              | mix (BUSCO_SEQS_GENOME.out.table)
+                              | map { _meta, f -> f }
+                              | ifEmpty([]) // If no busco seqs are found, return an empty channel instead of failing
+
         //
         // MODULE: Run TREE SUMMARY
         //
@@ -324,6 +381,18 @@ workflow GENOMEQC {
                                     geno      : geno_files ? tuple( meta, geno_files ) : [[],[]]
                                     prot      : prot_files ? tuple( meta, prot_files ) : [[],[]]
                             }
+        // Prepare busco channel for genome only
+        ch_busco_geno       = GENOME_ONLY.out.busco_short_summaries
+                            | map { _meta, file -> file }
+                            | collect
+                            | map { files -> tuple( [id:"busco_geno"], files )}
+                            | ifEmpty([[],[]]) // If no busco results are found, return an empty channel instead of failing
+
+        ch_busco_geno       = GENOME_ONLY.out.busco_short_summaries
+                            | map { _meta, file -> file }
+                            | collect
+                            | map { files -> tuple( [id:"busco_geno"], files )}
+                            | ifEmpty([[],[]]) // If no busco results are found, return an empty channel instead of failing
 
         // Run TREE SUMMARY for genome and annotation
         if(!params.skip_busco) {
@@ -337,8 +406,8 @@ workflow GENOMEQC {
         // Run TREE SUMMARY for genome only
         TREE_SUMMARY_GENO (
             GENOME_ONLY.out.orthofinder,
-            [[],[]], // No busco for genome only (busco runs on genome)
-            [[],[]], // No busco for genome only (busco runs on genome)
+            ch_busco_geno, // If no busco results are found, return an empty channel instead of failing
+            [[],[]], // No busco proteins for genome only (busco runs on genome)
             ch_tree_genome
         )
         
@@ -349,9 +418,6 @@ workflow GENOMEQC {
         ch_functions = channel.fromPath("$projectDir/bin/tree_functions.R", checkIfExists: true)
         ch_app       = channel.fromPath("$projectDir/bin/shiny_app.R", checkIfExists: true)
 
-
-    TREE_SUMMARY_GENO_ANNO.out.tables.join(TREE_SUMMARY_GENO_ANNO.out.tree, by:0).view()
-    TREE_SUMMARY_GENO.out.tables.join(TREE_SUMMARY_GENO.out.tree, by:0).view()
         // For genome and annotation
         SHINY_APP_GENOME_ANNO (
             TREE_SUMMARY_GENO_ANNO.out.tables.join(TREE_SUMMARY_GENO_ANNO.out.tree, by:0),
@@ -366,6 +432,59 @@ workflow GENOMEQC {
             ch_app
         )
         }
+
+        //
+        // MODULE: Run HTML REPORT (genome + annotation mode)
+        //
+        ch_report_busco = GENOME_AND_ANNOTATION.out.busco_short_summaries_geno
+                        | map { _meta, f -> f }
+                        | mix( GENOME_ONLY.out.busco_batch_summaries.map { _meta, f -> f } )
+                        | collect
+                        | first
+        // Protein BUSCO only exists for annotated genomes; ifEmpty keeps the
+        // report running when no annotations are present in this branch.
+        ch_report_busco_prot = GENOME_AND_ANNOTATION.out.busco_short_summaries_prot
+                        | map { _meta, f -> f }
+                        | collect
+                        | ifEmpty( [] )
+                        | first
+        ch_tidk                = params.skip_tidk ? channel.value([]) : FASTA_EXPLORE_SEARCH_PLOT_TIDK.out.aposteriori_tsv.map { _meta, f -> f }.collect().first()
+        ch_report_tidk_apriori = (params.skip_tidk || !params.repeat) ? channel.value([]) : FASTA_EXPLORE_SEARCH_PLOT_TIDK.out.apriori_tsv.map { _meta, f -> f }.collect()
+
+        ch_fcsgx  = (params.gxdb || params.gxdb_manifiest) ? DECONTAMINATION.out.fcs_gx_report.map { _meta, f -> f }.collect().first()  : channel.value([])
+        ch_fcsadp = (params.gxdb || params.gxdb_manifiest) ? DECONTAMINATION.out.adaptor_report.map { _meta, f -> f }.collect().first()  : channel.value([])
+        ch_tiara  = (params.gxdb || params.gxdb_manifiest) ? DECONTAMINATION.out.tiara_cleaned.map  { _meta, f -> f }.collect().first()  : channel.value([])
+
+        HTML_REPORT_GENOME_ANNO (
+            ch_report_busco,
+            ch_report_busco_prot,
+            ch_tidk,
+            ch_report_tidk_apriori,
+            ch_fcsgx,
+            ch_fcsadp,
+            ch_tiara,
+            ch_busco_seqs_ga_file
+        )
+
+        //
+        // MODULE: Run EXCEL REPORT (genome + annotation mode)
+        //
+        ch_excel_quast  = GENOME_AND_ANNOTATION.out.quast_tsv.map { _meta, f -> f }
+                        | mix( GENOME_ONLY.out.quast_tsv.map { _meta, f -> f } )
+                        | collect
+        ch_excel_agat   = GENOME_AND_ANNOTATION.out.agat_stats.map { _meta, f -> f }.collect().ifEmpty([])
+
+        EXCEL_REPORT_GENOME_ANNO (
+            ch_report_busco,
+            ch_report_busco_prot,
+            ch_excel_quast,
+            ch_excel_agat.ifEmpty([]),
+            ch_tidk,
+            ch_fcsgx,
+            ch_fcsadp,
+            ch_tiara,
+            ch_busco_seqs_ga_file
+        )
     }
 
     //

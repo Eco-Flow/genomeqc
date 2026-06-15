@@ -297,6 +297,13 @@
                     "description": "Tool for gxf validation.",
                     "enum": ["agat", "gffread"]
                 },
+                "ortho_version": {
+                    "type": "string",
+                    "default": "v3",
+                    "description": "OrthoFinder major version to run.",
+                    "help_text": "Use 'v2' on arm64 (Apple Silicon) hosts, where OrthoFinder v3 does not work.",
+                    "enum": ["v2", "v3"]
+                },
                 "tree_scale": {
                     "type": "integer",
                     "description": "Modifies scale of the tree plot in the tree summary, default value is '0.0005'. Useful if tree tips overlap with the concatenated plots. Very sensitive, increase/decrease by two-fold."

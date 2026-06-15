@@ -330,6 +330,27 @@ The app has two tabs, the **Plot Controls** tab to adjust the plot and remove/ad
 
 ![output_example_tree](images/output_example/shiny_app.png)
 
+### Reports
+
+The pipeline summarises the results from the tools above into two reports: a HTML report and an Excel spreadsheet.
+
+The **HTML report** is a single-file report with one tab per tool. The BUSCO, Telomeres, FCS-GX, FCS-Adaptor and Tiara tabs are only shown if the corresponding tool was run. The Telomeres tab includes a chromosome selector for assemblies with multiple sequences, and a toggle to switch between the a priori and a posteriori tidk searches when both were run.
+
+The **Excel report** contains the same summary statistics as separate tables.
+
+**Agat** results are missing from the HTML report, and are not shown in the Excel report. This is yet to be fixed.
+
+<details markdown="1">
+<summary>Output files</summary>
+
+- `report/`
+  - `genomeqc_report.html`: Self-contained HTML report summarising the results from all the tools above.
+  - `genomeqc_tables.xlsx`: Excel spreadsheet with the same summary statistics.
+
+</details>
+
+![output_example_report](images/output_example/report_example.png)
+
 ### MultiQC
 
 [MultiQC](http://multiqc.info) is a visualization tool that generates a single HTML report summarising all samples in your project. Most of the pipeline QC results are visualised in the report and further statistics are available in the report data directory.

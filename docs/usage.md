@@ -6,7 +6,7 @@
 
 ## Introduction
 
-**nf-core/genomeqc** is a pipeline build to aid in the diagnosis of the quality of genome assemblies. It can input several genomes and/or their annotations, and generates metrics such as completeness, contiguity, GC% or number of overlapping genes, which can be later used to assess their quality. Additionally, it outputs a phylogenetic tree plot with the summary metrics. The tree building method uses orthologous genes/BUSCO markers for a quick comparision of metrics among species/samples. This pipeline should not be used for phylogenetic inference.
+**nf-core/genomeqc** is a pipeline build to aid in the diagnosis of the quality of genome assemblies. It can input several genomes and/or their annotations, and generates metrics such as completeness, contiguity, GC% or number of overlapping genes, which can be later used to assess their quality. Additionally, it outputs a phylogenetic tree plot with the summary metrics. The tree building method uses orthologous genes/BUSCO markers for a quick comparision of metrics across species/samples. This pipeline should not be used for phylogenetic inference.
 
 ## Samplesheet input
 
@@ -156,13 +156,19 @@ The pipeline will run on genome and annotation mode if these inputs are provided
 
 The pipeline will produce a tree plot summary that can be modified in real time using a packaged shiny app, as well as a MultiQC report with quality statistics.
 
+### Running tidk
+
+The pipeline will run tidk by default. Users can provide a DNA string correspoding to the telomeric repeat of the assemblies of interest using the `--repeat` flag. If no DNA string is provided, tidk will explore the genome and try to compute the telomeric repeat in its cannonical form.
+
+Users can skip tidk using the `--skip_tidk` flag.
+
 ### Running Merqury
 
 Users can also run the pipeline using Merqury by supplying the path to sequencing reads under the **fastq** field. Merqury needs both **fasta** and **fastq** to run. Refer the [GitHub page](https://github.com/marbl/merqury) for more information on Merqury.
 
-### Running the Decontamination subworkflow
+### Running Decontamination
 
-If, in the samplesheet, a NCBI taxid is provided for an assembly, and a path pointing to the FCS-GX database or a manifest to download and build it (check the Parameters tab in this page), the pipeline will run the decontamination subworkflow.
+If an NCBI taxid is provided for an assembly in the samplesheet, and the path to the FCS-GX database or a manifest to download and build it is given via `--gxdb` or `--gxdb_manifiest` respectively, the pipeline will run the decontamination subworkflow.
 
 The decontamination subsworkflow consists of three modules:
 
@@ -308,7 +314,7 @@ For TE quantification in a comparative genomics context, `qq` is usually suffici
 
 ### The Shiny App
 
-The pipeline outputs an executable that will open a shiny app in your web browser once executed. The app allows the user to change the tree plot parameters (margins, ) in real time, as well as append and remove summary plot statistics. The modified plot can be saved as a png/svg file.
+The pipeline outputs an executable that will open a shiny app in your web browser once executed. The app allows the user to change the tree plot parameters in real time, as well as append and remove summary plot statistics. The modified plot can be saved as a png/svg file.
 
 To open the shiny app, do:
 
