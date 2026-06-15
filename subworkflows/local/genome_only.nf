@@ -32,92 +32,92 @@ workflow GENOME_ONLY {
     ch_tree_data = ch_tree_data.mix(QUAST.out.tsv.map { tuple -> tuple[1] })
 
     if (!params.skip_busco) {
-    BUSCO_BUSCO (
-        ch_fasta,
-        "genome", // hardcoded, other options ('proteins', 'transcriptome') make no sense
-        params.busco_lineage,
-        params.busco_lineages_path ?: [],
-        params.busco_config ?: [],
-        params.busco_clean ?: []
-    )
-    //ch_tree_data  = ch_tree_data.mix(BUSCO_BUSCO.out.batch_summary.collect { meta, file -> file })
-
-    //
-    // GAWK
-    //
-    // Use GAWK to change ID from file name to meta.id
-
-    GAWK (
-        BUSCO_BUSCO.out.batch_summary,
-        [],
-        false
-    )
-    ch_tree_data  = ch_tree_data.mix(GAWK.out.output.collect { _meta, file -> file })
-
-    //
-    // BUSCO Ideogram
-    //
-
-    ch_full_table = BUSCO_BUSCO.out.full_table
-
-    // Combined ch_fasta and BUSCO output channel into a single channel for ideogram
-    ch_input_ideo = ch_fasta
-                  | combine(ch_full_table, by:0)
-
-
-    GENOME_ONLY_BUSCO_IDEOGRAM (
-        ch_input_ideo
-    )
-
-    //
-    // Orthofinder
-    //
-
-    // Prepare data
-    ch_busco_proteins = BUSCO_BUSCO.out.single_copy_faa
-                      | flatMap { meta, faas ->
-                                     faas.collect { faa -> [meta, file(faa)]  }
-                      }
-                      | collectFile { meta, faas ->
-                                        [ "${meta.id}.fasta", faas ]
-                      }
-                      | collect
-                      | filter { file_paths ->
-                                    file_paths.size() >= 3 // Ensure there are enough BUSCO proteins, otherwise skip orthofinder
-                      }
-                      | map { file_paths ->
-                                [[ id: 'orthofinder_run', mode: 'genome' ], file_paths]
-                      }
-
-    //Run orthofinder
-    if (params.ortho_version == 'v3') {
-        ORTHOFINDER_V3 (
-            ch_busco_proteins,
-            [[],[]]
+        BUSCO_BUSCO (
+            ch_fasta,
+            "genome", // hardcoded, other options ('proteins', 'transcriptome') make no sense
+            params.busco_lineage,
+            params.busco_lineages_path ?: [],
+            params.busco_config ?: [],
+            params.busco_clean ?: []
         )
-        ch_orthofinder = ORTHOFINDER_V3.out.orthofinder
-    } else if (params.ortho_version == 'v2' ) {
-        ORTHOFINDER_V2 (
-            ch_busco_proteins
+        //ch_tree_data  = ch_tree_data.mix(BUSCO_BUSCO.out.batch_summary.collect { meta, file -> file })
+
+        //
+        // GAWK
+        //
+        // Use GAWK to change ID from file name to meta.id
+
+        GAWK (
+            BUSCO_BUSCO.out.batch_summary,
+            [],
+            false
         )
-        ch_orthofinder = ORTHOFINDER_V2.out.orthofinder
-    }
-    // Transform tsv to gff for orthologous chromosomes module
-    BUSCO_TSV_TO_GFF (
-        BUSCO_BUSCO.out.busco_dir
-    )
+        ch_tree_data  = ch_tree_data.mix(GAWK.out.output.collect { _meta, file -> file })
 
-    //
-    // MODULE: Run ORTHOLOGOUS_CHROMOSOMES
-    //
+        //
+        // BUSCO Ideogram
+        //
 
-    ORTHOLOGOUS_CHROMOSOMES (
-        ch_orthofinder.map { _meta, folder ->
-            file("${folder}/Orthogroups/Orthogroups.tsv")
-        },
-        BUSCO_TSV_TO_GFF.out.gff.map { _meta, gff -> gff }.collect()
-    )
-    //ch_tree_data = ch_tree_data.mix(ORTHOLOGOUS_CHROMOSOMES.out.species_summary)
+        ch_full_table = BUSCO_BUSCO.out.full_table
+
+        // Combined ch_fasta and BUSCO output channel into a single channel for ideogram
+        ch_input_ideo = ch_fasta
+                      | combine(ch_full_table, by:0)
+
+
+        GENOME_ONLY_BUSCO_IDEOGRAM (
+            ch_input_ideo
+        )
+
+        //
+        // Orthofinder
+        //
+
+        // Prepare data
+        ch_busco_proteins = BUSCO_BUSCO.out.single_copy_faa
+                          | flatMap { meta, faas ->
+                                         faas.collect { faa -> [meta, file(faa)]  }
+                          }
+                          | collectFile { meta, faas ->
+                                            [ "${meta.id}.fasta", faas ]
+                          }
+                          | collect
+                          | filter { file_paths ->
+                                        file_paths.size() >= 3 // Ensure there are enough BUSCO proteins, otherwise skip orthofinder
+                          }
+                          | map { file_paths ->
+                                    [[ id: 'orthofinder_run', mode: 'genome' ], file_paths]
+                          }
+
+        //Run orthofinder
+        if (params.ortho_version == 'v3') {
+            ORTHOFINDER_V3 (
+                ch_busco_proteins,
+                [[],[]]
+            )
+            ch_orthofinder = ORTHOFINDER_V3.out.orthofinder
+        } else if (params.ortho_version == 'v2' ) {
+            ORTHOFINDER_V2 (
+                ch_busco_proteins
+            )
+            ch_orthofinder = ORTHOFINDER_V2.out.orthofinder
+        }
+        // Transform tsv to gff for orthologous chromosomes module
+        BUSCO_TSV_TO_GFF (
+            BUSCO_BUSCO.out.busco_dir
+        )
+
+        //
+        // MODULE: Run ORTHOLOGOUS_CHROMOSOMES
+        //
+
+        ORTHOLOGOUS_CHROMOSOMES (
+            ch_orthofinder.map { _meta, folder ->
+                file("${folder}/Orthogroups/Orthogroups.tsv")
+            },
+            BUSCO_TSV_TO_GFF.out.gff.map { _meta, gff -> gff }.collect()
+        )
+        //ch_tree_data = ch_tree_data.mix(ORTHOLOGOUS_CHROMOSOMES.out.species_summary)
     }
     
     emit:

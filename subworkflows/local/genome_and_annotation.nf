@@ -119,15 +119,6 @@ workflow GENOME_AND_ANNOTATION {
     )
 
     //
-    // MODULE: Run fasta validator
-    //
-
-    // Shoud we keep this?
-//    FASTAVALIDATOR(
-//        GFFREAD.out.gffread_fasta
-//    )
-
-    //
     // MODULE: Run Orthofinder
     //
 
@@ -161,6 +152,7 @@ workflow GENOME_AND_ANNOTATION {
     //
     // MODULE: Run ORTHOLOGOUS_CHROMOSOMES
     //
+
     ORTHOLOGOUS_CHROMOSOMES (
         ch_orthofinder.map { _meta, folder ->
             file("${folder}/Orthogroups/Orthogroups.tsv")
@@ -174,84 +166,84 @@ workflow GENOME_AND_ANNOTATION {
     //
     
     if(!params.skip_busco) {
-    BUSCO_GENOME (
-        ch_fasta,
-        'genome',
-        params.busco_lineage,
-        params.busco_lineages_path ?: [],
-        params.busco_config ?: [],
-        params.busco_clean ?: []
-    )
+        BUSCO_GENOME (
+            ch_fasta,
+            'genome',
+            params.busco_lineage,
+            params.busco_lineages_path ?: [],
+            params.busco_config ?: [],
+            params.busco_clean ?: []
+        )
 
-    //
-    // MODULE: Run BUSCO for proteins
-    //
+        //
+        // MODULE: Run BUSCO for proteins
+        //
 
-    BUSCO_PROTEINS (
-        GFFREAD.out.gffread_fasta,
-        'proteins',
-        params.busco_lineage,
-        params.busco_lineages_path ?: [],
-        params.busco_config ?: [],
-        params.busco_clean ?: []
-    )
+        BUSCO_PROTEINS (
+            GFFREAD.out.gffread_fasta,
+            'proteins',
+            params.busco_lineage,
+            params.busco_lineages_path ?: [],
+            params.busco_config ?: [],
+            params.busco_clean ?: []
+        )
 
-    //
-    // GAWK
-    //
-    // Use GAWK to change ID from file name to meta.id
-    // For BUSCO genome
-    GAWK_GENO (
-        BUSCO_GENOME.out.batch_summary,
-        [],
-        false
-    )
+        //
+        // GAWK
+        //
+        // Use GAWK to change ID from file name to meta.id
+        // For BUSCO genome
+        GAWK_GENO (
+            BUSCO_GENOME.out.batch_summary,
+            [],
+            false
+        )
 
-    // For BUSCO protein
-    GAWK_PROT (
-        BUSCO_PROTEINS.out.batch_summary,
-        [],
-        false
-    )
+        // For BUSCO protein
+        GAWK_PROT (
+            BUSCO_PROTEINS.out.batch_summary,
+            [],
+            false
+        )
 
-    //
-    // Plot BUSCO ideogram
-    //
+        //
+        // Plot BUSCO ideogram
+        //
 
-    // Prepare BUSCO output
-    ch_busco_full_table = BUSCO_PROTEINS.out.full_table
-                        | map { meta, full_tables ->
-                            def lineages = full_tables.toString().split('/')[-2].replaceAll('run_', '').replaceAll('_odb\\d+', '')
-                            [meta.id, lineages, full_tables]
-                        }
-                        | groupTuple(by: 0)
-                        | map { id, lineages, full_tables ->
-                            [id, lineages.flatten(), full_tables.flatten()]
-                        }
-
-    // Add genome to channel
-    fnaChannel_busco    = ch_input.fasta
-                        | map { meta, fasta ->
-                            [meta.id, fasta]
-                        }
-
-    // Prepare GXF channel of ideogram
-    ch_gxf_busco        = ch_input.gxf_filt
-                        | map { meta, gxf ->
-                            [meta.id, gxf]
-                        }
-
-    // Combine BUSCO, AGAT, and genome outputs
-    ch_plot_input       = ch_busco_full_table
-                        | join(fnaChannel_busco)
-                        | join(ch_gxf_busco)
-                        | flatMap { genusspeci, lineages, full_tables, fasta, gxf ->
-                            lineages.withIndex().collect { lineage, index ->
-                                [genusspeci, lineage, full_tables[index], fasta, gxf]
+        // Prepare BUSCO output
+        ch_busco_full_table = BUSCO_PROTEINS.out.full_table
+                            | map { meta, full_tables ->
+                                def lineages = full_tables.toString().split('/')[-2].replaceAll('run_', '').replaceAll('_odb\\d+', '')
+                                [meta.id, lineages, full_tables]
                             }
-                        }
+                            | groupTuple(by: 0)
+                            | map { id, lineages, full_tables ->
+                                [id, lineages.flatten(), full_tables.flatten()]
+                            }
 
-    GENOME_ANNOTATION_BUSCO_IDEOGRAM ( ch_plot_input )
+        // Add genome to channel
+        fnaChannel_busco    = ch_input.fasta
+                            | map { meta, fasta ->
+                                [meta.id, fasta]
+                            }
+
+        // Prepare GXF channel of ideogram
+        ch_gxf_busco        = ch_input.gxf_filt
+                            | map { meta, gxf ->
+                                [meta.id, gxf]
+                            }
+
+        // Combine BUSCO, AGAT, and genome outputs
+        ch_plot_input       = ch_busco_full_table
+                            | join(fnaChannel_busco)
+                            | join(ch_gxf_busco)
+                            | flatMap { genusspeci, lineages, full_tables, fasta, gxf ->
+                                lineages.withIndex().collect { lineage, index ->
+                                    [genusspeci, lineage, full_tables[index], fasta, gxf]
+                                }
+                            }
+
+        GENOME_ANNOTATION_BUSCO_IDEOGRAM ( ch_plot_input )
     }
     
     emit:
