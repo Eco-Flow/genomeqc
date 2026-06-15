@@ -261,6 +261,11 @@ workflow GENOMEQC {
         )
     }
 
+    // RepeatMasker .tbl summaries for the HTML/Excel reports (empty if TE annotation was skipped)
+    ch_repeatmasker_tbl = (params.te == 'repeatmasker')
+                        ? FASTA_ANNOTATE_TE.out.tbl.map { _meta, f -> f }.collect().ifEmpty([])
+                        : channel.value([])
+
     //
     // SUBWORKFLOWS: Run genome only or genome + annotation subworkflows
     //
@@ -299,7 +304,8 @@ workflow GENOMEQC {
             ch_fcsgx_go,
             ch_fcsadp_go,
             ch_tiara_go,
-            BUSCO_SEQS_GENOME.out.table.map { _meta, f -> f }.ifEmpty([])
+            BUSCO_SEQS_GENOME.out.table.map { _meta, f -> f }.ifEmpty([]),
+            ch_repeatmasker_tbl
         )
 
         //
@@ -317,7 +323,8 @@ workflow GENOMEQC {
             ch_fcsgx_go,
             ch_fcsadp_go,
             ch_tiara_go,
-            BUSCO_SEQS_GENOME.out.table.map { _meta, f -> f }.ifEmpty([])      // no busco_seqs in genome-only mode
+            BUSCO_SEQS_GENOME.out.table.map { _meta, f -> f }.ifEmpty([]),     // no busco_seqs in genome-only mode
+            ch_repeatmasker_tbl
         )
     } else {
         GENOME_ONLY (
@@ -463,7 +470,8 @@ workflow GENOMEQC {
             ch_fcsgx,
             ch_fcsadp,
             ch_tiara,
-            ch_busco_seqs_ga_file
+            ch_busco_seqs_ga_file,
+            ch_repeatmasker_tbl
         )
 
         //
@@ -483,7 +491,8 @@ workflow GENOMEQC {
             ch_fcsgx,
             ch_fcsadp,
             ch_tiara,
-            ch_busco_seqs_ga_file
+            ch_busco_seqs_ga_file,
+            ch_repeatmasker_tbl
         )
     }
 

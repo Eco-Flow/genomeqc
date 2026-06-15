@@ -10,6 +10,7 @@ No external dependencies — XLSX is written using only the Python standard libr
 
 import argparse
 import io
+import re
 import sys
 import zipfile
 from pathlib import Path
@@ -209,6 +210,91 @@ def _parse_busco_seqs_table(path):
     return result, col_label
 
 
+# ── RepeatMasker .tbl parsing (mirrors generate_report.py) ───────────────────
+
+_RM_HEADER_RES = {
+    "sequences":    re.compile(r'^sequences:\s*([\d,]+)'),
+    "total_length": re.compile(r'^total length:\s*([\d,]+)\s*bp\s*\(([\d,]+)\s*bp excl N/X-runs\)'),
+    "gc_level":     re.compile(r'^GC level:\s*([\d.]+)\s*%'),
+    "bases_masked": re.compile(r'^bases (?:masked|covered):\s*([\d,]+)\s*bp\s*\(\s*([\d.]+)\s*%\)'),
+}
+
+_RM_ROW_RE = re.compile(
+    r'^(?P<indent>\s*)(?P<label>[^\d].*?):?\s+'
+    r'(?:(?P<elements>\d[\d,]*)\s+)?'
+    r'(?P<length>\d[\d,]*)\s*bp\s*\(?\s*(?P<pct>[\d.]+)\s*%\)?\s*$'
+)
+
+
+def _parse_repeatmasker_tbl(path):
+    """Parse a RepeatMasker (or te_tbl.py) .tbl file.
+
+    Returns (info_dict, rows) where rows is a list of
+    {label, indent, elements, length_bp, pct}.
+    """
+    info = {}
+    rows = []
+    with open(path) as fh:
+        for line in fh:
+            line = line.rstrip("\n")
+            stripped = line.strip()
+            if not stripped or stripped.startswith(("=", "-", "*", "file name")):
+                continue
+            if stripped.startswith("number of") or stripped.startswith("elements"):
+                continue
+            matched = False
+            for key, rex in _RM_HEADER_RES.items():
+                m = rex.match(stripped)
+                if not m:
+                    continue
+                matched = True
+                if key == "sequences":
+                    info["sequences"] = m.group(1).replace(",", "")
+                elif key == "total_length":
+                    info["total_length_bp"] = m.group(1).replace(",", "")
+                    info["total_length_excl_bp"] = m.group(2).replace(",", "")
+                elif key == "gc_level":
+                    info["gc_level_pct"] = m.group(1)
+                elif key == "bases_masked":
+                    info["bases_masked_bp"] = m.group(1).replace(",", "")
+                    info["bases_masked_pct"] = m.group(2)
+                break
+            if matched:
+                continue
+            m = _RM_ROW_RE.match(line)
+            if m:
+                elements = m.group("elements")
+                rows.append({
+                    "label":     m.group("label").strip(),
+                    "indent":    len(m.group("indent")) // 2,
+                    "elements":  elements.replace(",", "") if elements else "",
+                    "length_bp": m.group("length").replace(",", ""),
+                    "pct":       m.group("pct"),
+                })
+    return info, rows
+
+
+def _repeatmasker_rows(paths):
+    """Combine RepeatMasker .tbl files into a single table (one sheet, all species)."""
+    rows = [["species", "category", "number_of_elements", "length_occupied_bp", "percent_of_sequence"]]
+    for p in sorted(paths, key=lambda x: Path(x).name):
+        species = Path(p).stem
+        info, cat_rows = _parse_repeatmasker_tbl(p)
+        header_metrics = [
+            ("Sequences",                        info.get("sequences", ""),         ""),
+            ("Total length (bp)",                info.get("total_length_bp", ""),   ""),
+            ("Total length excl. N/X-runs (bp)", info.get("total_length_excl_bp", ""), ""),
+            ("GC level (%)",                     "",                                 info.get("gc_level_pct", "")),
+            ("Bases masked (bp)",                info.get("bases_masked_bp", ""),   info.get("bases_masked_pct", "")),
+        ]
+        for label, length, pct in header_metrics:
+            rows.append([species, label, "", length, pct])
+        for r in cat_rows:
+            label = ("  " * r["indent"]) + r["label"]
+            rows.append([species, label, r["elements"], r["length_bp"], r["pct"]])
+    return rows
+
+
 def _busco_complete_pct(row):
     """Format a BUSCO row's Complete value as a percentage, or em-dash if absent."""
     if not row:
@@ -376,6 +462,8 @@ def main():
                     help="FCS-Adaptor *.fcs_adaptor_report.txt files (optional)")
     ap.add_argument("--tiara_reports",        nargs="*", default=[], metavar="TXT",
                     help="Tiara classification *.txt files (optional)")
+    ap.add_argument("--repeatmasker_tbls",    nargs="*", default=[], metavar="TBL",
+                    help="RepeatMasker *.tbl files (optional)")
     ap.add_argument("--output", default="genomeqc_tables.xlsx", metavar="XLSX",
                     help="Output Excel file (default: genomeqc_tables.xlsx)")
     args = ap.parse_args()
@@ -443,6 +531,12 @@ def main():
         rows = _combine_tsv_files(args.tiara_reports, add_species_col=True)
         if rows:
             wb.add_sheet("Tiara", rows)
+            added += 1
+
+    if args.repeatmasker_tbls:
+        rows = _repeatmasker_rows(args.repeatmasker_tbls)
+        if rows:
+            wb.add_sheet("Repeats_RepeatMasker", rows)
             added += 1
 
     if added == 0:
