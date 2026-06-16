@@ -174,6 +174,8 @@ Users can skip tidk using the `--skip_tidk` flag.
 
 Users can also run the pipeline using Merqury by supplying the path to sequencing reads under the **fastq** field. Merqury needs both **fasta** and **fastq** to run. Refer the [GitHub page](https://github.com/marbl/merqury) for more information on Merqury.
 
+The k-mer size used to build the Meryl database can be tuned with `--kvalue` (default: `21`). For highly heterozygous or large genomes, a larger k (e.g. `31`) may give better completeness estimates.
+
 ### Running Decontamination
 
 If an NCBI taxid is provided for an assembly in the samplesheet through the **taxid** field, and the path to the FCS-GX database or a manifest to download and build it is given via `--gxdb` or `--gxdb_manifiest` respectively, the pipeline will run the decontamination subworkflow. E.g.:
@@ -362,10 +364,13 @@ You will need docker to run the shiny app, as it comes packaged in a docker cont
 
 The pipeline can be ran using different test profiles:
 
-1. `-profile test` Will run on genome and annotation and Merqury using **RefSeq accessions** and local **fastqs**.
-2. `-profile test_local` Will run on genome and annotation on local files (**fasta** and **gff**).
-3. `-profile test_genomeonly` Will run genome only on local files (**fasta**).
-4. `-profile test_nofastq` Will run genome and annotation using **RefSeq accessions**.
+1. `-profile test` — Runs genome and annotation with Merqury using **RefSeq accessions** and local **fastqs**.
+2. `-profile test_local` — Runs genome and annotation on local files (**fasta** and **gff**).
+3. `-profile test_genomeonly` — Runs genome only on local files (**fasta**).
+4. `-profile test_nofastq` — Runs genome and annotation using **RefSeq accessions** (no fastq/Merqury).
+5. `-profile test_decon` — Tests the decontamination subworkflow (FCS-GX, FCS-Adaptor, Tiara) using the NCBI FCS test-only database.
+6. `-profile test_te` — Tests TE annotation with `--te repeatmasker` and `--run_repeatmodeler` on a minimal genome.
+7. `-profile test_full` — Runs the full pipeline on a set of Hymenoptera genomes.
 
 Test files are stored in the genomeqc branch of the [test-dataset repository](https://github.com/nf-core/test-datasets/tree/genomeqc).
 
