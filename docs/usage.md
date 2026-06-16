@@ -158,7 +158,15 @@ The pipeline will produce a tree plot summary that can be modified in real time 
 
 ### Running tidk
 
-The pipeline will run tidk by default. Users can provide a DNA string correspoding to the telomeric repeat of the assemblies of interest using the `--repeat` flag. If no DNA string is provided, tidk will explore the genome and try to compute the telomeric repeat in its cannonical form.
+The pipeline will run tidk by default. Users can provide a DNA string correspoding to the telomeric repeat of the assemblies of interest using the `--repeat` flag. If no DNA string is provided, tidk will explore the genome and try to compute the telomeric repeat in its cannonical form. E.g.:
+
+```bash
+nextflow run nf-core/genomeqc \
+  --input ./samplesheet.csv \
+  --outdir ./results \
+  --repeat ATCG
+  -profile docker
+```
 
 Users can skip tidk using the `--skip_tidk` flag.
 
@@ -168,7 +176,28 @@ Users can also run the pipeline using Merqury by supplying the path to sequencin
 
 ### Running Decontamination
 
-If an NCBI taxid is provided for an assembly in the samplesheet, and the path to the FCS-GX database or a manifest to download and build it is given via `--gxdb` or `--gxdb_manifiest` respectively, the pipeline will run the decontamination subworkflow.
+If an NCBI taxid is provided for an assembly in the samplesheet through the **taxid** field, and the path to the FCS-GX database or a manifest to download and build it is given via `--gxdb` or `--gxdb_manifiest` respectively, the pipeline will run the decontamination subworkflow. E.g.:
+
+```bash
+nextflow run nf-core/genomeqc \
+  --input ./samplesheet.csv \
+  --outdir ./results \
+  --gxdb /patho/to/fcs-gx/all
+  -profile docker
+```
+
+or
+
+```bash
+nextflow run nf-core/genomeqc \
+  --input ./samplesheet.csv \
+  --outdir ./results \
+  --gxdb_manifest 'https://ftp.ncbi.nlm.nih.gov/genomes/TOOLS/FCS/database/latest/latest.manifest'
+  -profile docker
+```
+
+> [!WARNING]
+> **The FCS-GX database is considerable in size (~500 GB).** Downloading it in advance over using the manifest is highly recommended.
 
 The decontamination subsworkflow consists of three modules:
 
@@ -177,6 +206,11 @@ The decontamination subsworkflow consists of three modules:
 - [Tiara](https://ibe-uw.github.io/tiara/): For DNA sequence classification in two stages:
   1. The sequences are classified to either archaea, bacteria, prokarya, eukarya, organelle or unknown.
   2. The sequences labeled as organelle in the first stage are classified to either mitochondria, plastid or unknown.
+
+> [!WARNING]
+> **FCS-GX requires a large database (~500 GB) and is extremely slow when reading it from a standard disk.**
+>
+> To improve preformance, use `--ramdisk` to point to a `tmpfs` or `ramfs` mount (e.g. `/dev/shm` on Linux). The pipeline will copy the database into memory before each run and clean it up afterwards
 
 ### Running TE annotation
 
