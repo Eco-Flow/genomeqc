@@ -50,23 +50,24 @@ workflow FASTA_ANNOTATE_TE {
         REPEATMODELER_REPEATMODELER ( REPEATMODELER_BUILDDATABASE.out.db )
         ch_modeler_fasta = REPEATMODELER_REPEATMODELER.out.fasta
 
-        ch_famdb_fasta = FAMDB_PY_EMBL.out.famdb_lib | map { meta, fasta -> fasta }
+        ch_famdb_fasta = FAMDB_PY_EMBL.out.famdb_lib | map { _meta, fasta -> fasta }
 
         // [famdb, modeler] when both are available; [modeler] when famdb was skipped
         ch_famdb_with_modeler = ch_modeler_fasta
                               | combine(ch_famdb_fasta)
                               | map { meta, modeler, famdb -> tuple(meta, [famdb, modeler]) }
 
-        // Whether ch_famdb_fasta emits anything is only known at runtime (it depends on
-        // ch_rm_db/ch_famdb_lib), so ch_famdb_with_modeler may end up empty for every meta.
-        // Join against the modeler-only list with remainder:true and fall back to it
-        // whenever the famdb pairing didn't materialize, so CAT_CAT always gets a library.
-        ch_combined_libs = ch_modeler_fasta
-                         | map { meta, fasta -> tuple(meta, [fasta]) }
+        ch_famb_without_modeler = ch_fasta
+                               | map { meta, fasta -> tuple(meta, fasta) }
+                               | combine(ch_famdb_fasta)
+                               | map { meta, _fasta, famdb -> tuple(meta, famdb) }
+        
+        ch_combined_libs = ch_famb_without_modeler
                          | join(ch_famdb_with_modeler, by: 0, remainder: true)
-                         | map { meta, modeler_list, both_list ->
-                             tuple(meta, both_list ?: modeler_list)
+                         | map { meta, famdb_list, both_list ->
+                             tuple(meta, both_list ?: famdb_list)
                          }
+
 
         // MODULE: CAT_CAT — concatenate famdb and de novo libraries (per genome)
         CAT_CAT ( ch_combined_libs )
