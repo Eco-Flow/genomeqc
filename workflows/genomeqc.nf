@@ -269,7 +269,7 @@ workflow GENOMEQC {
 
     // RepeatMasker .tbl summaries for tree plots
     TE_TBL_2_TABLE (
-        FASTA_ANNOTATE_TE.out.tbl.map { f -> tuple([id:'te_table'], f) }
+        ch_repeatmasker_tbl.map { f -> tuple([id:'te_table'], f) }
     )
 
     //
