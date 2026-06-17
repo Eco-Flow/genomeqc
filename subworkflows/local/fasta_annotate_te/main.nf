@@ -58,9 +58,8 @@ workflow FASTA_ANNOTATE_TE {
                               | map { meta, modeler, famdb -> tuple(meta, [famdb, modeler]) }
 
         ch_famb_without_modeler = ch_fasta
-                               | map { meta, fasta -> tuple(meta, fasta) }
                                | combine(ch_famdb_fasta)
-                               | map { meta, _fasta, famdb -> tuple(meta, famdb) }
+                               | map { meta, _fasta, famdb -> tuple(meta, [famdb]) }
         
         ch_combined_libs = ch_famb_without_modeler
                          | join(ch_famdb_with_modeler, by: 0, remainder: true)
