@@ -27,6 +27,7 @@ include { EXCEL_REPORT as EXCEL_REPORT_GENOME_ANNO } from '../modules/local/exce
 include { EXCEL_REPORT as EXCEL_REPORT_GENOME      } from '../modules/local/excel_report/main'
 include { HITE                                     } from '../modules/local/hite/main'
 include { FASTA_ANNOTATE_TE                        } from '../subworkflows/local/fasta_annotate_te/main'
+include { TE_TBL_2_TABLE                           } from '../modules/local/te_tbl_2_table/main'
 include { MULTIQC                                  } from '../modules/nf-core/multiqc/main'
 include { validateInputSamplesheet                 } from '../subworkflows/local/utils_nfcore_genomeqc_pipeline'
 include { paramsSummaryMap                         } from 'plugin/nf-schema'
@@ -241,15 +242,15 @@ workflow GENOMEQC {
     if (params.te == 'repeatmasker') {
         // Skip download when a pre-staged famdb library is already provided
         ch_rm_db_input = (params.RM_download_db && params.RM_db && !params.famdb_library)
-                       ? Channel.fromList(params.RM_db)
+                       ? channel.fromList(params.RM_db)
                            .map { db -> tuple([id: file(db).getBaseName()], db) }
-                       : Channel.empty()
+                       : channel.empty()
 
         // Accepts a single file path or a glob pattern (e.g. '/path/FamDB*')
         ch_famdb_lib_input = params.famdb_library
-                           ? Channel.fromPath(params.famdb_library)
+                           ? channel.fromPath(params.famdb_library)
                                .map { path -> tuple([id: path.baseName], path) }
-                           : Channel.empty()
+                           : channel.empty()
 
         FASTA_ANNOTATE_TE (
             ch_fasta,
@@ -265,6 +266,11 @@ workflow GENOMEQC {
     ch_repeatmasker_tbl = (params.te == 'repeatmasker')
                         ? FASTA_ANNOTATE_TE.out.tbl.map { _meta, f -> f }.collect().ifEmpty([])
                         : channel.value([])
+
+    // RepeatMasker .tbl summaries for tree plots
+    TE_TBL_2_TABLE (
+        FASTA_ANNOTATE_TE.out.tbl.map { f -> tuple([id:'te_table'], f) }
+    )
 
     //
     // SUBWORKFLOWS: Run genome only or genome + annotation subworkflows
