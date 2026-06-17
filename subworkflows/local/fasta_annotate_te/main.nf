@@ -52,15 +52,20 @@ workflow FASTA_ANNOTATE_TE {
 
         ch_famdb_fasta = FAMDB_PY_EMBL.out.famdb_lib | map { _meta, fasta -> fasta }
 
-        // [famdb, modeler] when both are available; [modeler] when famdb was skipped
+        // Genomes where RepeatModeler succeeded: pair [famdb, modeler] for CAT_CAT.
         ch_famdb_with_modeler = ch_modeler_fasta
                               | combine(ch_famdb_fasta)
                               | map { meta, modeler, famdb -> tuple(meta, [famdb, modeler]) }
 
+        // RepeatModeler channel is empty when it finds no repeat families,
+        // so genomes with no hits would be silently dropped from ch_modeler_fasta.
+        // Build a famdb-only fallback for every genome so none are lost.
         ch_famb_without_modeler = ch_fasta
                                | combine(ch_famdb_fasta)
                                | map { meta, _fasta, famdb -> tuple(meta, [famdb]) }
-        
+
+        // Merge: use both [famdb, modeler] when RepeatModeler produced output, else only [famdb].
+        // remainder: true keeps genomes absent from ch_famdb_with_modeler (no modeler hits).
         ch_combined_libs = ch_famb_without_modeler
                          | join(ch_famdb_with_modeler, by: 0, remainder: true)
                          | map { meta, famdb_list, both_list ->
