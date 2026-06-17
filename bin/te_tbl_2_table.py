@@ -3,9 +3,6 @@
 Parse one or more RepeatMasker .tbl files and produce a combined TSV
 suitable for pie-chart plotting in the tree summary (scatterpie).
 
-Works with both standard RepeatMasker .tbl output and the te_tbl.py
-format produced by the HiTE/minimap2 path in genomeqc.
-
 Output columns:
   species  SINE  LINE  LTR  Penelope  DNA  Rolling_Circle  Unclassified  Other  Non_Repeat
 
