@@ -29,7 +29,7 @@ process GENEOVERLAPS {
 
     """
     echo $args
-    
+
     touch ${prefix}.summary.tsv
     touch ${prefix}.counts.tsv
     """

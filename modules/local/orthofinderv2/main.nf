@@ -1,7 +1,7 @@
 process ORTHOFINDERV2 {
     tag "$meta.id"
     label 'process_high'
-    
+
     conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/orthofinder:2.5.5--hdfd78af_2' :
@@ -41,7 +41,7 @@ process ORTHOFINDERV2 {
 
     stub:
     prefix = task.ext.prefix ?: "${meta.id}"
-    
+
     """
     echo $args
 
@@ -64,4 +64,3 @@ process ORTHOFINDERV2 {
     touch       $prefix/Phylogenetic_Hierarchical_Orthogroups/N0.tsv
     """
 }
-

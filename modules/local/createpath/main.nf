@@ -28,7 +28,7 @@ process CREATEPATH {
 
     """
     echo $args
-    
+
     touch ${prefix}.txt
     """
 }

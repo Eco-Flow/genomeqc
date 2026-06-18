@@ -42,7 +42,7 @@ process GENOMEANNOTATIONBUSCOIDEOGRAM {
 
     """
     echo $args
-    
+
     touch ${genusspeci}.svg
     touch ${genusspeci}.png
     touch ${genusspeci}.csv

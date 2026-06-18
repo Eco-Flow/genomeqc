@@ -98,7 +98,7 @@ process TREESUMMARY {
 
     """
     echo $args
-    
+
     touch tree_plot.pdf
     touch tree_plot.svg
     touch tree.nw

@@ -42,7 +42,7 @@ process GENOMEONLYBUSCOIDEOGRAM {
 
     """
     echo $args
-    
+
     touch ${prefix}.svg
     touch ${prefix}.png
     touch ${prefix}.csv
