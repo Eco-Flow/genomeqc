@@ -473,8 +473,6 @@ make_te_scatterpie <- function(data_te,
     ))
   }
 
-  type <- match.arg(type)
-
   # Create the scatterpie plot
   pies_plot <- ggplot() +
     geom_scatterpie(
@@ -542,6 +540,13 @@ busco_prot_plot <- make_busco_scatterpie(
   rad_width  = args$rad_width,
   len_pos_x = len_pos_x,
   type       = "protein"
+)
+
+# TE plots
+te_plot <- make_te_scatterpie(
+  data_te = data_te,
+  rad_width  = args$rad_width
+  #len_pos_x = len_pos_x,
 )
 
 #if (!is.null(data_busco)) {
@@ -651,7 +656,8 @@ all_ranges <- c(
   get_plot_range(busco_prot_plot$plot, "y"),
   get_plot_range(len_plot, "x"),
   get_plot_range(n50_plot, "x"),
-  get_plot_range(gene_plot, "x")
+  get_plot_range(gene_plot, "x"),
+  get_plot_range(te_plot$plot, "y")
 )
 
 # Set new ylim based on the highest value taking into account both plots
@@ -672,9 +678,13 @@ if (!is.null(len_plot))  len_plot  <- len_plot + new_xlim
 # Set new xlim for Quast N50 (equivalent to ylim)
 if (!is.null(n50_plot))  n50_plot  <- n50_plot + new_xlim
 
-# Set new ylim for BUSCI pies
+# Set new ylim for BUSCO pies
 if (!is.null(busco_gen_plot$plot)) busco_gen_plot$plot <- busco_gen_plot$plot + new_ylim
 if (!is.null(busco_prot_plot$plot)) busco_prot_plot$plot <- busco_prot_plot$plot + new_ylim
+
+# Set new ylim for TE pies
+if (!is.null(te_plot$plot)) te_plot$plot <- te_plot$plot + new_ylim
+
 
 # Set new xlim for gene stats (equivalent to ylim)
 if (!is.null(gene_plot)) gene_plot <- gene_plot + new_xlim
@@ -705,7 +715,8 @@ all_plots <- list(
   gene_plot  = gene_plot,
   n50_plot   = n50_plot,
   busco_gen_plot  = busco_gen_plot$plot,
-  busco_prot_plot = busco_prot_plot$plot
+  busco_prot_plot = busco_prot_plot$plot,
+  te_plot = te_plot$plot
 )
 
 all_legends <- list(
@@ -716,7 +727,8 @@ all_legends <- list(
   gene_plot  = legend_gene,
   n50_plot   = NULL,
   busco_gen_plot  = busco_gen_plot$legend,
-  busco_prot_plot = if (!is.null(busco_gen_plot$legend)) NULL else busco_prot_plot$legend # Only plot legend once
+  busco_prot_plot = if (!is.null(busco_gen_plot$legend)) NULL else busco_prot_plot$legend, # Only plot legend once
+  te_plot = te_plot$legend
 )
 
 # Keep only plots and legends not in the skip list (thanks to chat gpt)

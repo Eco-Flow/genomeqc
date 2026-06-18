@@ -9,6 +9,7 @@ process TREE_SUMMARY {
     tuple val(meta), path(tree)
     tuple val(meta1), path(geno_busco)
     tuple val(meta2), path(prot_busco)
+    tuple val(meta3), path(te_table)
     path  multiqc_files
 
     output:
@@ -39,6 +40,7 @@ process TREE_SUMMARY {
     def prot_busco_combined = prot_busco ? '''{ head -qn 1 *-proteins-busco.batch_summary_modified.txt | head -n 1; tail -q -n 1 *-proteins-busco.batch_summary_modified.txt | sed -E 's/\t+/\t/g' | sed 's/\t$//g'; } > Busco_combined_prot.tsv''' : ''
     def geno_busco_file = geno_busco ? '--busco_geno Busco_combined_geno.tsv' : ''
     def prot_busco_file = prot_busco ? '--busco_prot Busco_combined_prot.tsv' : ''
+    def te_table_file = te_table ? '--te_table ' + te_table : ''
 
 
     """
@@ -70,6 +72,7 @@ process TREE_SUMMARY {
     $geno_busco_file \\
     $prot_busco_file \\
     $ortho_file \\
+    $te_table_file \\
     $args
 
     # Make sure input TSV files are captured as outputs by copying them
