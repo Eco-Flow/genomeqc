@@ -86,6 +86,10 @@ process TREE_SUMMARY {
         cp species_orthologous_chromosomes.tsv species_orthologous_chromosomes_output.tsv
     fi
 
+    if [ -n "${te_table}" ] && [ -f "${te_table}" ]; then
+        cp "${te_table}" te_table_output.tsv
+    fi
+
     """
 
 }

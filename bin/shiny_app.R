@@ -29,7 +29,7 @@ processed_data <- process_tree_data(
   genes_file = if(file.exists("gene_stats.tsv")) "gene_stats.tsv" else NULL,
   nseqs_file = if(file.exists("n_seqs_above_x_buscos_output.tsv")) "n_seqs_above_x_buscos_output.tsv" else NULL,
   ortho_file = if(file.exists("species_orthologous_chromosomes_output.tsv")) "species_orthologous_chromosomes_output.tsv" else NULL,
-  te_file    = if(file.exists("te_table.tsv")) "te_table.tsv" else NULL
+  te_file    = if(file.exists("te_table_output.tsv")) "te_table_output.tsv" else NULL
 )
 
 # UI
