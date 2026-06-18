@@ -413,8 +413,7 @@
                     "maximum": 1.0,
                     "description": "Minimum alignment coverage threshold (0.0–1.0) for repeat library clustering. Passed as -aS to CD-HIT-EST and -c (with --cov-mode 1) to MMseqs2.",
                     "fa_icon": "fas fa-ruler-horizontal"
-                },
-
+                }
             }
         }
     },

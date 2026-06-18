@@ -359,7 +359,7 @@ workflow GENOMEQC {
         BUSCO_SEQS_GENOME(
             GENOME_ONLY.out.buscos_per_seqs.map { tables -> [[id:"tables"], tables] }
         )
-        
+
         // Prepare channels for tree plot
         ch_tree_genome_anno = GENOME_AND_ANNOTATION.out.tree_data
                             | concat(BUSCO_SEQS_GENOME_ANNO.out.table.map { _meta, table -> table})
@@ -427,7 +427,7 @@ workflow GENOMEQC {
             ch_te_table,
             ch_tree_genome
         )
-        
+
         //
         // MODULE: Run SHINY APP
         //

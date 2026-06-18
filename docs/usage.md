@@ -322,11 +322,11 @@ The RepeatModeler de novo library is merged with the famdb curated library befor
 
 Before RepeatMasker runs, the repeat library is deduplicated by a clustering step. Three tools are available via `--te_clusterer`:
 
-| Value | Tool | Notes |
-|-------|------|-------|
-| `linclust` | MMseqs2 `easy-linclust` | **Default.** Linear-time, fastest. |
-| `mmseqs` | MMseqs2 `easy-cluster` | Slower than linclust, more sensitive. |
-| `cdhit` | CD-HIT-EST | Traditional approach. |
+| Value      | Tool                    | Notes                                 |
+| ---------- | ----------------------- | ------------------------------------- |
+| `linclust` | MMseqs2 `easy-linclust` | **Default.** Linear-time, fastest.    |
+| `mmseqs`   | MMseqs2 `easy-cluster`  | Slower than linclust, more sensitive. |
+| `cdhit`    | CD-HIT-EST              | Traditional approach.                 |
 
 Two thresholds can be tuned:
 
@@ -340,11 +340,11 @@ Two thresholds can be tuned:
 
 RepeatMasker sensitivity can be controlled with `--repeatmasker_speed`:
 
-| Value | Flag | Notes |
-|-------|------|-------|
-| `qq` | `-qq` | **Default.** Rush mode — fastest, lowest sensitivity. |
-| `q` | `-q` | Quick mode — ~5× faster than default, slightly reduced sensitivity. |
-| `default` | *(none)* | Full sensitivity — slowest. |
+| Value     | Flag     | Notes                                                               |
+| --------- | -------- | ------------------------------------------------------------------- |
+| `qq`      | `-qq`    | **Default.** Rush mode — fastest, lowest sensitivity.               |
+| `q`       | `-q`     | Quick mode — ~5× faster than default, slightly reduced sensitivity. |
+| `default` | _(none)_ | Full sensitivity — slowest.                                         |
 
 For TE quantification in a comparative genomics context, `qq` is usually sufficient. Use `default` if you need a publication-quality masked assembly.
 

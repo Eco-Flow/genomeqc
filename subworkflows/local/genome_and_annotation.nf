@@ -164,7 +164,7 @@ workflow GENOME_AND_ANNOTATION {
     //
     // MODULE: Run BUSCO for genome annotation
     //
-    
+
     if(!params.skip_busco) {
         BUSCO_GENOME (
             ch_fasta,
@@ -245,7 +245,7 @@ workflow GENOME_AND_ANNOTATION {
 
         GENOME_ANNOTATION_BUSCO_IDEOGRAM ( ch_plot_input )
     }
-    
+
     emit:
     orthofinder                = ch_orthofinder         // channel: [ val(meta), [folder] ]
     tree_data                  = ch_tree_data.flatten().collect()

@@ -16,7 +16,7 @@ process HITE {
     def args   = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
-    # Unzip the genome and make sure it does not have internal new line characters. 
+    # Unzip the genome and make sure it does not have internal new line characters.
     if [ -f *.gz ]; then
       gunzip -c "$fasta" > myunzip.fa
       #myunzip.fa=\$(gunzip -c "$fasta")

@@ -119,7 +119,7 @@ workflow GENOME_ONLY {
         )
         //ch_tree_data = ch_tree_data.mix(ORTHOLOGOUS_CHROMOSOMES.out.species_summary)
     }
-    
+
     emit:
     orthofinder             = !params.skip_busco ? ch_orthofinder : channel.empty()        // channel: [ val(meta), [folder] ]
     tree_data               = !params.skip_busco ? ch_tree_data.flatten().collect() : channel.empty()
