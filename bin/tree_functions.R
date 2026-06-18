@@ -120,6 +120,19 @@ load_genes <- function(file, tree_tips) {
   })
 }
 
+load_te <- function(file, tree_tips) {
+  if (is.null(file) || !file.exists(file)) return(NULL)
+  tryCatch({
+    data_te <- read.csv(file, sep = "\t") %>%
+      arrange(match(species, tree_tips)) %>%
+      mutate(node = 1:length(species))
+    data_te
+  }, error = function(e) {
+    warning("Failed to load TE file: ", conditionMessage(e))
+    NULL
+  })
+}
+
 load_nseqs <- function(file, tree_tips) {
   if (is.null(file) || !file.exists(file)) return(NULL)
   tryCatch({
@@ -145,7 +158,7 @@ load_nseqs <- function(file, tree_tips) {
 # Main data ingest (same name)
 # ---------------------------
 process_tree_data <- function(tree_file, busco_file_geno = NULL, busco_file_prot = NULL, quast_file = NULL,
-                              genes_file = NULL, nseqs_file = NULL, ortho_file = NULL) {
+                              genes_file = NULL, nseqs_file = NULL, ortho_file = NULL, te_file = NULL) {
 
   tree <- read.tree(tree_file)
   tree$tip.label <- trimws(tree$tip.label)
@@ -159,6 +172,7 @@ process_tree_data <- function(tree_file, busco_file_geno = NULL, busco_file_prot
   data_genes <- load_genes(genes_file, tips_order)
   data_nseqs <- load_nseqs(nseqs_file, tips_order)
   data_ortho <- load_nseqs(ortho_file, tips_order)
+  data_te    <- load_te(te_file, tips_order)
 
   tree$tip.label <- gsub("_", " ", tree$tip.label)  # matches gff_valid behavior
 
@@ -170,7 +184,8 @@ process_tree_data <- function(tree_file, busco_file_geno = NULL, busco_file_prot
     data_quast = data_quast,
     data_genes = data_genes,
     data_nseqs = data_nseqs,
-    data_ortho = data_ortho
+    data_ortho = data_ortho,
+    data_te    = data_te
   )
 }
 
@@ -235,6 +250,51 @@ plot_busco_pies <- function(data_busco,
   return(out)
 }
 
+plot_te_pies <- function(data_te, rad_width = NULL, len_pos_x = 0) {
+  out <- list(plot = NULL, legend = NULL)
+  if (is.null(data_te)) return(out)
+
+  te_colors <- c(
+    "SINE"           = "deepskyblue",
+    "LINE"           = "orange",
+    "LTR"            = "darkorchid4",
+    "Penelope"       = "firebrick1",
+    "DNA"            = "forestgreen",
+    "Rolling_Circle" = "goldenrod",
+    "Unclassified"   = "purple",
+    "Other"          = "indianred",
+    "Non_Repeat"     = "darkgray"
+  )
+
+  te_plot <- ggplot() +
+    geom_scatterpie(
+      aes(x = 0, y = node, group = species, r = rad_width),
+      data = data_te,
+      cols = names(te_colors),
+      color = NA
+    ) +
+    scale_fill_manual(values = te_colors) +
+    coord_fixed() +
+    theme_void() +
+    ggtitle("TE") +
+    theme(plot.title = element_text(size = 9, hjust = 0.5, vjust = 0.05))
+
+  legend_te <- cowplot::get_legend(
+    te_plot +
+      theme(
+        legend.position = "right",
+        legend.justification = c(len_pos_x, 1.08),
+        legend.title = element_blank(),
+        legend.key.size = unit(0.2, "cm"),
+        legend.text = element_text(size = 8)
+      )
+  )
+
+  out$plot   <- te_plot + guides(fill = "none")
+  out$legend <- legend_te
+  out
+}
+
 # Now for the plot generator
 generate_plots <- function(processed_data, text_size = 3, tree_scale = 0.0005,
                            bar_width = 0.7, rad_width = 0.4, skip_stats = NULL, busco_len_pos_x = 0.4) {
@@ -246,6 +306,7 @@ generate_plots <- function(processed_data, text_size = 3, tree_scale = 0.0005,
   data_genes <- processed_data$data_genes
   data_nseqs <- processed_data$data_nseqs
   data_ortho <- processed_data$data_ortho
+  data_te    <- processed_data$data_te
 
   # Small trees: reduce bar/pie sizes (as in gff_valid)
   if (length(tree$tip.label) < 7) {
@@ -336,6 +397,7 @@ generate_plots <- function(processed_data, text_size = 3, tree_scale = 0.0005,
                                       rad_width = rad_width,
                                       title = "BUSCO\nprotein",
                                       len_pos_x = len_pos_x)
+  te_result <- plot_te_pies(data_te, rad_width = rad_width)
 
 
   gene_plot <- NULL
@@ -376,6 +438,7 @@ generate_plots <- function(processed_data, text_size = 3, tree_scale = 0.0005,
     get_plot_range(ortho_plot, "y"),
     get_plot_range(busco_gen_plot$plot, "y"),
     get_plot_range(busco_prot_plot$plot, "y"),
+    get_plot_range(te_result$plot, "y"),
     get_plot_range(len_plot, "x"),
     get_plot_range(n50_plot, "x"),
     get_plot_range(gene_plot, "x")
@@ -390,6 +453,7 @@ generate_plots <- function(processed_data, text_size = 3, tree_scale = 0.0005,
     if (!is.null(ch_plot))    ch_plot    <- ch_plot    + new_ylim
     if (!is.null(busco_gen_plot$plot))  busco_gen_plot$plot  <- busco_gen_plot$plot  + new_ylim
     if (!is.null(busco_prot_plot$plot))  busco_prot_plot$plot  <- busco_prot_plot$plot  + new_ylim
+    if (!is.null(te_result$plot))       te_result$plot       <- te_result$plot       + new_ylim
 
     if (!is.null(len_plot))   len_plot   <- len_plot   + new_xlim
     if (!is.null(n50_plot))   n50_plot   <- n50_plot   + new_xlim
@@ -409,7 +473,8 @@ generate_plots <- function(processed_data, text_size = 3, tree_scale = 0.0005,
     gene_plot  = gene_plot,
     n50_plot   = n50_plot,
     busco_gen_plot  = busco_gen_plot$plot,
-    busco_prot_plot = busco_prot_plot$plot
+    busco_prot_plot = busco_prot_plot$plot,
+    te_plot         = te_result$plot
   )
   all_legends <- list(
     ch_plot   = NULL,
@@ -419,7 +484,8 @@ generate_plots <- function(processed_data, text_size = 3, tree_scale = 0.0005,
     gene_plot  = legend_gene,
     n50_plot   = NULL,
     busco_gen_plot  = busco_gen_plot$legend,
-    busco_prot_plot = if (!is.null(busco_gen_plot$legend)) NULL else busco_prot_plot$legend # Only plot legend once
+    busco_prot_plot = if (!is.null(busco_gen_plot$legend)) NULL else busco_prot_plot$legend, # Only plot legend once
+    te_plot         = te_result$legend
   )
 
   # What's this for? To filter out skipped plots and legends?
