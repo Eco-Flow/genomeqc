@@ -91,6 +91,7 @@ parser$add_argument('nseqs_file', type = 'character', help = 'Path to number seq
 parser$add_argument('--busco_geno', type = 'character', help = 'Path to processed BUSCO genome output file')
 parser$add_argument('--busco_prot', type = 'character', help = 'Path to processed BUSCO protein output file')
 parser$add_argument('--ortho_file', type = 'character', default = NULL, help = 'Path to number of orthologous sequences file')
+parser$add_argument('--te_file', type = 'character', help = 'Path to Transposable Elementes stats table')
 parser$add_argument('--text_size', type = 'double', default = 3, help = 'Text size for the tree plot')
 parser$add_argument('--tree_scale', type = 'double', default = 0.0005, help = 'x axis limits scaling for tree plot (useful when tree labels appear truncated)')
 parser$add_argument('--tree_margin', type = 'double', default = 15, help = "Tree's right margin size")
@@ -230,11 +231,11 @@ load_genes <- function(file, tree_tips) {
   })
 }
 
-# --- Helper function to load gene count data ---
+# --- Helper function to load BUSCO n seqs data ---
 load_nseqs <- function(file, tree_tips) {
   if (is.null(file)) return(NULL)
   tryCatch({
-    # Load gene stats
+    # Load n seqs
     data_nseqs <- read.csv(file, sep = "\t")
     data_nseqs
     # Arrange data according to tree labels
@@ -247,6 +248,24 @@ load_nseqs <- function(file, tree_tips) {
   })
 }
 
+# --- Helper function to load TE data ---
+load_te <- function(file, tree_tips) {
+  if (is.null(file)) return(NULL)
+  tryCatch({
+    # Load gene stats
+    data_te <- read.csv(file, sep = "\t")
+    # Arrange data according to tree labels
+    data_te <- data_te %>%
+    # Arrange data according to tree labels
+      arrange(match(species, tree_tips)) %>%
+    # Add node column
+      mutate(node = 1:length(species)) # Node number needed for nodpie
+  }, error = function(e) {
+    warning("Failed to load TE file: ", conditionMessage(e))
+    NULL
+  })
+}
+
 # --- Load optional input files ---
 data_busco_geno <- load_busco(args$busco_geno, tips_order)
 data_busco_prot <- load_busco(args$busco_prot, tips_order)
@@ -254,6 +273,7 @@ data_quast <- load_quast(args$quast_file, tips_order)
 data_genes <- load_genes(args$genes_file, tips_order)
 data_nseqs <- load_nseqs(args$nseqs_file, tips_order)
 data_ortho <- load_nseqs(args$ortho_file, tips_order)
+data_te <- load_te(args$te_file, tips_order)
 
 # Extract names for debugging
 # tree_sp <- sort(tree$tip.label)
@@ -438,6 +458,69 @@ make_busco_scatterpie <- function(data_busco,
   list(
     plot   = pies_plot,
     legend = legend_busco
+  )
+}
+
+# Helper function to plot TE pies
+make_te_scatterpie <- function(data_te,
+                                  rad_width,
+                                  len_pos_x = 0) {
+
+  if (is.null(data_te)) {
+    return(list(
+      pies_plot = NULL,
+      legend_te = NULL
+    ))
+  }
+
+  type <- match.arg(type)
+
+  # Create the scatterpie plot
+  pies_plot <- ggplot() +
+    geom_scatterpie(
+      aes(x = 0, y = node, group = species, r = rad_width),
+      data = data_te,
+      cols = c("SINE", "LINE", "LTR", "Penelope",	"DNA",	"Rolling_Circle",	"Unclassified",	"Other",	"Non_Repeat"),
+      color = NA
+    ) +
+    scale_fill_manual(
+      values = c(
+        "SINE"     = "deepskyblue",
+        "LINE"     = "orange",
+        "LTR"      = "darkorchid4",
+        "Penelope" = "firebrick1",
+        "DNA"      = "forestgreen",
+        "Rolling_Circle" = "goldenrod",
+        "Unclassified" = "purple",
+        "Other" = "indianred",
+        "Non_Repeat" = "darkgray"
+      )
+    ) +
+    coord_fixed() +
+    theme_void() +
+    ggtitle("TE") +
+    theme(
+      plot.title = element_text(size = 9, hjust = 0.5, vjust = 0.05)
+    )
+
+  # Extract legend
+  legend_te <- cowplot::get_legend(
+    pies_plot +
+      theme(
+        legend.position = "right",
+        legend.justification = c(len_pos_x, 1.08),
+        legend.title = element_blank(),
+        legend.key.size = unit(0.2, "cm"),
+        legend.text = element_text(size = 8)
+      )
+  )
+
+  # Remove legend from pie plot
+  pies_plot <- pies_plot + guides(fill = "none")
+
+  list(
+    plot   = pies_plot,
+    legend = legend_te
   )
 }
 
