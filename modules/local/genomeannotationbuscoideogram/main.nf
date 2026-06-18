@@ -1,4 +1,4 @@
-process GENOME_ANNOTATION_BUSCO_IDEOGRAM {
+process GENOMEANNOTATIONBUSCOIDEOGRAM {
     tag "${genusspeci}_${lineage}"
     label 'process_single'
 
@@ -38,7 +38,7 @@ process GENOME_ANNOTATION_BUSCO_IDEOGRAM {
 
     stub:
     def args = task.ext.args ?: ''
-    def prefix = task.ext.prefix ?: "${meta.id}"
+    def prefix = "${genusspeci}_${lineage}"
 
     """
     echo $args

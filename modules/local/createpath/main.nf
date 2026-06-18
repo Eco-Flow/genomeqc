@@ -1,4 +1,4 @@
-process CREATE_PATH {
+process CREATEPATH {
     tag "$meta.id"
     label 'process_single'
 

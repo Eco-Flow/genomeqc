@@ -1,4 +1,4 @@
-process ORTHOFINDER_V2 {
+process ORTHOFINDERV2 {
     tag "$meta.id"
     label 'process_high'
     

@@ -1,4 +1,4 @@
-process TREE_SUMMARY {
+process TREESUMMARY {
     tag "$meta.id"
     label 'process_single'
 

@@ -1,4 +1,4 @@
-process GENE_OVERLAPS {
+process GENEOVERLAPS {
     tag "$meta.id"
     label 'process_single'
     container 'ecoflowucl/gene_overlap:v1.0'

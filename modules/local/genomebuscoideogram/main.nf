@@ -1,4 +1,4 @@
-process GENOME_ONLY_BUSCO_IDEOGRAM {
+process GENOMEONLYBUSCOIDEOGRAM {
     tag "$meta.id"
     label 'process_single'
 

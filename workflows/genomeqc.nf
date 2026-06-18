@@ -7,14 +7,14 @@
 include { MERYL_UNIONSUM                           } from '../modules/nf-core/meryl/unionsum/main'
 include { MERYL_COUNT                              } from '../modules/nf-core/meryl/count/main'
 include { MERQURY_MERQURY                          } from '../modules/nf-core/merqury/merqury/main'
-include { CREATE_PATH                              } from '../modules/local/createpath/main'
+include { CREATEPATH                              } from '../modules/local/createpath/main'
 include { NCBIGENOMEDOWNLOAD                       } from '../modules/nf-core/ncbigenomedownload/main'
 include { PIGZ_UNCOMPRESS as UNCOMPRESS_FASTA      } from '../modules/nf-core/pigz/uncompress/main'
 include { PIGZ_UNCOMPRESS as UNCOMPRESS_GXF        } from '../modules/nf-core/pigz/uncompress/main'
 include { GENOME_ONLY                              } from '../subworkflows/local/genome_only'
 include { GENOME_AND_ANNOTATION                    } from '../subworkflows/local/genome_and_annotation'
-include { TREE_SUMMARY as TREE_SUMMARY_GENO_ANNO   } from '../modules/local/treesummary/main'
-include { TREE_SUMMARY as TREE_SUMMARY_GENO        } from '../modules/local/treesummary/main'
+include { TREESUMMARY as TREE_SUMMARY_GENO_ANNO   } from '../modules/local/treesummary/main'
+include { TREESUMMARY as TREE_SUMMARY_GENO        } from '../modules/local/treesummary/main'
 include { FASTA_EXPLORE_SEARCH_PLOT_TIDK           } from '../subworkflows/nf-core/fasta_explore_search_plot_tidk/main'
 include { DECONTAMINATION                          } from '../subworkflows/local/decontamination'
 include { BUSCO_SEQS as BUSCO_SEQS_GENOME_ANNO     } from '../modules/local/buscos_seqs/main'
@@ -70,14 +70,14 @@ workflow GENOMEQC {
     //
 
     // ch_input.ncbi is now a 3-element tuple, last element is the fastq.
-    // We need to remove it before CREATE_PATH
+    // We need to remove it before CREATEPATH
     ch_input.ncbi
         | map { meta, refseq, _fq -> tuple( meta, refseq ) }
-        | CREATE_PATH
+        | CREATEPATH
 
     // For NCBIGENOMEDOWNLOAD
 
-    ch_ncbi_input = CREATE_PATH.out.accession
+    ch_ncbi_input = CREATEPATH.out.accession
                     | multiMap {
                         meta, accession ->
                             meta      : meta

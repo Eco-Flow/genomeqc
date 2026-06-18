@@ -1,8 +1,8 @@
 include { QUAST                               } from '../../modules/nf-core/quast/main'
 include { BUSCO_BUSCO                         } from '../../modules/nf-core/busco/busco/main'
-include { GENOME_ONLY_BUSCO_IDEOGRAM          } from '../../modules/local/genomebuscoideogram/main'
+include { GENOMEONLYBUSCOIDEOGRAM          } from '../../modules/local/genomebuscoideogram/main'
 include { ORTHOFINDER as ORTHOFINDER_V3       } from '../../modules/nf-core/orthofinder/main'
-include { ORTHOFINDER_V2                      } from '../../modules/local/orthofinderv2/main'
+include { ORTHOFINDERV2                      } from '../../modules/local/orthofinderv2/main'
 include { BUSCO_TSV_TO_GFF                    } from '../../modules/local/busco_tsv_to_gff/main'
 include { ORTHOLOGOUS_CHROMOSOMES             } from '../../modules/local/orthologous_chromosomes'
 include { GAWK                                } from '../../modules/nf-core/gawk/main'
@@ -65,7 +65,7 @@ workflow GENOME_ONLY {
                       | combine(ch_full_table, by:0)
 
 
-        GENOME_ONLY_BUSCO_IDEOGRAM (
+        GENOMEONLYBUSCOIDEOGRAM (
             ch_input_ideo
         )
 
@@ -97,10 +97,10 @@ workflow GENOME_ONLY {
             )
             ch_orthofinder = ORTHOFINDER_V3.out.orthofinder
         } else if (params.ortho_version == 'v2' ) {
-            ORTHOFINDER_V2 (
+            ORTHOFINDERV2 (
                 ch_busco_proteins
             )
-            ch_orthofinder = ORTHOFINDER_V2.out.orthofinder
+            ch_orthofinder = ORTHOFINDERV2.out.orthofinder
         }
         // Transform tsv to gff for orthologous chromosomes module
         BUSCO_TSV_TO_GFF (
@@ -125,7 +125,7 @@ workflow GENOME_ONLY {
     tree_data               = !params.skip_busco ? ch_tree_data.flatten().collect() : channel.empty()
     quast_results           = QUAST.out.results                   // channel: [ val(meta), [tsv] ]
     busco_short_summaries   = !params.skip_busco ? BUSCO_BUSCO.out.short_summaries_txt : channel.empty() // channel: [ val(meta), [txt] ]
-    buscos_per_seqs         = !params.skip_busco ? GENOME_ONLY_BUSCO_IDEOGRAM.out.busco_mappings.collect { meta, table -> table} : channel.empty() // channel: [ csv ]
+    buscos_per_seqs         = !params.skip_busco ? GENOMEONLYBUSCOIDEOGRAM.out.busco_mappings.collect { meta, table -> table} : channel.empty() // channel: [ csv ]
     busco_batch_summaries   = !params.skip_busco ? GAWK.out.output : channel.empty()                     // channel: [ val(meta), path(tsv) ] — species-named batch summaries
     quast_tsv               = QUAST.out.tsv                       // channel: [ val(meta), path(tsv) ]
 
