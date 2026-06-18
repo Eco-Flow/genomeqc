@@ -291,6 +291,10 @@
                     "help_text": "Comma-separated list of plot types to skip. Valid values: ch_plot, len_plot, n50_plot, pies_plot\nch_plot: Number of sequences\nlen_plot: Genome size and GC content\nn50_plot: N50\npies_plot: BUSCO stats",
                     "default": "nseqs_plot"
                 },
+                "skip_busco": {
+                    "type": "boolean",
+                    "description": "Skip BUSCO. If run on genome only, it will also skip orthofinder."
+                },
                 "val_tool": {
                     "type": "string",
                     "default": "agat",
@@ -344,7 +348,6 @@
                 "is_plant": {
                     "type": "boolean",
                     "description": "Set to true for plant genomes (passed to HiTE).",
-                    "default": false,
                     "fa_icon": "fas fa-leaf"
                 },
                 "curated_lib": {
@@ -366,8 +369,7 @@
                 },
                 "run_repeatmodeler": {
                     "type": "boolean",
-                    "description": "Run de novo repeat discovery with RepeatModeler before masking. Disabled by default — RepeatModeler typically requires 24 CPUs and 24–48 h per genome. When false, only the curated famdb library is used.",
-                    "default": false,
+                    "description": "Run de novo repeat discovery with RepeatModeler before masking. Disabled by default \u2014 RepeatModeler typically requires 24 CPUs and 24\u201348 h per genome. When false, only the curated famdb library is used.",
                     "fa_icon": "fas fa-clock"
                 },
                 "repeatmasker_speed": {
@@ -389,7 +391,8 @@
                     "items": {
                         "type": "string"
                     },
-                    "fa_icon": "fas fa-link"
+                    "fa_icon": "fas fa-link",
+                    "default": "['https://www.dfam.org/releases/Dfam_3.9/families/FamDB/dfam39_full.0.h5.gz']"
                 },
                 "te_clusterer": {
                     "type": "string",
@@ -401,17 +404,17 @@
                 "te_cluster_identity": {
                     "type": "number",
                     "default": 0.8,
-                    "minimum": 0.0,
-                    "maximum": 1.0,
-                    "description": "Minimum sequence identity threshold (0.0–1.0) for repeat library clustering. Passed as -c to CD-HIT-EST and --min-seq-id to MMseqs2.",
+                    "minimum": 0,
+                    "maximum": 1,
+                    "description": "Minimum sequence identity threshold (0.0\u20131.0) for repeat library clustering. Passed as -c to CD-HIT-EST and --min-seq-id to MMseqs2.",
                     "fa_icon": "fas fa-percentage"
                 },
                 "te_cluster_coverage": {
                     "type": "number",
                     "default": 0.8,
-                    "minimum": 0.0,
-                    "maximum": 1.0,
-                    "description": "Minimum alignment coverage threshold (0.0–1.0) for repeat library clustering. Passed as -aS to CD-HIT-EST and -c (with --cov-mode 1) to MMseqs2.",
+                    "minimum": 0,
+                    "maximum": 1,
+                    "description": "Minimum alignment coverage threshold (0.0\u20131.0) for repeat library clustering. Passed as -aS to CD-HIT-EST and -c (with --cov-mode 1) to MMseqs2.",
                     "fa_icon": "fas fa-ruler-horizontal"
                 }
             }
