@@ -265,7 +265,7 @@ workflow GENOMEQC {
     // RepeatMasker .tbl summaries for the HTML/Excel reports (empty if TE annotation was skipped)
     ch_repeatmasker_tbl = (params.te == 'repeatmasker')
                         ? FASTA_ANNOTATE_TE.out.tbl.map { _meta, f -> f }.collect().ifEmpty([[],[]]) // If no repeatmasker results are found, return an empty channel instead of failing
-                        : channel.value([])
+                        : channel.empty()
 
     // RepeatMasker .tbl summaries for tree plots
     TE_TBL_2_TABLE (
@@ -313,7 +313,7 @@ workflow GENOMEQC {
             ch_fcsadp_go,
             ch_tiara_go,
             BUSCO_SEQS_GENOME.out.table.map { _meta, f -> f }.ifEmpty([]),
-            ch_repeatmasker_tbl
+            ch_repeatmasker_tbl.ifEmpty([])
         )
 
         //
@@ -332,7 +332,7 @@ workflow GENOMEQC {
             ch_fcsadp_go,
             ch_tiara_go,
             BUSCO_SEQS_GENOME.out.table.map { _meta, f -> f }.ifEmpty([]),     // no busco_seqs in genome-only mode
-            ch_repeatmasker_tbl
+            ch_repeatmasker_tbl.ifEmpty([])
         )
     } else {
         GENOME_ONLY (
