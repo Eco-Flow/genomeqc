@@ -264,13 +264,15 @@ workflow GENOMEQC {
 
     // RepeatMasker .tbl summaries for the HTML/Excel reports (empty if TE annotation was skipped)
     ch_repeatmasker_tbl = (params.te == 'repeatmasker')
-                        ? FASTA_ANNOTATE_TE.out.tbl.map { _meta, f -> f }.collect().ifEmpty([])
+                        ? FASTA_ANNOTATE_TE.out.tbl.map { _meta, f -> f }.collect().ifEmpty([[],[]]) // If no repeatmasker results are found, return an empty channel instead of failing
                         : channel.value([])
 
     // RepeatMasker .tbl summaries for tree plots
     TE_TBL_2_TABLE (
         ch_repeatmasker_tbl.map { f -> tuple([id:'te_table'], f) }
     )
+
+    ch_te_table = TE_TBL_2_TABLE.out.table.ifEmpty([])
 
     //
     // SUBWORKFLOWS: Run genome only or genome + annotation subworkflows
@@ -413,7 +415,8 @@ workflow GENOMEQC {
             GENOME_AND_ANNOTATION.out.orthofinder,
             ch_busco_geno_anno.geno,
             ch_busco_geno_anno.prot,
-            ch_tree_genome_anno
+            ch_tree_genome_anno,
+            ch_te_table
         )
 
         // Run TREE SUMMARY for genome only
@@ -421,7 +424,8 @@ workflow GENOMEQC {
             GENOME_ONLY.out.orthofinder,
             ch_busco_geno, // If no busco results are found, return an empty channel instead of failing
             [[],[]], // No busco proteins for genome only (busco runs on genome)
-            ch_tree_genome
+            ch_tree_genome,
+            ch_te_table
         )
         
         //

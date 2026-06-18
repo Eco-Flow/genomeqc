@@ -40,7 +40,7 @@ process TREE_SUMMARY {
     def prot_busco_combined = prot_busco ? '''{ head -qn 1 *-proteins-busco.batch_summary_modified.txt | head -n 1; tail -q -n 1 *-proteins-busco.batch_summary_modified.txt | sed -E 's/\t+/\t/g' | sed 's/\t$//g'; } > Busco_combined_prot.tsv''' : ''
     def geno_busco_file = geno_busco ? '--busco_geno Busco_combined_geno.tsv' : ''
     def prot_busco_file = prot_busco ? '--busco_prot Busco_combined_prot.tsv' : ''
-    def te_table_file = te_table ? '--te_table ' + te_table : ''
+    def te_table_file = te_table ? '--te_table $te_table' : ''
 
 
     """
