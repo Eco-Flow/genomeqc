@@ -415,8 +415,8 @@ workflow GENOMEQC {
             GENOME_AND_ANNOTATION.out.orthofinder,
             ch_busco_geno_anno.geno,
             ch_busco_geno_anno.prot,
-            ch_tree_genome_anno,
-            ch_te_table
+            ch_te_table,
+            ch_tree_genome_anno
         )
 
         // Run TREE SUMMARY for genome only
@@ -424,8 +424,8 @@ workflow GENOMEQC {
             GENOME_ONLY.out.orthofinder,
             ch_busco_geno, // If no busco results are found, return an empty channel instead of failing
             [[],[]], // No busco proteins for genome only (busco runs on genome)
-            ch_tree_genome,
-            ch_te_table
+            ch_te_table,
+            ch_tree_genome
         )
         
         //
