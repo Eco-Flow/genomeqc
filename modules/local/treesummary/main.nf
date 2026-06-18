@@ -92,4 +92,19 @@ process TREE_SUMMARY {
 
     """
 
+    stub:
+    def args = task.ext.args ?: ''
+    def prefix = task.ext.prefix ?: "${meta.id}"
+
+    """
+    echo $args
+    
+    touch tree_plot.pdf
+    touch tree_plot.svg
+    touch tree.nw
+    touch ${prefix}.tsv
+    touch te_table_output.tsv
+    touch n_seqs_above_x_buscos_output.tsv
+    touch species_orthologous_chromosomes_output.tsv
+    """
 }

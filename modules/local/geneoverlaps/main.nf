@@ -22,4 +22,15 @@ process GENE_OVERLAPS {
     gene_overlaps.R $gff ${prefix}.summary.tsv ${prefix}.counts.tsv
 
     """
+
+    stub:
+    def args = task.ext.args ?: ''
+    def prefix = task.ext.prefix ?: "${meta.id}"
+
+    """
+    echo $args
+    
+    touch ${prefix}.summary.tsv
+    touch ${prefix}.counts.tsv
+    """
 }

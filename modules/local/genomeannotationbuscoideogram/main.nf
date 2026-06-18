@@ -2,7 +2,7 @@ process GENOME_ANNOTATION_BUSCO_IDEOGRAM {
     tag "${genusspeci}_${lineage}"
     label 'process_single'
 
-    conda "bioconda::r-rideogram=0.2.2 bioconda::r-svglite=2.1.1"
+    conda "${moduleDir}/environment.yml"
     container "community.wave.seqera.io/library/seqkit_r-dplyr_r-optparse_r-readr_pruned:92b750716d244919"
 
     input:
@@ -34,5 +34,17 @@ process GENOME_ANNOTATION_BUSCO_IDEOGRAM {
         --prefix ${genusspeci} \\
         $args
 
+    """
+
+    stub:
+    def args = task.ext.args ?: ''
+    def prefix = task.ext.prefix ?: "${meta.id}"
+
+    """
+    echo $args
+    
+    touch ${genusspeci}.svg
+    touch ${genusspeci}.png
+    touch ${genusspeci}.csv
     """
 }

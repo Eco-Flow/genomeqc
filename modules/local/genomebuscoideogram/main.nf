@@ -2,7 +2,7 @@ process GENOME_ONLY_BUSCO_IDEOGRAM {
     tag "$meta.id"
     label 'process_single'
 
-    conda "bioconda::r-rideogram=0.2.2 bioconda::r-svglite=2.1.1"
+    conda "${moduleDir}/environment.yml"
     container "community.wave.seqera.io/library/seqkit_r-dplyr_r-optparse_r-readr_pruned:92b750716d244919"
 
     input:
@@ -34,5 +34,17 @@ process GENOME_ONLY_BUSCO_IDEOGRAM {
         --prefix ${prefix} \\
         $args
 
+    """
+
+    stub:
+    def args = task.ext.args ?: ''
+    def prefix = task.ext.prefix ?: "${meta.id}"
+
+    """
+    echo $args
+    
+    touch ${prefix}.svg
+    touch ${prefix}.png
+    touch ${prefix}.csv
     """
 }

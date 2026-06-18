@@ -1,7 +1,8 @@
 process ORTHOFINDER_V2 {
     tag "$meta.id"
     label 'process_high'
-
+    
+    conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/orthofinder:2.5.5--hdfd78af_2' :
         'biocontainers/orthofinder:2.5.5--hdfd78af_2' }"
@@ -21,6 +22,7 @@ process ORTHOFINDER_V2 {
     script:
     def args = task.ext.args ?: ''
     prefix   = task.ext.prefix ?: "${meta.id}"
+
     """
     mkdir temp_pickle
 
@@ -39,7 +41,10 @@ process ORTHOFINDER_V2 {
 
     stub:
     prefix = task.ext.prefix ?: "${meta.id}"
+    
     """
+    echo $args
+
     mkdir -p    $prefix/Comparative_Genomics_Statistics
     mkdir       $prefix/Gene_Duplication_Events
     mkdir       $prefix/Gene_Trees
@@ -59,3 +64,4 @@ process ORTHOFINDER_V2 {
     touch       $prefix/Phylogenetic_Hierarchical_Orthogroups/N0.tsv
     """
 }
+
