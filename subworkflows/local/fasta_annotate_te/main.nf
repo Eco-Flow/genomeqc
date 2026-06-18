@@ -78,7 +78,7 @@ workflow FASTA_ANNOTATE_TE {
 
         if (val_te_clusterer == 'cdhit') {
             CDHIT_CDHITEST ( CAT_CAT.out.file_out )
-            ch_clustered_lib = CDHIT_CDHITEST.out.fasta_lib
+            ch_clustered_lib = CDHIT_CDHITEST.out.fasta
         } else if (val_te_clusterer == 'linclust') {
             MMSEQS_EASYLINCLUST ( CAT_CAT.out.file_out )
             ch_clustered_lib = MMSEQS_EASYLINCLUST.out.representatives
@@ -93,7 +93,7 @@ workflow FASTA_ANNOTATE_TE {
 
         if (val_te_clusterer == 'cdhit') {
             CDHIT_CDHITEST ( FAMDB_PY_EMBL.out.famdb_lib )
-            ch_shared_lib = CDHIT_CDHITEST.out.fasta_lib | map { meta, fasta -> fasta }
+            ch_shared_lib = CDHIT_CDHITEST.out.fasta | map { meta, fasta -> fasta }
         } else if (val_te_clusterer == 'linclust') {
             MMSEQS_EASYLINCLUST ( FAMDB_PY_EMBL.out.famdb_lib )
             ch_shared_lib = MMSEQS_EASYLINCLUST.out.representatives | map { meta, fasta -> fasta }
