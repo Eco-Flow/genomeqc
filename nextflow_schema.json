@@ -391,8 +391,7 @@
                     "items": {
                         "type": "string"
                     },
-                    "fa_icon": "fas fa-link",
-                    "default": ["https://www.dfam.org/releases/Dfam_3.9/families/FamDB/dfam39_full.0.h5.gz"]
+                    "fa_icon": "fas fa-link"
                 },
                 "te_clusterer": {
                     "type": "string",
