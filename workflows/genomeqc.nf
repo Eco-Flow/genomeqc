@@ -19,6 +19,7 @@ include { FASTA_EXPLORE_SEARCH_PLOT_TIDK           } from '../subworkflows/nf-co
 include { DECONTAMINATION                          } from '../subworkflows/local/decontamination'
 include { BUSCO_SEQS as BUSCO_SEQS_GENOME_ANNO     } from '../modules/local/buscos_seqs/main'
 include { BUSCO_SEQS as BUSCO_SEQS_GENOME          } from '../modules/local/buscos_seqs/main'
+include { BUSCO_DOWNLOAD                           } from '../modules/nf-core/busco/download/main'
 include { SHINY_APP as SHINY_APP_GENOME_ANNO       } from '../modules/local/shiny_app/main'
 include { SHINY_APP as SHINY_APP_GENOME            } from '../modules/local/shiny_app/main'
 include { HTML_REPORT as HTML_REPORT_GENOME_ANNO   } from '../modules/local/html_report/main'
@@ -173,6 +174,19 @@ workflow GENOMEQC {
     // For TIDK the ch_fasta channel will work
 
     //
+    // MODULE: Download BUSCO database
+    //
+
+    if ( params.busco_lineages_path ) {
+        ch_busco_db = params.busco_lineages_path
+    } else if ( params.busco_lineage != 'auto' && params.busco_lineage != null ) {
+        BUSCO_DOWNLOAD ( params.busco_lineage )
+        ch_busco_db = BUSCO_DOWNLOAD.out.download_dir
+    } else {
+        ch_busco_db = channel.value([])
+    }
+
+    //
     // Run DECONTAMINATION
     //
 
@@ -280,7 +294,8 @@ workflow GENOMEQC {
     // Run genome only or genome + gxf
     if (params.genome_only) {
         GENOME_ONLY (
-            ch_input_anno.fasta.mix(ch_input_geno.fasta)
+            ch_input_anno.fasta.mix(ch_input_geno.fasta),
+            ch_busco_db.ifEmpty([])
         )
         ch_multiqc_files = ch_multiqc_files
                          | mix(GENOME_ONLY.out.quast_results.map { _meta, results -> results })
@@ -336,11 +351,13 @@ workflow GENOMEQC {
         )
     } else {
         GENOME_ONLY (
-            ch_input_geno.fasta
+            ch_input_geno.fasta,
+            ch_busco_db.ifEmpty([])
         )
         GENOME_AND_ANNOTATION (
             ch_input_anno.fasta,
-            ch_input_anno.gxf
+            ch_input_anno.gxf,
+            ch_busco_db.ifEmpty([])
         )
         ch_multiqc_files = ch_multiqc_files
                          | mix(GENOME_AND_ANNOTATION.out.quast_results.map { _meta, results -> results })

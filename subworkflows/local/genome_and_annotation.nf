@@ -20,6 +20,7 @@ workflow GENOME_AND_ANNOTATION {
     take:
     ch_fasta // channel: [ val(meta), [ fasta ] ]
     ch_gxf   // channel: [ val(meta), [ gxf ] ]
+    ch_busco_db // channel: [ val(lineage) ]
 
     main:
     ch_fasta.view { "Running ${it[0]} on genome and annotation mode"}
@@ -170,7 +171,7 @@ workflow GENOME_AND_ANNOTATION {
             ch_fasta,
             'genome',
             params.busco_lineage,
-            params.busco_lineages_path ?: [],
+            ch_busco_db,
             params.busco_config ?: [],
             params.busco_clean ?: []
         )
@@ -183,7 +184,7 @@ workflow GENOME_AND_ANNOTATION {
             GFFREAD.out.gffread_fasta,
             'proteins',
             params.busco_lineage,
-            params.busco_lineages_path ?: [],
+            ch_busco_db,
             params.busco_config ?: [],
             params.busco_clean ?: []
         )

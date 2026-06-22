@@ -10,7 +10,8 @@ include { GAWK                                } from '../../modules/nf-core/gawk
 workflow GENOME_ONLY {
 
     take:
-    ch_fasta // channel: [ val(meta), [ fasta ] ]
+    ch_fasta    // channel: [ val(meta), [ fasta ] ]
+    ch_busco_db // channel: path | []
 
     main:
     ch_fasta.view { "Running ${it[0]} on genome only mode"}
@@ -36,7 +37,7 @@ workflow GENOME_ONLY {
             ch_fasta,
             "genome", // hardcoded, other options ('proteins', 'transcriptome') make no sense
             params.busco_lineage,
-            params.busco_lineages_path ?: [],
+            ch_busco_db,
             params.busco_config ?: [],
             params.busco_clean ?: []
         )
