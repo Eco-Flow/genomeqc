@@ -286,7 +286,7 @@ workflow GENOMEQC {
         ch_repeatmasker_tbl.map { f -> tuple([id:'te_table'], f) }
     )
 
-    ch_te_table = TE_TBL_2_TABLE.out.table.ifEmpty([])
+    ch_te_table = TE_TBL_2_TABLE.out.table.ifEmpty([ [], [] ])
 
     //
     // SUBWORKFLOWS: Run genome only or genome + annotation subworkflows
