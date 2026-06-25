@@ -10,3 +10,11 @@ multiqc/multiqc_plots/{svg,pdf,png}/*.{svg,pdf,png}
 multiqc/multiqc_report.html
 fastqc/*_fastqc.{html,zip}
 pipeline_info/*.{html,json,txt,yml}
+orthofinder/**
+busco/*/stats/short_summary.specific.*.txt
+busco/busco_downloads/lineages/*/refseq_db.faa.gz
+quast/**/quast.log
+quast/**/report.html
+quast/**/report.pdf
+orthologous_chromosomes/debug_gene_mapping.txt
+**/*.pdf
