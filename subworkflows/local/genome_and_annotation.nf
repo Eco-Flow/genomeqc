@@ -251,11 +251,11 @@ workflow GENOME_AND_ANNOTATION {
     orthofinder                = ch_orthofinder         // channel: [ val(meta), [folder] ]
     tree_data                  = ch_tree_data.flatten().collect()
     quast_results              = QUAST.out.results                   // channel: [ val(meta), [tsv] ]
-    busco_short_summaries_geno = !params.skip_busco ? GAWK_GENO.out.output : Channel.empty()
-    busco_short_summaries_prot = !params.skip_busco ? GAWK_PROT.out.output : Channel.empty()
+    busco_short_summaries_geno = !params.skip_busco ? GAWK_GENO.out.output : channel.empty()
+    busco_short_summaries_prot = !params.skip_busco ? GAWK_PROT.out.output : channel.empty()
     quast_tsv                  = QUAST.out.tsv                       // channel: [ val(meta), path(tsv) ]
     agat_stats                 = AGAT_SPSTATISTICS.out.stats_txt     // channel: [ val(meta), path(txt) ]
     orthologous_chromosomes    = ORTHOLOGOUS_CHROMOSOMES.out.species_summary // channel: [ path(tsv) ]
-    buscos_per_seqs            = !params.skip_busco ? GENOMEANNOTATIONBUSCOIDEOGRAM.out.busco_mappings.collect { meta, table -> table} : channel.empty() // channel: [ val(meta), [csv] ]
+    buscos_per_seqs            = !params.skip_busco ? GENOMEANNOTATIONBUSCOIDEOGRAM.out.busco_mappings.collect { meta, table -> table}.map { tables -> tables.toSorted { a, b -> a.name <=> b.name } } : channel.empty() // channel: [ val(meta), [csv] ]
     versions                   = ch_versions                   // channel: [ versions.yml ]
 }
