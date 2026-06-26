@@ -18,3 +18,4 @@ quast/**/report.html
 quast/**/report.pdf
 orthologous_chromosomes/debug_gene_mapping.txt
 **/*.pdf
+agat/Mycoplasmoides_gallisepticum/stats/Mycoplasmoides_gallisepticum.stats.txt
