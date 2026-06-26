@@ -130,10 +130,10 @@ workflow GENOME_AND_ANNOTATION {
         }
         | collect // Collect all fasta in a single tuple
         | filter { fastas ->
-            fastas.size() >= 3 // Ensure we have at least 4 genomes for orthofinder, otherwise it won't run
+            fastas.size() >= 3 // Ensure we have at least 3 genomes for orthofinder, otherwise it won't run
         }
         | map { fastas ->
-            [[id:'orthofinder', mode:'genome_anno'], fastas]
+            [[id:'orthofinder', mode:'genome_anno'], fastas.toSorted { a, b -> a.name <=> b.name }] // sort for deterministic behaviour
         }
 
     // Run orthofinder

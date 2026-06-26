@@ -1337,7 +1337,6 @@
                 "Mycoplasmoides_fastidiosum.agat.gff:md5,8e8ee97f4ea2475236353c74801c0b7a",
                 "Mycoplasmoides_fastidiosum.stats.txt:md5,ad2144d589b81a1e82c5b5d4cca6dcaa",
                 "Mycoplasmoides_gallisepticum.agat.gff:md5,538df9f41b50c7e173e54193b6719be1",
-                "Mycoplasmoides_gallisepticum.stats.txt:md5,4e04cfc958f0271d98d4500d50c513ce",
                 "Mycoplasmoides_genitalium.agat.gff:md5,b9d410a34cdd1f0d805c631b5e50091d",
                 "Mycoplasmoides_genitalium.stats.txt:md5,19009d10939373aec6f20f2bc16266a0",
                 "Mycoplasmoides_fastidiosum-mycoplasmatales_odb10-genome-busco.batch_summary.txt:md5,751aca5cdf00cbcfe4ec1962d22af4bf",
@@ -1600,7 +1599,7 @@
                 "Mycoplasmoides_genitalium.tidk.explore.tsv:md5,944f49381b397f9292fba77ac2fde706"
             ]
         ],
-        "timestamp": "2026-06-25T16:33:54.255836157",
+        "timestamp": "2026-06-26T10:03:32.525403213",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "26.04.4"

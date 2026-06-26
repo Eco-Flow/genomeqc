@@ -87,7 +87,7 @@ workflow GENOME_ONLY {
                                         file_paths.size() >= 3 // Ensure there are enough BUSCO proteins, otherwise skip orthofinder
                           }
                           | map { file_paths ->
-                                    [[ id: 'orthofinder_run', mode: 'genome' ], file_paths]
+                                    [[ id: 'orthofinder', mode: 'genome' ], file_paths.toSorted { a, b -> a.name <=> b.name }] // for deterministic behaviour
                           }
 
         //Run orthofinder
