@@ -9,14 +9,10 @@ include { INPUT_PREPARATION                        } from '../subworkflows/local
 include { GENOME_ONLY                              } from '../subworkflows/local/genome_only'
 include { GENOME_AND_ANNOTATION                    } from '../subworkflows/local/genome_and_annotation'
 include { TREE_SUMMARY_SHINY_APP                   } from '../subworkflows/local/tree_summary_shiny_app/main'
-include { TREESUMMARY as TREE_SUMMARY_GENO_ANNO    } from '../modules/local/treesummary/main'
-include { TREESUMMARY as TREE_SUMMARY_GENO         } from '../modules/local/treesummary/main'
 include { FASTA_EXPLORE_SEARCH_PLOT_TIDK           } from '../subworkflows/nf-core/fasta_explore_search_plot_tidk/main'
 include { DECONTAMINATION                          } from '../subworkflows/local/decontamination'
 include { BUSCO_SEQS as BUSCO_SEQS_GENOME_ANNO     } from '../modules/local/buscos_seqs/main'
 include { BUSCO_SEQS as BUSCO_SEQS_GENOME          } from '../modules/local/buscos_seqs/main'
-include { SHINY_APP as SHINY_APP_GENOME_ANNO       } from '../modules/local/shiny_app/main'
-include { SHINY_APP as SHINY_APP_GENOME            } from '../modules/local/shiny_app/main'
 include { HTML_REPORT                              } from '../modules/local/html_report/main'
 include { EXCEL_REPORT                             } from '../modules/local/excel_report/main'
 include { FASTA_ANNOTATE_TE                        } from '../subworkflows/local/fasta_annotate_te/main'
@@ -68,8 +64,6 @@ workflow GENOMEQC {
 
     // Define channels for downstream subworkflows
     ch_fasta        = INPUT_PREPARATION.out.fasta
-    ch_gxf          = INPUT_PREPARATION.out.gxf
-    ch_fastq        = INPUT_PREPARATION.out.fastq
     ch_input_decon  = INPUT_PREPARATION.out.input_decon
     ch_input_merq   = INPUT_PREPARATION.out.input_merq
     ch_input_geno   = INPUT_PREPARATION.out.input_geno
@@ -163,7 +157,7 @@ workflow GENOMEQC {
         ch_busco_db.ifEmpty([])
     )
     ch_geno_busco_summary = GENOME_ONLY.out.busco_short_summaries
-    ch_geno_orthofinder   = GENOME_ONLY.out.orthofinder_results
+    ch_geno_orthofinder   = GENOME_ONLY.out.orthofinder
 
     GENOME_AND_ANNOTATION (
         ch_input_anno.fasta,
@@ -174,12 +168,12 @@ workflow GENOMEQC {
     // Define channels for tree summary and shiny app subworkflow
     ch_geno_anno_busco_summary = GENOME_AND_ANNOTATION.out.busco_short_summaries_geno
     ch_prot_anno_busco_summary = GENOME_AND_ANNOTATION.out.busco_short_summaries_prot
-    ch_geno_anno_orthofinder   = GENOME_AND_ANNOTATION.out.orthofinder_results
+    ch_geno_anno_orthofinder   = GENOME_AND_ANNOTATION.out.orthofinder
 
 
     ch_multiqc_files = ch_multiqc_files
                      | mix(GENOME_AND_ANNOTATION.out.quast_results.map { _meta, results -> results })
-                     | mix(GENOME_AND_ANNOTATION.out.busco_short_summaries_prot.map { _meta, txt -> txt })
+                     | mix(ch_prot_anno_busco_summary.map { _meta, txt -> txt })
 
     //
     // MODULE: run BUSCO SEQS
@@ -234,14 +228,14 @@ workflow GENOMEQC {
     //
     // MODULE: Run HTML REPORT (genome + annotation mode)
     //
-    ch_report_busco = GENOME_AND_ANNOTATION.out.busco_short_summaries_geno
+    ch_report_busco = ch_geno_anno_busco_summary
                     | map { _meta, f -> f }
                     | mix( GENOME_ONLY.out.busco_batch_summaries.map { _meta, f -> f } )
                     | collect
                     | first
     // Protein BUSCO only exists for annotated genomes; ifEmpty keeps the
     // report running when no annotations are present in this branch.
-    ch_report_busco_prot = GENOME_AND_ANNOTATION.out.busco_short_summaries_prot
+    ch_report_busco_prot = ch_prot_anno_busco_summary
                     | map { _meta, f -> f }
                     | collect
                     | ifEmpty( [] )
