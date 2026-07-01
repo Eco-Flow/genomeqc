@@ -113,5 +113,5 @@ workflow INPUT_PREPARATION {
     input       = ch_input        // channel: [ val(meta), path(fasta), path(gxf), path(fastq) ]
     input_decon = ch_input_decon  // channel: [ val(meta), path(fasta) ]
     busco_db    = ch_busco_db     // channel: path(db) or val([])
-    
+
 }

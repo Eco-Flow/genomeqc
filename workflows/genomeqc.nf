@@ -207,7 +207,7 @@ workflow GENOMEQC {
         ch_tree_genome      = GENOME_ONLY.out.tree_data
                             | concat(BUSCO_SEQS_GENOME.out.table.map { _meta, table -> table})
                             | collect
-        
+
         // Optional channel for HTML report: empty list if BUSCO_SEQS_GENOME_ANNO produced no output
         ch_busco_seqs_ga_file = BUSCO_SEQS_GENOME_ANNO.out.table
                               | mix (BUSCO_SEQS_GENOME.out.table)

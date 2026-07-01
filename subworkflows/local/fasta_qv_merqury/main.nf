@@ -12,7 +12,7 @@ workflow FASTA_QV_MERQURY {
     kvalue
 
     main:
-    
+
     // MODULE: MERYL_COUNT
     MERYL_COUNT(
         ch_fastq,

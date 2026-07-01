@@ -87,7 +87,7 @@ workflow TREE_SUMMARY_SHINY_APP {
             ch_functions,
             ch_app
         )
-    
+
     }
 
     emit:

@@ -23,6 +23,9 @@
                 "BUSCO_SEQS_GENOME_ANNO": {
                     "python": "3.13.5"
                 },
+                "EXCEL_REPORT": {
+                    "python": "3.13.11"
+                },
                 "FILTER_BY_LENGTH": {
                     "seqkit": "2.9.0"
                 },
@@ -42,6 +45,9 @@
                 },
                 "GFFREAD": {
                     "gffread": "0.12.7"
+                },
+                "HTML_REPORT": {
+                    "python": "3.13.11"
                 },
                 "ORTHOFINDER_V3": {
                     "orthofinder": "3.1.3"
@@ -1294,6 +1300,11 @@
                 "quast/Mycoplasmoides_genitalium/Mycoplasmoides_genitalium.quast/transposed_report.tex",
                 "quast/Mycoplasmoides_genitalium/Mycoplasmoides_genitalium.quast/transposed_report.tsv",
                 "quast/Mycoplasmoides_genitalium/Mycoplasmoides_genitalium.quast/transposed_report.txt",
+                "report",
+                "report/excel",
+                "report/excel/genomeqc_tables.xlsx",
+                "report/html",
+                "report/html/genomeqc_report.html",
                 "shiny",
                 "shiny/app",
                 "shiny/app/Busco_combined_geno.tsv",
@@ -1579,6 +1590,8 @@
                 "transposed_report.tex:md5,63d1cbf4caff67b3bff10a4b159506f2",
                 "transposed_report.tsv:md5,43573f1d2196a9456b770e4f4ae2edf3",
                 "transposed_report.txt:md5,997b368aabfd4912acb4e36c97188049",
+                "genomeqc_tables.xlsx:md5,4d2f5d212a588107dfea83530e843f88",
+                "genomeqc_report.html:md5,5aaef64055ee058727916db58de27d5c",
                 "Busco_combined_geno.tsv:md5,26f9c022760f12596975f8f1d85be3c7",
                 "Busco_combined_prot.tsv:md5,1762ec07b7b0bcf0e0e6ffbbb44cd311",
                 "Quast_to_plot.tsv:md5,8999cc8c39faffd39986947d60d65a1c",
@@ -1586,7 +1599,6 @@
                 "n_seqs_above_x_buscos_output.tsv:md5,31ab90ca82335e1f9d19299343a875fd",
                 "shiny_app.R:md5,7228bb74800d6ce8b163af55199b5d94",
                 "shiny_app.sh:md5,1396f7fd34601732f562128e8fe24eed",
-                "tree.nw:md5,36e9088da08e5fea72b693ff9846a3d9",
                 "tree_functions.R:md5,1a05842b7cc1492f1ead6a5c65d4970f",
                 "Mycoplasmoides_fastidiosum.tidk.explore.tsv:md5,e6ff77119b43653fb2a42b770185fd2a",
                 "Mycoplasmoides_fastidiosum.top.sequence.txt:md5,7d47950ab0a4c8167d2d382a3b51ef06",
@@ -1599,7 +1611,7 @@
                 "Mycoplasmoides_genitalium.tidk.explore.tsv:md5,944f49381b397f9292fba77ac2fde706"
             ]
         ],
-        "timestamp": "2026-06-26T10:03:32.525403213",
+        "timestamp": "2026-07-01T14:48:24.015083875",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "26.04.4"
