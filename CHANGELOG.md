@@ -25,6 +25,11 @@ This is the first release of the pipeline, which compares the quality of multipl
 - HTML and Excel summary reports.
 - Aggregated quality-control report with [MultiQC](http://multiqc.info).
 
+### `Changed`
+
+- Expanded the `manifest.contributors` list in `nextflow.config` to credit Stephen Turner, Felipe Perez Cobos, Lauren Huet, Simon Murray, and Jacques Dainat as authors/contributors, and Mahesh Binzer-Panchal and Usman Rashid as contributors.
+- Fixed a stray leading space in Fernando Duarte's name in `manifest.contributors`.
+
 ### `Fixed`
 
 - Fixed BUSCO not showing in the tree
