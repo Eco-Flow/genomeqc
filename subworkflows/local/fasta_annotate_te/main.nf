@@ -7,6 +7,7 @@ include { CDHIT_CDHITEST              } from '../../../modules/nf-core/cdhit/cdh
 include { MMSEQS_EASYCLUSTER          } from '../../../modules/nf-core/mmseqs/easycluster/main'
 include { MMSEQS_EASYLINCLUST         } from '../../../modules/local/mmseqs_easylinclust/main'
 include { REPEATMASKER_REPEATMASKER   } from '../../../modules/nf-core/repeatmasker/repeatmasker/main'
+include { HITE                        } from '../../../modules/local/hite/main'
 
 
 workflow FASTA_ANNOTATE_TE {
