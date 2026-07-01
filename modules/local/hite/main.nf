@@ -9,7 +9,8 @@ process HITE {
     tuple val(meta), path(fasta)
 
     output:
-    tuple val(meta), path("*_hite_results") , emit: hite_results
+    tuple val(meta), path("*_hite_results")           , emit: hite_results
+    tuple val(meta), path("*_hite_results/HiTE.tbl")  , emit: tbl
     path "versions.yml"      , emit: versions
 
     script:
