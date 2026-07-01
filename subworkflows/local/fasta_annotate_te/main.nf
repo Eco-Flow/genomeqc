@@ -140,4 +140,5 @@ workflow FASTA_ANNOTATE_TE {
     tbl             = ch_te_tbl        // channel: [ val(meta), path(tbl) ]
     gff             = ch_te_gff        // channel: [ val(meta), path(gff) ]
     repeat_library  = ch_clustered_lib // channel: [ val(meta), path(fasta) ]
+    
 }

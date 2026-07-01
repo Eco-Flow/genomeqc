@@ -52,7 +52,7 @@ workflow TREE_SUMMARY_SHINY_APP {
                         | map { files -> tuple( [id:"busco_geno"], files )}
                         | ifEmpty([[],[]])
 
-        // Prepare channels for shiny app
+    // Prepare channels for shiny app
     ch_functions = channel.fromPath("$projectDir/bin/tree_functions.R", checkIfExists: true)
     ch_app       = channel.fromPath("$projectDir/bin/shiny_app.R", checkIfExists: true)
 
@@ -81,7 +81,7 @@ workflow TREE_SUMMARY_SHINY_APP {
             ch_te_table,
             ch_tree_inputs_genome
         )
-        // Run SHINY APP for genome and annotation
+        // Run SHINY APP for genome only
         SHINY_APP_GENOME (
             TREE_SUMMARY_GENO.out.tables.join(TREE_SUMMARY_GENO.out.tree, by:0),
             ch_functions,

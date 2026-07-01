@@ -19,6 +19,7 @@ include { FASTA_ANNOTATE_TE                        } from '../subworkflows/local
 include { TE_TBL_2_TABLE                           } from '../modules/local/te_tbl_2_table/main'
 include { MULTIQC                                  } from '../modules/nf-core/multiqc/main'
 include { validateInputSamplesheet                 } from '../subworkflows/local/utils_nfcore_genomeqc_pipeline'
+include { multimapChannel                          } from '../subworkflows/local/utils_nfcore_genomeqc_pipeline'
 include { paramsSummaryMap                         } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc                     } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML                   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
@@ -62,13 +63,22 @@ workflow GENOMEQC {
         ch_input.local
     )
 
-    // Define channels for downstream subworkflows
-    ch_fasta        = INPUT_PREPARATION.out.fasta
-    ch_input_decon  = INPUT_PREPARATION.out.input_decon
-    ch_input_merq   = INPUT_PREPARATION.out.input_merq
-    ch_input_geno   = INPUT_PREPARATION.out.input_geno
-    ch_input_anno   = INPUT_PREPARATION.out.input_anno
-    ch_busco_db     = INPUT_PREPARATION.out.busco_db
+    // ch_fasta contains ALL samples regardless of annotation presence
+    ch_fasta       = INPUT_PREPARATION.out.fasta
+    ch_input_decon = INPUT_PREPARATION.out.input_decon
+    ch_busco_db    = INPUT_PREPARATION.out.busco_db
+
+    // Prepare channels for genome only, genome + annotation, and Merqury subworkflows
+    ch_input_anno  = INPUT_PREPARATION.out.input
+                   | filter { _meta, _fasta, gxf, _fastq ->  gxf }
+                   | multimapChannel
+    // Not redundant, not the same as ch_fasta
+    ch_input_geno  = INPUT_PREPARATION.out.input
+                   | filter { _meta, _fasta, gxf, _fastq -> !gxf }
+                   | multimapChannel
+    ch_input_merq  = INPUT_PREPARATION.out.input
+                   | filter { _meta, _fasta, _gxf, fastq -> fastq }
+                   | multimapChannel
 
     //
     // SUBWORKFLOW: Run DECONTAMINATION

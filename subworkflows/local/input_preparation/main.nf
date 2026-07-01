@@ -3,7 +3,6 @@ include { NCBIGENOMEDOWNLOAD                       } from '../../../modules/nf-c
 include { PIGZ_UNCOMPRESS as UNCOMPRESS_FASTA      } from '../../../modules/nf-core/pigz/uncompress/main'
 include { PIGZ_UNCOMPRESS as UNCOMPRESS_GXF        } from '../../../modules/nf-core/pigz/uncompress/main'
 include { BUSCO_DOWNLOAD                           } from '../../../modules/nf-core/busco/download/main'
-include { multimapChannel                          } from '../utils_nfcore_genomeqc_pipeline'
 
 
 workflow INPUT_PREPARATION {
@@ -93,16 +92,6 @@ workflow INPUT_PREPARATION {
                    | join(ch_gxf, remainder: true)    // full outer: gxf is optional
                    | join(ch_fastq, remainder: true)  // left outer: fastq is optional
 
-    // Split into two channels according to the presence/absence of an annotation
-    ch_input_anno  = ch_input.filter { _meta, _fasta_annotation, gxf_annotation, _fastq ->  gxf_annotation }
-                   | multimapChannel
-    ch_input_geno  = ch_input.filter { _meta, _fasta_genome, gxf_genome, _fastq -> !gxf_genome }
-                   | multimapChannel
-
-    // Merqury: filter rows where fastq is present
-    ch_input_merq  = ch_input.filter { _meta, _fasta_merqury, _gxf_merqury, fastq -> fastq }
-                   | multimapChannel
-
     // Decontamination: filter rows where taxid is present
     ch_input_decon = ch_fasta.filter { meta, _fasta_decon -> meta.taxid }
 
@@ -121,11 +110,7 @@ workflow INPUT_PREPARATION {
 
     emit:
     fasta       = ch_fasta        // channel: [ val(meta), path(fasta) ]
-    gxf         = ch_gxf          // channel: [ val(meta), path(gxf) ]
-    fastq       = ch_fastq        // channel: [ val(meta), path(fastq) ]
-    input_anno  = ch_input_anno   // channel: multimapped — .fasta / .gxf
-    input_geno  = ch_input_geno   // channel: multimapped — .fasta
-    input_merq  = ch_input_merq   // channel: multimapped — .fasta / .fq
+    input       = ch_input        // channel: [ val(meta), path(fasta), path(gxf), path(fastq) ]
     input_decon = ch_input_decon  // channel: [ val(meta), path(fasta) ]
     busco_db    = ch_busco_db     // channel: path(db) or val([])
     
