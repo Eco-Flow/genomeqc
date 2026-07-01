@@ -5,7 +5,7 @@
 # the results from different samples/species into a
 # single table
 
-# Credits to ChatGPT
+# Written by Fernando Duarte with AI assistance, released under the MIT license.
 
 import argparse
 import os

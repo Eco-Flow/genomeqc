@@ -1,5 +1,8 @@
 #!/usr/bin/env Rscript
 
+# Written by Fernando Duarte and released under the MIT license.
+# Builds a BUSCO table matched to a GFF for downstream plotting
+
 # Load required libraries
 suppressMessages(library(dplyr))
 suppressMessages(library(readr))

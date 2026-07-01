@@ -1,6 +1,8 @@
 #!/usr/bin/env Rscript
 
-# Modified from https://gitlab.com/ezlab/busco_protocol/-/blob/main/support_protocol2/plot_markers/scripts/plot_markers1.R?ref_type=heads
+# Adapted by Fernando Duarte from ezlab busco_protocol; local modifications released under the MIT license.
+# Upstream source (no explicit license stated upstream as of 2026-07):
+# https://gitlab.com/ezlab/busco_protocol/-/blob/main/support_protocol2/plot_markers/scripts/plot_markers1.R?ref_type=heads
 
 # load libraries
 require(RIdeogram)
