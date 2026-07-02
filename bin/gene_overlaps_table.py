@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
-# Written using ChatGPT
+# Written by Fernando Duarte with AI assistance, released under the MIT license.
+# Extracts gene overlap statistics from per-sample files into a combined table
 
 import pandas as pd
 import argparse
