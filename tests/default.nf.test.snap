@@ -1590,8 +1590,7 @@
                 "transposed_report.tex:md5,63d1cbf4caff67b3bff10a4b159506f2",
                 "transposed_report.tsv:md5,43573f1d2196a9456b770e4f4ae2edf3",
                 "transposed_report.txt:md5,997b368aabfd4912acb4e36c97188049",
-                "genomeqc_tables.xlsx:md5,4d2f5d212a588107dfea83530e843f88",
-                "genomeqc_report.html:md5,5aaef64055ee058727916db58de27d5c",
+                "genomeqc_report.html:md5,0862978d085b091b14cd130b3282794a",
                 "Busco_combined_geno.tsv:md5,26f9c022760f12596975f8f1d85be3c7",
                 "Busco_combined_prot.tsv:md5,1762ec07b7b0bcf0e0e6ffbbb44cd311",
                 "Quast_to_plot.tsv:md5,8999cc8c39faffd39986947d60d65a1c",
@@ -1611,7 +1610,7 @@
                 "Mycoplasmoides_genitalium.tidk.explore.tsv:md5,944f49381b397f9292fba77ac2fde706"
             ]
         ],
-        "timestamp": "2026-07-01T14:48:24.015083875",
+        "timestamp": "2026-07-01T15:38:14.714709491",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "26.04.4"
