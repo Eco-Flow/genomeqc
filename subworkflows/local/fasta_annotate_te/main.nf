@@ -8,6 +8,7 @@ include { MMSEQS_EASYCLUSTER          } from '../../../modules/nf-core/mmseqs/ea
 include { MMSEQS_EASYLINCLUST         } from '../../../modules/local/mmseqs_easylinclust/main'
 include { REPEATMASKER_REPEATMASKER   } from '../../../modules/nf-core/repeatmasker/repeatmasker/main'
 include { HITE                        } from '../../../modules/local/hite/main'
+include { TE_TBL_2_TABLE              } from '../../../modules/local/te_tbl_2_table/main'
 
 
 workflow FASTA_ANNOTATE_TE {
@@ -135,10 +136,20 @@ workflow FASTA_ANNOTATE_TE {
         ch_te_gff    = REPEATMASKER_REPEATMASKER.out.gff
     }
 
+    // Collect all TBL files into a single channel for parsing. If no TBL files are found, return an empty channel instead of failing.
+    ch_te_tbl_collect = ch_te_tbl.map { _meta, f -> f }.collect()
+
+    // Parse TBL table into TSV format (this is only needed for the tree plot, which requires a single TSV table)
+    TE_TBL_2_TABLE (
+        ch_te_tbl_collect.map { f -> tuple([id:'te_table'], f) }
+    )
+
     emit:
-    masked          = ch_te_masked     // channel: [ val(meta), path(masked) ]
-    out             = ch_te_out        // channel: [ val(meta), path(out) ]
-    tbl             = ch_te_tbl        // channel: [ val(meta), path(tbl) ]
+    masked          = ch_te_masked                 // channel: [ val(meta), path(masked) ]
+    out             = ch_te_out                    // channel: [ val(meta), path(out) ]
+    tbl             = ch_te_tbl                     // channel: [ val(meta), path(tbl) ]
+    tbl_collected   = ch_te_tbl_collect            // channel: [ val(meta), path(tbl) ]
+    tbl_tsv         = TE_TBL_2_TABLE.out.table     // channel: [ val(meta), path(tsv) ]
     gff             = ch_te_gff        // channel: [ val(meta), path(gff) ]
     repeat_library  = ch_clustered_lib // channel: [ val(meta), path(fasta) ]
 

@@ -16,7 +16,6 @@ include { BUSCO_SEQS as BUSCO_SEQS_GENOME          } from '../modules/local/busc
 include { HTML_REPORT                              } from '../modules/local/html_report/main'
 include { EXCEL_REPORT                             } from '../modules/local/excel_report/main'
 include { FASTA_ANNOTATE_TE                        } from '../subworkflows/local/fasta_annotate_te/main'
-include { TE_TBL_2_TABLE                           } from '../modules/local/te_tbl_2_table/main'
 include { MULTIQC                                  } from '../modules/nf-core/multiqc/main'
 include { validateInputSamplesheet                 } from '../subworkflows/local/utils_nfcore_genomeqc_pipeline'
 include { multimapChannel                          } from '../subworkflows/local/utils_nfcore_genomeqc_pipeline'
@@ -123,6 +122,9 @@ workflow GENOMEQC {
     // SUBWORKFLOW: Annotate transposable elements
     //
 
+    ch_te_table = channel.empty()
+    ch_te_table_collect = channel.empty()
+
     // Skip download when a pre-staged famdb library is already provided
     ch_rm_db_input = (params.RM_download_db && params.RM_db && !params.famdb_library)
                    ? channel.fromList(params.RM_db)
@@ -144,19 +146,9 @@ workflow GENOMEQC {
             params.run_repeatmodeler,
             params.te_clusterer
         )
+        ch_te_table = FASTA_ANNOTATE_TE.out.tbl_tsv
+        ch_te_table_collect = FASTA_ANNOTATE_TE.out.tbl_collected
     }
-
-    // RepeatMasker .tbl summaries for the HTML/Excel reports (empty if TE annotation was skipped)
-    ch_repeatmasker_tbl = params.te
-                         ? FASTA_ANNOTATE_TE.out.tbl.map { _meta, f -> f }.collect().ifEmpty([[],[]]) // If no repeatmasker results are found, return an empty channel instead of failing
-                         : channel.empty() // empty to avoid running TE_TBL_2_TABLE
-
-    // RepeatMasker .tbl summaries for tree plots
-    TE_TBL_2_TABLE (
-        ch_repeatmasker_tbl.map { f -> tuple([id:'te_table'], f) }
-    )
-
-    ch_te_table = TE_TBL_2_TABLE.out.table.ifEmpty([[],[]]) // ifEmpty for tree plot
 
     //
     // SUBWORKFLOW: Run genome only or genome + annotation subworkflows to get QC metrics
@@ -232,7 +224,7 @@ workflow GENOMEQC {
         ch_tree_genome,
         ch_geno_anno_orthofinder,
         ch_geno_orthofinder,
-        ch_te_table
+        ch_te_table.ifEmpty([[],[]]),
     )
 
     //
@@ -266,7 +258,7 @@ workflow GENOMEQC {
         ch_fcsadp,
         ch_tiara,
         ch_busco_seqs_ga_file.ifEmpty([]),
-        ch_repeatmasker_tbl.ifEmpty([])
+        ch_te_table_collect.ifEmpty([])
     )
 
     //
@@ -287,7 +279,7 @@ workflow GENOMEQC {
         ch_fcsadp,
         ch_tiara,
         ch_busco_seqs_ga_file.ifEmpty([]),
-        ch_repeatmasker_tbl.ifEmpty([])
+        ch_te_table_collect.ifEmpty([])
     )
 
     //
