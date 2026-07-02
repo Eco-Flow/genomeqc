@@ -44,6 +44,14 @@ This is the first release of the pipeline, which compares the quality of multipl
 - HTML and Excel summary reports.
 - Aggregated quality-control report with [MultiQC](http://multiqc.info).
 
+### `Changed`
+
+- Expanded the `manifest.contributors` list in `nextflow.config` to credit Stephen Turner, Felipe Perez Cobos, Lauren Huet, Simon Murray, and Jacques Dainat as authors/contributors, and Mahesh Binzer-Panchal and Usman Rashid as contributors.
+- Fixed a stray leading space in Fernando Duarte's name in `manifest.contributors`.
+- Added missing tool citations to `CITATIONS.md` (AGAT, ape, BUSCO, FCS-GX/FCS-adaptor, GenomicRanges, GffRead, ggplot2, ggtree, Merqury, ncbi-genome-download, OrthoFinder, pandas, QUAST, SeqKit, Shiny, tidk, tidyverse, Tiara), with DOIs verified against current published references (including the published tidk paper and the OrthoFinder v3 paper).
+- Populated the MultiQC methods description with per-tool citations (`toolCitationText`/`toolBibliographyText` in the pipeline utils subworkflow), gated on the relevant params so the rendered text matches the tools actually run, and removed the leftover template TODO from `assets/methods_description_template.yml`.
+- Removed unused iGenomes `--genome` template boilerplate from `main.nf` (the `getGenomeAttribute` example block and import), which the pipeline does not use.
+
 ### `Fixed`
 
 - Fixed BUSCO pies not showing in the tree plot

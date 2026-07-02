@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
-# Code written by Chris Wyatt with some editing by ChatGPT
+# Written by Chris Wyatt with AI assistance, released under the MIT license.
 
 library(dplyr)
 library(GenomicRanges)

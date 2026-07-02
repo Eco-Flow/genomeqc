@@ -1,9 +1,11 @@
 #!/usr/bin/env Rscript
 
+# Adapted by Fernando Duarte from ezlab busco_protocol; local modifications released under the MIT license.
+# Upstream source (no explicit license stated upstream as of 2026-07):
+# https://gitlab.com/ezlab/busco_protocol/-/blob/main/support_protocol2/plot_markers/scripts/plot_markers2.R?ref_type=heads
+
 # load libraries
 library(RIdeogram)
-
-# Script adapted from: https://gitlab.com/ezlab/busco_protocol/-/blob/main/support_protocol2/plot_markers/scripts/plot_markers2.R?ref_type=heads
 
 args <- commandArgs(trailingOnly = TRUE)
 file_name_for_karyotype <- args[1]

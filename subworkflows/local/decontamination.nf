@@ -11,7 +11,6 @@ include { TIARA_TIARA as TIARA_CLEANED            } from '../../modules/nf-core/
 workflow DECONTAMINATION {
 
     take:
-    // TODO nf-core: edit input (take) channels
     ch_fasta      // channel: [ val(meta), [ fasta ] ]
     ch_ramdisk
     ch_gxdb_local // channel: val(gxdb)
