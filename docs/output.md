@@ -309,15 +309,22 @@ With `--run_repeatmodeler`, [RepeatModeler](https://github.com/Dfam-consortium/R
 
 ### Orthofinder
 
-[Orthofinder](https://github.com/davidemms/OrthoFinder) finds groups of orthologous genes and uses these orthologous genes for phylogenetic inference.
+[Orthofinder](https://github.com/davidemms/OrthoFinder) finds groups of orthologous genes and uses these orthologous genes for phylogenetic inference. It outputs a rooted species tree which is later used to present the quality stats of the assemblies.
 
-It outputs a rooted species tree which is later used to present the quality stats of the assemblies.
+The pipeline supports both OrthoFinder v2 and v3 (selected via `--ortho_version` ; default is v3). Output structure differs slightly between versions, as v3 introduces phylogenetic hierarchical orthogroup inference in addition to the classic MCL-based orthogroups.
 
 <details markdown="1">
 <summary>Output files</summary>
 
 - `orthofinder/`
-  - OrthoFinder results directory, including the rooted species tree and orthogroup assignments.
+  - `Orthogroups/`
+    - Orthogroup assignments from MCL clustering (present in both v2 and v3).
+  - `Species_Tree/`
+    - Rooted species tree used for downstream quality stats, and (v3 only) node-labelled tree (`SpeciesTree_rooted_node_labels.txt`) used to identify clade IDs.
+  - `Phylogenetic_Hierarchical_Orthogroups/` **(v3 only)**
+    - Orthogroups inferred from gene tree analysis at each phylogenetic level in the species tree. These are more accurate than MCL-based orthogroups alone and are the recommended orthogroup set when running v3.
+  - `Comparative_Genomics_Statistics/`
+    - Summary statistics on orthogroup assignment, e.g. `Statistics_Overall.tsv` and `Statistics_PerSpecies.tsv`.
 
 </details>
 

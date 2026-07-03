@@ -1,0 +1,7 @@
+name: html_report
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python=3.9

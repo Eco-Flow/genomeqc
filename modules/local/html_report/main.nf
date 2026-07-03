@@ -2,7 +2,9 @@ process HTML_REPORT {
     tag "genomeqc_report"
     label 'process_single'
 
-    container 'ecoflowucl/genomeqc_tree:v1.4'
+    container "${workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container
+        ? 'https://depot.galaxyproject.org/singularity/python:3.9--1'
+        : 'quay.io/biocontainers/python:3.9--1'}"
 
     input:
     path busco_tables,       stageAs: "busco/*"         // genome BUSCO batch_summary_modified.txt files (one per species)
