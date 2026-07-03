@@ -316,8 +316,8 @@
                     "type": "string",
                     "default": "roundrect",
                     "description": "Tree layout style for the tree summary plot.",
-                    "help_text": "'roundrect' draws rounded branches (default), 'ellipse' draws curved branches with node points, and 'rectangular' reproduces the legacy look with dotted leader lines.",
-                    "enum": ["roundrect", "ellipse", "rectangular"]
+                    "help_text": "'roundrect' draws rounded branches (default), 'ellipse' draws curved branches with node points, 'rectangular' reproduces the legacy look with dotted leader lines, and 'circular' draws a fan tree with the stats as concentric coloured rings (genome size, N50, gene number, BUSCO complete) and a numbered species key.",
+                    "enum": ["roundrect", "ellipse", "rectangular", "circular"]
                 },
                 "repeat": {
                     "type": "string",

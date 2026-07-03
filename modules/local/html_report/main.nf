@@ -2,7 +2,7 @@ process HTML_REPORT {
     tag "genomeqc_report"
     label 'process_single'
 
-    container 'ecoflowucl/genomeqc_tree:v1.4'
+    container 'ecoflowucl/genomeqc_tree:v1.5'
 
     input:
     path busco_tables,       stageAs: "busco/*"         // genome BUSCO batch_summary_modified.txt files (one per species)

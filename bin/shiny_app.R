@@ -9,6 +9,8 @@
 
 library(shiny)
 library(ggtree)
+library(ggtreeExtra)
+library(ggnewscale)
 library(ggplot2)
 library(patchwork)
 library(dplyr)
@@ -82,7 +84,8 @@ ui <- fluidPage(
                         selectInput("tree_style", "Tree Style:",
                                     choices = c("Rounded (roundrect)" = "roundrect",
                                                 "Curved (ellipse)" = "ellipse",
-                                                "Rectangular (legacy)" = "rectangular"),
+                                                "Rectangular (legacy)" = "rectangular",
+                                                "Circular (rings)" = "circular"),
                                     selected = "roundrect"),
                         numericInput("text_size", "Tip Text Size:", value = 3, min = 1, max = 10, step = 0.1),
                         numericInput("tree_scale", "Tree Scale:", value = 0.0005, min = 0.0001, max = 0.01, step = 0.0001),

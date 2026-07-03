@@ -503,6 +503,83 @@ build_tree_plot <- function(tree, plots, legends, xlimit, top_margin = 5.5,
 }
 
 # ---------------------------
+# Circular ("fan") layout: stats as concentric rings instead of side panels
+# ---------------------------
+build_circular_plot <- function(tree, data_quast, data_genes, data_busco_geno,
+                                tips_order, text_size = 3, skip = NULL,
+                                open_angle = 14, ring_width = 0.13) {
+
+  if (is.null(skip)) skip <- character(0)
+
+  n_tips <- length(tips_order)
+  labs <- gsub("_", " ", tips_order)              # tree tip labels in node order
+  num_df  <- data.frame(label = labs, num = seq_len(n_tips), stringsAsFactors = FALSE)
+  ring_df <- data.frame(label = labs, stringsAsFactors = FALSE)
+
+  # Collect rings that have data and are not skipped, inner -> outer
+  ring_specs <- list()
+  add_ring <- function(name, values, low, high) {
+    ring_df[[name]] <<- values
+    ring_specs[[length(ring_specs) + 1]] <<- list(name = name, low = low, high = high)
+  }
+
+  if (!is.null(data_quast) && !("len_plot" %in% skip)) {
+    add_ring("Genome size", data_quast$full$Length, "#e7edf6", "#274b8f")            # Mb, blue
+  }
+  if (!is.null(data_quast) && !("n50_plot" %in% skip)) {
+    add_ring("N50", as.numeric(data_quast$full$N50) / 1000000, "#ece7f5", "#5b3a91") # Mb, purple
+  }
+  if (!is.null(data_genes) && !("gene_plot" %in% skip)) {
+    tot <- data_genes[data_genes$stat == "Total", ]
+    tot <- tot[order(tot$node), ]
+    add_ring("Gene number", tot$value, "#e2f1ee", "#0f7a6c")                          # teal
+  }
+  if (!is.null(data_busco_geno) && !("busco_gen_plot" %in% skip)) {
+    add_ring("BUSCO complete", data_busco_geno$Single + data_busco_geno$Duplicated,
+             "#e9f3e2", "#2f7d2f")                                                    # % complete, green
+  }
+
+  p <- ggtree(tree, layout = "fan", open.angle = open_angle, size = 0.5, colour = "grey30")
+
+  for (i in seq_along(ring_specs)) {
+    spec <- ring_specs[[i]]
+    p <- p +
+      ggtreeExtra::geom_fruit(
+        data = ring_df, geom = geom_tile,
+        mapping = aes(y = label, x = 1, fill = .data[[spec$name]]),
+        width = ring_width, offset = if (i == 1) 0.10 else 0.055,
+        color = "white", linewidth = 0.2
+      ) +
+      scale_fill_gradient(low = spec$low, high = spec$high, name = spec$name) +
+      ggnewscale::new_scale_fill()
+  }
+
+  # Outermost ring: tip numbers
+  p <- p +
+    ggtreeExtra::geom_fruit(
+      data = num_df, geom = geom_text,
+      mapping = aes(y = label, x = 1, label = num),
+      size = text_size * 0.9, offset = 0.045
+    ) +
+    theme(legend.position = "right",
+          legend.title = element_text(size = 8, face = "bold"),
+          legend.text = element_text(size = 6),
+          legend.key.width = unit(0.3, "cm"),
+          legend.key.height = unit(0.35, "cm"))
+
+  # Species key (number -> italic name)
+  sp_txt <- paste0(num_df$num, "  ", num_df$label)
+  sp_leg <- ggplot() + xlim(0, 1) + ylim(0, n_tips + 1) +
+    annotate("text", x = 0.02, y = rev(seq_len(n_tips)), label = sp_txt,
+             hjust = 0, size = 2.8, fontface = "italic") +
+    annotate("text", x = 0, y = n_tips + 0.9, label = "Species",
+             hjust = 0, size = 3.4, fontface = "bold") +
+    theme_void()
+
+  sp_leg + p + plot_layout(widths = c(0.40, 1))
+}
+
+# ---------------------------
 # Final wrapper (same name)
 # ---------------------------
 generate_complete_plot <- function(processed_data, text_size = 3, tree_scale = 0.0005,
@@ -510,6 +587,19 @@ generate_complete_plot <- function(processed_data, text_size = 3, tree_scale = 0
                                    top_margin = 5.5, right_margin = 5.5, bottom_margin = 5.5,
                                    left_margin = 5.5, tree_margin = 15, tree_space_ratio = 1.3,
                                    tree_style = "roundrect") {
+
+  # Circular layout is a separate plotting path (rings instead of side panels)
+  if (tree_style == "circular") {
+    return(build_circular_plot(
+      tree            = processed_data$tree,
+      data_quast      = processed_data$data_quast,
+      data_genes      = processed_data$data_genes,
+      data_busco_geno = processed_data$data_busco_geno,
+      tips_order      = processed_data$tips_order,
+      text_size       = text_size,
+      skip            = skip_stats
+    ))
+  }
 
   plot_results <- generate_plots(
     processed_data = processed_data,

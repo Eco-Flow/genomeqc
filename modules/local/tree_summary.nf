@@ -2,7 +2,7 @@ process TREE_SUMMARY {
     tag "$meta.id"
     label 'process_single'
 
-    container 'ecoflowucl/genomeqc_tree:v1.4'
+    container 'ecoflowucl/genomeqc_tree:v1.5'
     publishDir "$params.outdir/tree_plots" , mode: "${params.publish_dir_mode}", pattern:"*.pdf"
 
     input:

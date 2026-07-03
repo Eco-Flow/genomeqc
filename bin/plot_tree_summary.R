@@ -74,6 +74,8 @@ build_tree_plot <- function(tree, plots, legends, xlimit, right_margin = 15, bot
 
 # Load libraries
 library(ggtree)
+library(ggtreeExtra)
+library(ggnewscale)
 library(ggplot2)
 library(patchwork)
 library(argparse)
@@ -98,7 +100,7 @@ parser$add_argument('--bar_width', type = 'double', default = 0.7, help = 'Width
 parser$add_argument('--rad_width', type = 'double', default = 0.4, help = 'Radius of pie charts')
 parser$add_argument('--skip_stats', type = 'character', default = NULL, help = "Don't plot these stats (comma separated list)")
 parser$add_argument('--type', type = 'character', choices = c('genome_only', 'genome_anno'), default = 'genome_anno', help = 'Select stats for genome only or for both genome and annotation')
-parser$add_argument('--tree_style', type = 'character', choices = c('roundrect', 'ellipse', 'rectangular'), default = 'roundrect', help = 'Tree layout style: roundrect (rounded branches, default), ellipse (curved branches with node points), or rectangular (legacy look with dotted leader lines)')
+parser$add_argument('--tree_style', type = 'character', choices = c('roundrect', 'ellipse', 'rectangular', 'circular'), default = 'roundrect', help = 'Tree layout style: roundrect (rounded branches, default), ellipse (curved branches with node points), rectangular (legacy look with dotted leader lines), or circular (fan tree with the stats drawn as concentric coloured rings)')
 parser$add_argument('--len_pos_x', type = 'double', default = 5, help = 'Position of the BUSCO legend on the x axis when both genome and protein BUSCO pies are plotted')
 
 args <- parser$parse_args()
@@ -597,6 +599,96 @@ if (!is.null(busco_prot_plot$plot)) busco_prot_plot$plot <- busco_prot_plot$plot
 # Set new xlim for gene stats (equivalent to ylim)
 if (!is.null(gene_plot)) gene_plot <- gene_plot + new_xlim
 
+# --- Circular layout helper ---------------------------------------------------
+# The circular ("fan") layout is a separate plotting path: instead of the
+# concatenated side panels, each stat is drawn as a concentric coloured ring
+# around a fan tree, tips are numbered, and a species key is shown alongside.
+build_circular_plot <- function(tree, data_quast, data_genes, data_busco_geno,
+                                tips_order, text_size = 3, skip = character(0),
+                                open_angle = 14, ring_width = 0.13) {
+
+  n_tips <- length(tips_order)
+  labs <- gsub("_", " ", tips_order)              # tree tip labels in node order
+  num_df  <- data.frame(label = labs, num = seq_len(n_tips), stringsAsFactors = FALSE)
+  ring_df <- data.frame(label = labs, stringsAsFactors = FALSE)
+
+  # Collect the rings that have data and are not skipped, inner -> outer
+  ring_specs <- list()
+  add_ring <- function(name, values, low, high) {
+    ring_df[[name]] <<- values
+    ring_specs[[length(ring_specs) + 1]] <<- list(name = name, low = low, high = high)
+  }
+
+  if (!is.null(data_quast) && !("len_plot" %in% skip)) {
+    add_ring("Genome size", data_quast$full$Length, "#e7edf6", "#274b8f")          # Mb, blue
+  }
+  if (!is.null(data_quast) && !("n50_plot" %in% skip)) {
+    add_ring("N50", as.numeric(data_quast$full$N50) / 1000000, "#ece7f5", "#5b3a91") # Mb, purple
+  }
+  if (!is.null(data_genes) && !("gene_plot" %in% skip)) {
+    tot <- data_genes[data_genes$stat == "Total", ]
+    tot <- tot[order(tot$node), ]
+    add_ring("Gene number", tot$value, "#e2f1ee", "#0f7a6c")                        # teal
+  }
+  if (!is.null(data_busco_geno) && !("busco_gen_plot" %in% skip)) {
+    add_ring("BUSCO complete", data_busco_geno$Single + data_busco_geno$Duplicated,
+             "#e9f3e2", "#2f7d2f")                                                  # % complete, green
+  }
+
+  # Fan tree
+  p <- ggtree(tree, layout = "fan", open.angle = open_angle, size = 0.5, colour = "grey30")
+
+  # Add each stat as a concentric ring with its own colour scale
+  for (i in seq_along(ring_specs)) {
+    spec <- ring_specs[[i]]
+    p <- p +
+      ggtreeExtra::geom_fruit(
+        data = ring_df, geom = geom_tile,
+        mapping = aes(y = label, x = 1, fill = .data[[spec$name]]),
+        width = ring_width, offset = if (i == 1) 0.10 else 0.055,
+        color = "white", linewidth = 0.2
+      ) +
+      scale_fill_gradient(low = spec$low, high = spec$high, name = spec$name) +
+      ggnewscale::new_scale_fill()
+  }
+
+  # Outermost ring: tip numbers
+  p <- p +
+    ggtreeExtra::geom_fruit(
+      data = num_df, geom = geom_text,
+      mapping = aes(y = label, x = 1, label = num),
+      size = text_size * 0.9, offset = 0.045
+    ) +
+    theme(legend.position = "right",
+          legend.title = element_text(size = 8, face = "bold"),
+          legend.text = element_text(size = 6),
+          legend.key.width = unit(0.3, "cm"),
+          legend.key.height = unit(0.35, "cm"))
+
+  # Species key (number -> italic name), shown to the left of the tree
+  sp_txt <- paste0(num_df$num, "  ", num_df$label)
+  sp_leg <- ggplot() + xlim(0, 1) + ylim(0, n_tips + 1) +
+    annotate("text", x = 0.02, y = rev(seq_len(n_tips)), label = sp_txt,
+             hjust = 0, size = 2.8, fontface = "italic") +
+    annotate("text", x = 0, y = n_tips + 0.9, label = "Species",
+             hjust = 0, size = 3.4, fontface = "bold") +
+    theme_void()
+
+  sp_leg + p + plot_layout(widths = c(0.40, 1))
+}
+
+if (args$tree_style == "circular") {
+  final_plot <- build_circular_plot(
+    tree            = tree,
+    data_quast      = data_quast,
+    data_genes      = data_genes,
+    data_busco_geno = data_busco_geno,
+    tips_order      = tips_order,
+    text_size       = args$text_size,
+    skip            = skip
+  )
+} else {
+
 # Build tree according to the selected style
 if (args$tree_style == "rectangular") {
   # Legacy look: thin black branches with dotted alignment leader lines
@@ -683,10 +775,16 @@ if (args$type == 'genome_anno') {
   )
 }
 
-pdf("tree_plot.pdf", width = 10, height = 7)
+} # end of non-circular (side-panel) layout branch
+
+# Circular plots read better on a larger, squarer canvas
+plot_w <- if (args$tree_style == "circular") 12 else 10
+plot_h <- if (args$tree_style == "circular") 8.5 else 7
+
+pdf("tree_plot.pdf", width = plot_w, height = plot_h)
 final_plot
 dev.off()
 
-svg("tree_plot.svg", width = 10, height = 7)
+svg("tree_plot.svg", width = plot_w, height = plot_h)
 final_plot
 dev.off()
