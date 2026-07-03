@@ -79,6 +79,11 @@ ui <- fluidPage(
                column(4,
                       wellPanel(
                         h4("Plot Parameters"),
+                        selectInput("tree_style", "Tree Style:",
+                                    choices = c("Rounded (roundrect)" = "roundrect",
+                                                "Curved (ellipse)" = "ellipse",
+                                                "Rectangular (legacy)" = "rectangular"),
+                                    selected = "roundrect"),
                         numericInput("text_size", "Tip Text Size:", value = 3, min = 1, max = 10, step = 0.1),
                         numericInput("tree_scale", "Tree Scale:", value = 0.0005, min = 0.0001, max = 0.01, step = 0.0001),
                         #numericInput("tree_space_ratio", "Tree space ratio:", value = 1.3, min = -100, max = 100, step = 0.1),
@@ -159,7 +164,7 @@ server <- function(input, output, session) {
 
   # Generate plot when parameters change or refresh button is clicked
   observeEvent(c(input$refresh_plot, input$text_size, input$tree_scale,
-                 input$bar_width, input$rad_width, input$skip_stats,
+                 input$bar_width, input$rad_width, input$skip_stats, input$tree_style,
                  input$tree_space_ratio, input$top_margin, input$right_margin,
                  input$bottom_margin, input$left_margin, input$tree_margin, input$skip_stats,
                  input$export_width, input$export_height, input$export_dpi), {
@@ -180,7 +185,8 @@ server <- function(input, output, session) {
                      left_margin = input$left_margin,
                      tree_margin = input$tree_margin,
                      skip_stats = input$skip_stats,
-                     tree_space_ratio = input$tree_space_ratio
+                     tree_space_ratio = input$tree_space_ratio,
+                     tree_style = input$tree_style
 
                    )
 

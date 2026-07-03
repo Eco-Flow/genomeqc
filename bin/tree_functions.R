@@ -237,7 +237,8 @@ plot_busco_pies <- function(data_busco,
 
 # Now for the plot generator
 generate_plots <- function(processed_data, text_size = 3, tree_scale = 0.0005,
-                           bar_width = 0.7, rad_width = 0.4, skip_stats = NULL, busco_len_pos_x = 0.4) {
+                           bar_width = 0.7, rad_width = 0.4, skip_stats = NULL, busco_len_pos_x = 0.4,
+                           tree_style = "roundrect") {
 
   tree <- processed_data$tree
   data_busco_geno <- processed_data$data_busco_geno
@@ -363,9 +364,22 @@ generate_plots <- function(processed_data, text_size = 3, tree_scale = 0.0005,
     gene_plot <- gene_plot + guides(fill = "none")
   }
 
-  # Build the tree base, as in gff_valid
-  tree_plot <- ggtree(tree) +
-    geom_tiplab(size = text_size, fontface = "italic", align = TRUE, hjust = -0.05) +
+  # Build the tree base according to the selected style
+  if (tree_style == "rectangular") {
+    # Legacy look: thin black branches with dotted alignment leader lines
+    tree_plot <- ggtree(tree) +
+      geom_tiplab(size = text_size, fontface = "italic", align = TRUE, hjust = -0.05)
+  } else {
+    # Modern look: thicker grey branches, aligned labels without dotted leaders
+    tree_plot <- ggtree(tree, layout = tree_style, size = 0.7, colour = "grey30") +
+      geom_tiplab(size = text_size, fontface = "italic", align = TRUE,
+                  linetype = NA, hjust = -0.05)
+    if (tree_style == "ellipse") {
+      # Subtle node markers to accentuate the curved layout
+      tree_plot <- tree_plot + geom_nodepoint(colour = "steelblue", size = 1.2, alpha = 0.75)
+    }
+  }
+  tree_plot <- tree_plot +
     theme(plot.margin = margin(10, 30, 10, 10)) +
     coord_cartesian(clip = "off")
 
@@ -494,7 +508,8 @@ build_tree_plot <- function(tree, plots, legends, xlimit, top_margin = 5.5,
 generate_complete_plot <- function(processed_data, text_size = 3, tree_scale = 0.0005,
                                    bar_width = 0.7, rad_width = 0.4, skip_stats = NULL,
                                    top_margin = 5.5, right_margin = 5.5, bottom_margin = 5.5,
-                                   left_margin = 5.5, tree_margin = 15, tree_space_ratio = 1.3) {
+                                   left_margin = 5.5, tree_margin = 15, tree_space_ratio = 1.3,
+                                   tree_style = "roundrect") {
 
   plot_results <- generate_plots(
     processed_data = processed_data,
@@ -502,7 +517,8 @@ generate_complete_plot <- function(processed_data, text_size = 3, tree_scale = 0
     tree_scale = tree_scale,
     bar_width = bar_width,
     rad_width = rad_width,
-    skip_stats = skip_stats
+    skip_stats = skip_stats,
+    tree_style = tree_style
   )
 
   if (length(plot_results$plots) > 0) {

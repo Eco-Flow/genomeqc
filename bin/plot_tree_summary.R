@@ -98,6 +98,7 @@ parser$add_argument('--bar_width', type = 'double', default = 0.7, help = 'Width
 parser$add_argument('--rad_width', type = 'double', default = 0.4, help = 'Radius of pie charts')
 parser$add_argument('--skip_stats', type = 'character', default = NULL, help = "Don't plot these stats (comma separated list)")
 parser$add_argument('--type', type = 'character', choices = c('genome_only', 'genome_anno'), default = 'genome_anno', help = 'Select stats for genome only or for both genome and annotation')
+parser$add_argument('--tree_style', type = 'character', choices = c('roundrect', 'ellipse', 'rectangular'), default = 'roundrect', help = 'Tree layout style: roundrect (rounded branches, default), ellipse (curved branches with node points), or rectangular (legacy look with dotted leader lines)')
 parser$add_argument('--len_pos_x', type = 'double', default = 5, help = 'Position of the BUSCO legend on the x axis when both genome and protein BUSCO pies are plotted')
 
 args <- parser$parse_args()
@@ -596,10 +597,22 @@ if (!is.null(busco_prot_plot$plot)) busco_prot_plot$plot <- busco_prot_plot$plot
 # Set new xlim for gene stats (equivalent to ylim)
 if (!is.null(gene_plot)) gene_plot <- gene_plot + new_xlim
 
-# Build tree
-# Usage - replace your current tree building section with:
-tree_plot <- ggtree(tree) +
-  geom_tiplab(size = args$text_size, fontface = "italic", align = TRUE, hjust = -0.05) +
+# Build tree according to the selected style
+if (args$tree_style == "rectangular") {
+  # Legacy look: thin black branches with dotted alignment leader lines
+  tree_plot <- ggtree(tree) +
+    geom_tiplab(size = args$text_size, fontface = "italic", align = TRUE, hjust = -0.05)
+} else {
+  # Modern look: thicker grey branches, aligned labels without dotted leaders
+  tree_plot <- ggtree(tree, layout = args$tree_style, size = 0.7, colour = "grey30") +
+    geom_tiplab(size = args$text_size, fontface = "italic", align = TRUE,
+                linetype = NA, hjust = -0.05)
+  if (args$tree_style == "ellipse") {
+    # Subtle node markers to accentuate the curved layout
+    tree_plot <- tree_plot + geom_nodepoint(colour = "steelblue", size = 1.2, alpha = 0.75)
+  }
+}
+tree_plot <- tree_plot +
   theme(plot.margin = margin(10, 30, 10, 10)) +  # Increased right margin
   coord_cartesian(clip = "off") +
   new_ylim
