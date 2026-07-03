@@ -3,7 +3,9 @@ process BUSCO_SEQS {
     label 'process_single'
 
     conda "${moduleDir}/environment.yml"
-    container "community.wave.seqera.io/library/python_pip_pandas:2fd05a70c67560f2"
+    container "${workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container
+        ? 'oras://community.wave.seqera.io/library/pandas_python:cb09ca6c506f826e'
+        : 'community.wave.seqera.io/library/python_pip_pandas:2fd05a70c67560f2'}"
 
     input:
     tuple val(meta), path(tables)

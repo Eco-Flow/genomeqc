@@ -2,8 +2,10 @@ process TREESUMMARY {
     tag "$meta.id"
     label 'process_single'
 
-    container 'ecoflowucl/genomeqc_tree:v1.4'
-    publishDir "$params.outdir/tree_plots" , mode: "${params.publish_dir_mode}", pattern:"*.pdf"
+    conda "${moduleDir}/environment.yml"
+    container "${workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container
+        ? 'oras://community.wave.seqera.io/library/python_pandas_r-base_bioconductor-ggtree_pruned:683a12b10ea073dd'
+        : 'community.wave.seqera.io/library/python_pandas_r-base_bioconductor-ggtree_pruned:6b7f19c85ec8c255'}"
 
     input:
     tuple val(meta), path(tree)

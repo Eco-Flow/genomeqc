@@ -3,9 +3,9 @@ process ORTHOFINDERV2 {
     label 'process_high'
 
     conda "${moduleDir}/environment.yml"
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/orthofinder:2.5.5--hdfd78af_2' :
-        'biocontainers/orthofinder:2.5.5--hdfd78af_2' }"
+    container "${workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container
+        ? 'https://depot.galaxyproject.org/singularity/orthofinder:2.5.5--hdfd78af_2'
+        : 'biocontainers/orthofinder:2.5.5--hdfd78af_2' }"
 
     input:
     tuple val(meta), path(fastas, stageAs: 'input/')

@@ -3,7 +3,9 @@ process BUSCO_TSV_TO_GFF {
     label 'process_single'
 
     conda "${moduleDir}/environment.yml"
-    container "quay.io/biocontainers/python:3.9--1"
+    container "${workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container
+        ? 'https://depot.galaxyproject.org/singularity/python:3.9--1'
+        : 'quay.io/biocontainers/python:3.9--1'}"
 
     input:
     tuple val(meta), path(busco_dir)

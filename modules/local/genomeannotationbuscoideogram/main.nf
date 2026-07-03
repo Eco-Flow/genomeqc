@@ -3,7 +3,9 @@ process GENOMEANNOTATIONBUSCOIDEOGRAM {
     label 'process_single'
 
     conda "${moduleDir}/environment.yml"
-    container "community.wave.seqera.io/library/seqkit_r-dplyr_r-optparse_r-readr_pruned:92b750716d244919"
+    container "${workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container
+        ? 'oras://community.wave.seqera.io/library/seqkit_r-ggplot2_r-optparse_r-rideogram:dd27bf2f09a9ac59'
+        : 'community.wave.seqera.io/library/seqkit_r-ggplot2_r-optparse_r-rideogram:38eaba661baaec00' }"
 
     input:
     tuple val(genusspeci), val(lineage), path(busco_full_table), path(genome), path(gff)

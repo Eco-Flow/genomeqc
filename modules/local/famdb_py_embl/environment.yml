@@ -4,8 +4,4 @@ channels:
   - conda-forge
   - bioconda
 dependencies:
-  - conda-forge::r-base=4.4.1
-  - bioconda::seqkit=2.8.2
-  - bioconda::r-rideogram=0.2.2
-  - conda-forge::r-optparse=1.7.5
-  - conda-forge::r-ggplot2=3.5.1
+  - bioconda::repeatmasker=4.2.2

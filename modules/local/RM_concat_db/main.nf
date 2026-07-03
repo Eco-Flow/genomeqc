@@ -2,9 +2,10 @@ process RM_CONCAT_DB {
     tag "concat_h5"
     label 'process_single'
 
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-              'https://depot.galaxyproject.org/singularity/pbh5tools:0.8.0--py27heb79e2c_5':
-              'biocontainers/pbh5tools:0.8.0--py27heb79e2c_5' }"
+    conda "${moduleDir}/environment.yml"
+    container "${workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container
+        ? 'https://depot.galaxyproject.org/singularity/pbh5tools:0.8.0--py27heb79e2c_5'
+        : 'biocontainers/pbh5tools:0.8.0--py27heb79e2c_5' }"
 
     input:
     path h5_files

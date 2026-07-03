@@ -1,7 +1,7 @@
-name: busco-gff-concat
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/environment-schema.json
 channels:
   - conda-forge
-  - defaults
+  - bioconda
 dependencies:
-  - python=3.9
-  - pip
+  - conda-forge::python=3.9

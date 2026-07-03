@@ -2,9 +2,10 @@ process RM_DOWNLOAD_DB {
     tag "$meta.id"
     label 'process_single'
 
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/curl:7.80.0':
-        'biocontainers/curl:7.80.0' }"
+    conda "${moduleDir}/environment.yml"
+    container "${workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container
+        ? 'https://depot.galaxyproject.org/singularity/curl:7.80.0'
+        : 'biocontainers/curl:7.80.0' }"
 
     input:
     tuple val(meta), val(db_url)
