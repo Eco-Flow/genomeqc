@@ -24,11 +24,14 @@ This is the first release of the pipeline, which compares the quality of multipl
 - An executable Shiny app for interactively adjusting the tree plot and summary statistics, with PNG/SVG export.
 - HTML and Excel summary reports.
 - Aggregated quality-control report with [MultiQC](http://multiqc.info).
+- New `--tree_style` option for the **Tree Summary** plot: `roundrect` (rounded branches, new default), `ellipse` (curved branches with node points), `rectangular` (legacy look with dotted leader lines), and `circular` (fan tree with the summary statistics drawn as concentric coloured rings and a numbered species key). Selectable in the Shiny app.
 
 ### `Fixed`
 
 - Fixed BUSCO not showing in the tree
 
 ### `Dependencies`
+
+- Added `ggtreeExtra` and `ggnewscale` to the `genomeqc_tree` container (bumped to `v1.5`), required by the `circular` tree layout.
 
 ### `Deprecated`
