@@ -554,29 +554,36 @@ build_circular_plot <- function(tree, data_quast, data_genes, data_busco_geno,
       ggnewscale::new_scale_fill()
   }
 
-  # Outermost ring: tip numbers
+  # Outermost labels: tip numbers, kept upright. geom_fruit/geom_tiplab rotate
+  # text tangentially in a fan layout, so instead we place a plain geom_text
+  # (angle = 0 keeps the glyphs horizontal) just beyond the outer ring radius.
+  ring_max_x <- suppressWarnings(max(vapply(
+    ggplot_build(p)$data,
+    function(dd) if ("x" %in% names(dd)) max(dd$x, na.rm = TRUE) else NA_real_,
+    numeric(1)), na.rm = TRUE))
+  tip_pos <- p$data[p$data$isTip, ]
+  num_pos <- data.frame(y = tip_pos$y, num = match(tip_pos$label, labs))
+
   p <- p +
-    ggtreeExtra::geom_fruit(
-      data = num_df, geom = geom_text,
-      mapping = aes(y = label, x = 1, label = num),
-      size = text_size * 0.9, offset = 0.045
-    ) +
+    geom_text(data = num_pos, aes(x = ring_max_x * 1.06, y = y, label = num),
+              angle = 0, size = text_size * 0.9, inherit.aes = FALSE) +
     theme(legend.position = "right",
           legend.title = element_text(size = 8, face = "bold"),
           legend.text = element_text(size = 6),
           legend.key.width = unit(0.3, "cm"),
           legend.key.height = unit(0.35, "cm"))
 
-  # Species key (number -> italic name)
+  # Species key (number -> italic name): a compact, top-aligned list on the left
   sp_txt <- paste0(num_df$num, "  ", num_df$label)
-  sp_leg <- ggplot() + xlim(0, 1) + ylim(0, n_tips + 1) +
-    annotate("text", x = 0.02, y = rev(seq_len(n_tips)), label = sp_txt,
-             hjust = 0, size = 2.8, fontface = "italic") +
-    annotate("text", x = 0, y = n_tips + 0.9, label = "Species",
-             hjust = 0, size = 3.4, fontface = "bold") +
+  sp_block <- paste(sp_txt, collapse = "\n")
+  sp_leg <- ggplot() + xlim(0, 1) + ylim(0, 1) +
+    annotate("text", x = 0, y = 1.00, label = "Species",
+             hjust = 0, vjust = 1, fontface = "bold", size = 3.4) +
+    annotate("text", x = 0, y = 0.94, label = sp_block,
+             hjust = 0, vjust = 1, size = 2.8, fontface = "italic", lineheight = 1.2) +
     theme_void()
 
-  sp_leg + p + plot_layout(widths = c(0.40, 1))
+  sp_leg + p + plot_layout(widths = c(0.35, 1))
 }
 
 # ---------------------------
