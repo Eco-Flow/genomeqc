@@ -619,11 +619,14 @@ generate_complete_plot <- function(processed_data, text_size = 3, tree_scale = 0
                                    bar_width = 0.7, rad_width = 0.4, skip_stats = NULL,
                                    top_margin = 5.5, right_margin = 5.5, bottom_margin = 5.5,
                                    left_margin = 5.5, tree_margin = 15, tree_space_ratio = 1.3,
-                                   tree_style = "roundrect", circular_rings = NULL) {
+                                   tree_style = "roundrect", circular_rings = NULL,
+                                   ring_width = 0.13) {
 
   # Circular layout is a separate plotting path (rings instead of side panels).
   # circular_rings = NULL shows every available stat (the interactive Shiny
   # default); pass an ordered vector of keys to curate/fix the rings.
+  # Note: only text_size, skip_stats, circular_rings and ring_width affect this
+  # layout; the bar/pie/margin/tree-scale controls apply to the other styles.
   if (tree_style == "circular") {
     return(build_circular_plot(
       tree            = processed_data$tree,
@@ -636,7 +639,8 @@ generate_complete_plot <- function(processed_data, text_size = 3, tree_scale = 0
       data_ortho      = processed_data$data_ortho,
       text_size       = text_size,
       skip            = skip_stats,
-      rings           = circular_rings
+      rings           = circular_rings,
+      ring_width      = ring_width
     ))
   }
 

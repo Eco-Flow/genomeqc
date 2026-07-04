@@ -31,6 +31,7 @@ This is the first release of the pipeline, which compares the quality of multipl
 
 - Fixed BUSCO not showing in the tree
 - Fixed the Shiny app launcher pulling its container from Docker Hub instead of quay.io (the plain `docker run` does not receive the `docker.registry` prefix), which caused a `pull access denied` error.
+- Shiny app: the tree-style controls now show only the options that apply to the selected layout (margin/bar/pie controls for the non-circular styles, a ring-thickness control for the circular style), added a "Ring thickness" slider for the circular layout, and clarified the "Skip Statistics" labels.
 
 ### `Dependencies`
 

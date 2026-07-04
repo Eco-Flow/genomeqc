@@ -67,14 +67,28 @@ ui <- fluidPage(
              # Controls
              fluidRow(
                column(4,
-                      wellPanel(
-                        h4("Margin Controls"),
-                        sliderInput("tree_space_ratio", "Branch length:", value = 1.3, min = -100, max = 100, step = 0.1),
-                        sliderInput("top_margin", "Top margin:", min = 0, max = 100, value = 5.5, step = 0.5),
-                        sliderInput("right_margin", "Right margin:", min = 0, max = 100, value = 5.5, step = 0.5),
-                        sliderInput("bottom_margin", "Bottom Margin:", min = 0, max = 100, value = 5.5, step = 0.5),
-                        sliderInput("left_margin", "Left Margin:", min = 0, max = 100, value = 5.5, step = 0.5),
-                        sliderInput("tree_margin", "Tree Margin:", min = 0, max = 100, value = 15, step = 1)
+                      # Margins / branch spacing apply to the non-circular layouts only
+                      conditionalPanel(
+                        condition = "input.tree_style != 'circular'",
+                        wellPanel(
+                          h4("Margin Controls"),
+                          helpText("Applies to roundrect / ellipse / rectangular layouts."),
+                          sliderInput("tree_space_ratio", "Branch length:", value = 1.3, min = -100, max = 100, step = 0.1),
+                          sliderInput("top_margin", "Top margin:", min = 0, max = 100, value = 5.5, step = 0.5),
+                          sliderInput("right_margin", "Right margin:", min = 0, max = 100, value = 5.5, step = 0.5),
+                          sliderInput("bottom_margin", "Bottom Margin:", min = 0, max = 100, value = 5.5, step = 0.5),
+                          sliderInput("left_margin", "Left Margin:", min = 0, max = 100, value = 5.5, step = 0.5),
+                          sliderInput("tree_margin", "Tree Margin:", min = 0, max = 100, value = 15, step = 1)
+                        )
+                      ),
+                      # Ring options apply to the circular layout only
+                      conditionalPanel(
+                        condition = "input.tree_style == 'circular'",
+                        wellPanel(
+                          h4("Circular Ring Options"),
+                          helpText("Rings show every statistic that is not skipped (right-hand panel)."),
+                          sliderInput("ring_width", "Ring thickness:", value = 0.13, min = 0.05, max = 0.4, step = 0.01)
+                        )
                       )
                ),
 
@@ -87,27 +101,32 @@ ui <- fluidPage(
                                                 "Rectangular (legacy)" = "rectangular",
                                                 "Circular (rings)" = "circular"),
                                     selected = "roundrect"),
+                        # Text size applies to all layouts (tip labels / circular tip numbers)
                         numericInput("text_size", "Tip Text Size:", value = 3, min = 1, max = 10, step = 0.1),
-                        numericInput("tree_scale", "Tree Scale:", value = 0.0005, min = 0.0001, max = 0.01, step = 0.0001),
-                        #numericInput("tree_space_ratio", "Tree space ratio:", value = 1.3, min = -100, max = 100, step = 0.1),
-                        numericInput("bar_width", "Bar Width:", value = 0.7, min = 0.1, max = 2, step = 0.1),
-                        numericInput("rad_width", "Pie Radius:", value = 0.4, min = 0.1, max = 1, step = 0.05)
+                        # These only affect the non-circular layouts
+                        conditionalPanel(
+                          condition = "input.tree_style != 'circular'",
+                          numericInput("tree_scale", "Tree Scale:", value = 0.0005, min = 0.0001, max = 0.01, step = 0.0001),
+                          numericInput("bar_width", "Bar Width:", value = 0.7, min = 0.1, max = 2, step = 0.1),
+                          numericInput("rad_width", "Pie Radius:", value = 0.4, min = 0.1, max = 1, step = 0.05)
+                        )
                       )
                ),
 
                column(4,
                       wellPanel(
                         h4("Display Options"),
+                        helpText("Skip a statistic to drop its panel (non-circular) or ring (circular). Applies to all layouts."),
                         checkboxGroupInput("skip_stats", "Skip Statistics:",
                                            choices = list(
                                              "Sequence Count" = "ch_plot",
-                                             "NSeqs Plot" = "nseqs_plot",
-                                             "Ortho Plot" = "ortho_plot",
-                                             "Genome Length" = "len_plot",
-                                             "Gene Statistics" = "gene_plot",
-                                             "N50 Statistics" = "n50_plot",
-                                             "BUSCO Genome Pies" = "busco_gen_plot",
-                                             "BUSCO Protein Pies" = "busco_prot_plot"
+                                             "NSeqs" = "nseqs_plot",
+                                             "Ortho Seqs" = "ortho_plot",
+                                             "Genome Size" = "len_plot",
+                                             "Gene Number" = "gene_plot",
+                                             "N50" = "n50_plot",
+                                             "BUSCO Genome" = "busco_gen_plot",
+                                             "BUSCO Protein" = "busco_prot_plot"
                                            )),
                         #selectInput("plot_type", "Plot Type:",
                         #            choices = list("Genome + Annotation" = "genome_anno", "Genome Only" = "genome_only"),
@@ -168,6 +187,7 @@ server <- function(input, output, session) {
   # Generate plot when parameters change or refresh button is clicked
   observeEvent(c(input$refresh_plot, input$text_size, input$tree_scale,
                  input$bar_width, input$rad_width, input$skip_stats, input$tree_style,
+                 input$ring_width,
                  input$tree_space_ratio, input$top_margin, input$right_margin,
                  input$bottom_margin, input$left_margin, input$tree_margin, input$skip_stats,
                  input$export_width, input$export_height, input$export_dpi), {
@@ -189,7 +209,8 @@ server <- function(input, output, session) {
                      tree_margin = input$tree_margin,
                      skip_stats = input$skip_stats,
                      tree_space_ratio = input$tree_space_ratio,
-                     tree_style = input$tree_style
+                     tree_style = input$tree_style,
+                     ring_width = if (is.null(input$ring_width)) 0.13 else input$ring_width
 
                    )
 
