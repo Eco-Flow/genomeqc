@@ -669,7 +669,10 @@ build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes 
   # Fan tree
   p <- ggtree(tree, layout = "fan", open.angle = open_angle, size = 0.5, colour = "grey30")
 
-  # Add each stat as a concentric ring with its own colour scale
+  # Add each stat as a concentric ring with its own colour scale. The `order`
+  # in each guide lists the legends outer-ring-first (top) to inner (bottom),
+  # matching the ring stack.
+  n_rings <- length(ring_specs)
   for (i in seq_along(ring_specs)) {
     spec <- ring_specs[[i]]
     p <- p +
@@ -679,7 +682,8 @@ build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes 
         width = ring_width, offset = if (i == 1) 0.10 else 0.055,
         color = "white", linewidth = 0.2
       ) +
-      scale_fill_gradient(low = spec$low, high = spec$high, name = spec$name) +
+      scale_fill_gradient(low = spec$low, high = spec$high, name = spec$name,
+                          guide = guide_colourbar(order = n_rings - i + 1)) +
       ggnewscale::new_scale_fill()
   }
 
@@ -693,12 +697,13 @@ build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes 
   tip_pos <- p$data[p$data$isTip, ]
   num_pos <- data.frame(y = tip_pos$y, num = match(tip_pos$label, labs))
 
+  # All circular text (tip numbers, legends, species key) scales with text_size.
   p <- p +
     geom_text(data = num_pos, aes(x = ring_max_x * 1.06, y = y, label = num),
               angle = 0, size = text_size * 0.9, inherit.aes = FALSE) +
     theme(legend.position = "right",
-          legend.title = element_text(size = 8, face = "bold"),
-          legend.text = element_text(size = 6),
+          legend.title = element_text(size = text_size * 2.7, face = "bold"),
+          legend.text = element_text(size = text_size * 2),
           legend.key.width = unit(0.3, "cm"),
           legend.key.height = unit(0.35, "cm"))
 
@@ -707,9 +712,9 @@ build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes 
   sp_block <- paste(sp_txt, collapse = "\n")
   sp_leg <- ggplot() + xlim(0, 1) + ylim(0, 1) +
     annotate("text", x = 0, y = 1.00, label = "Species",
-             hjust = 0, vjust = 1, fontface = "bold", size = 3.4) +
+             hjust = 0, vjust = 1, fontface = "bold", size = text_size * 1.15) +
     annotate("text", x = 0, y = 0.94, label = sp_block,
-             hjust = 0, vjust = 1, size = 2.8, fontface = "italic", lineheight = 1.2) +
+             hjust = 0, vjust = 1, size = text_size * 0.95, fontface = "italic", lineheight = 1.2) +
     theme_void()
 
   sp_leg + p + plot_layout(widths = c(0.35, 1))
