@@ -101,6 +101,7 @@ parser$add_argument('--rad_width', type = 'double', default = 0.4, help = 'Radiu
 parser$add_argument('--skip_stats', type = 'character', default = NULL, help = "Don't plot these stats (comma separated list)")
 parser$add_argument('--type', type = 'character', choices = c('genome_only', 'genome_anno'), default = 'genome_anno', help = 'Select stats for genome only or for both genome and annotation')
 parser$add_argument('--tree_style', type = 'character', choices = c('roundrect', 'ellipse', 'rectangular', 'circular'), default = 'roundrect', help = 'Tree layout style: roundrect (rounded branches, default), ellipse (curved branches with node points), rectangular (legacy look with dotted leader lines), or circular (fan tree with the stats drawn as concentric coloured rings)')
+parser$add_argument('--circular_rings', type = 'character', default = 'ch_plot,n50_plot,busco_gen_plot,busco_prot_plot', help = "Circular layout only: comma-separated, ordered (inner->outer) list of stats to draw as rings, or 'all' to show every available stat. The default is a curated assembly/annotation-quality set. Keys: ch_plot, len_plot, n50_plot, gene_plot, busco_gen_plot, busco_prot_plot, nseqs_plot, ortho_plot")
 parser$add_argument('--len_pos_x', type = 'double', default = 5, help = 'Position of the BUSCO legend on the x axis when both genome and protein BUSCO pies are plotted')
 
 args <- parser$parse_args()
@@ -606,7 +607,7 @@ if (!is.null(gene_plot)) gene_plot <- gene_plot + new_xlim
 build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes = NULL,
                                 data_busco_geno = NULL, data_busco_prot = NULL,
                                 data_nseqs = NULL, data_ortho = NULL,
-                                text_size = 3, skip = NULL,
+                                text_size = 3, skip = NULL, rings = NULL,
                                 open_angle = 14, ring_width = 0.13) {
 
   if (is.null(skip)) skip <- character(0)
@@ -616,9 +617,6 @@ build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes 
   num_df  <- data.frame(label = labs, num = seq_len(n_tips), stringsAsFactors = FALSE)
   ring_df <- data.frame(label = labs, stringsAsFactors = FALSE)
 
-  # Collect the rings that have data and are not skipped, inner -> outer.
-  # Each stat maps to the same skip key as its rectangular-layout panel, so
-  # --skip_stats (and the Shiny "Skip Statistics" checkboxes) toggle rings too.
   ring_specs <- list()
   add_ring <- function(name, values, low, high) {
     if (is.null(values) || all(is.na(values))) return(invisible())
@@ -631,35 +629,41 @@ build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes 
     as.numeric(d[[col]])
   }
 
-  if (!is.null(data_quast) && !("ch_plot" %in% skip)) {
-    add_ring("Seq number", col_by_node(data_quast$full, "Sequences"), "#ececec", "#525252")   # grey
-  }
-  if (!is.null(data_quast) && !("len_plot" %in% skip)) {
-    add_ring("Genome size", col_by_node(data_quast$full, "Length"), "#e7edf6", "#274b8f")      # Mb, blue
-  }
-  if (!is.null(data_quast) && !("n50_plot" %in% skip)) {
-    add_ring("N50", col_by_node(data_quast$full, "N50") / 1000000, "#ece7f5", "#5b3a91")       # Mb, purple
-  }
-  if (!is.null(data_genes) && !("gene_plot" %in% skip)) {
-    tot <- data_genes[data_genes$stat == "Total", ]
-    tot <- tot[order(tot$node), ]
-    add_ring("Gene number", as.numeric(tot$value), "#e2f1ee", "#0f7a6c")                       # teal
-  }
-  if (!is.null(data_busco_geno) && !("busco_gen_plot" %in% skip)) {
-    add_ring("BUSCO genome", data_busco_geno$Single + data_busco_geno$Duplicated,
-             "#e9f3e2", "#2f7d2f")                                                             # % complete, green
-  }
-  if (!is.null(data_busco_prot) && !("busco_prot_plot" %in% skip)) {
-    add_ring("BUSCO protein", data_busco_prot$Single + data_busco_prot$Duplicated,
-             "#fdece0", "#c1560f")                                                             # % complete, orange
-  }
-  if (!is.null(data_nseqs) && !("nseqs_plot" %in% skip)) {
-    add_ring("Seqs ≥5 BUSCOs", col_by_node(data_nseqs, names(data_nseqs)[2]),
-             "#f2e9d8", "#8c6d1f")                                                             # gold
-  }
-  if (!is.null(data_ortho) && !("ortho_plot" %in% skip)) {
-    add_ring("Ortho seqs", col_by_node(data_ortho, names(data_ortho)[2]),
-             "#fde0ec", "#a11d5b")                                                             # magenta
+  # Registry of every stat that can be a ring. Each key matches its
+  # rectangular-layout panel (and the Shiny "Skip Statistics" checkboxes);
+  # `get` returns the per-tip values or NULL when that data was not supplied.
+  ring_registry <- list(
+    ch_plot         = list(name = "Seq number",     low = "#ececec", high = "#525252",
+                           get = function() if (!is.null(data_quast)) col_by_node(data_quast$full, "Sequences")),
+    len_plot        = list(name = "Genome size",    low = "#e7edf6", high = "#274b8f",
+                           get = function() if (!is.null(data_quast)) col_by_node(data_quast$full, "Length")),
+    n50_plot        = list(name = "N50",            low = "#ece7f5", high = "#5b3a91",
+                           get = function() if (!is.null(data_quast)) col_by_node(data_quast$full, "N50") / 1000000),
+    gene_plot       = list(name = "Gene number",    low = "#e2f1ee", high = "#0f7a6c",
+                           get = function() {
+                             if (is.null(data_genes)) return(NULL)
+                             tot <- data_genes[data_genes$stat == "Total", ]
+                             as.numeric(tot[order(tot$node), ]$value)
+                           }),
+    busco_gen_plot  = list(name = "BUSCO genome",   low = "#e9f3e2", high = "#2f7d2f",
+                           get = function() if (!is.null(data_busco_geno)) data_busco_geno$Single + data_busco_geno$Duplicated),
+    busco_prot_plot = list(name = "BUSCO protein",  low = "#fdece0", high = "#c1560f",
+                           get = function() if (!is.null(data_busco_prot)) data_busco_prot$Single + data_busco_prot$Duplicated),
+    nseqs_plot      = list(name = "Seqs ≥5 BUSCOs", low = "#f2e9d8", high = "#8c6d1f",
+                           get = function() if (!is.null(data_nseqs)) col_by_node(data_nseqs, names(data_nseqs)[2])),
+    ortho_plot      = list(name = "Ortho seqs",     low = "#fde0ec", high = "#a11d5b",
+                           get = function() if (!is.null(data_ortho)) col_by_node(data_ortho, names(data_ortho)[2]))
+  )
+
+  # `rings` fixes which stats to show and their inner->outer order (the curated
+  # static default). When NULL (e.g. the Shiny app) every available stat is
+  # shown. Either way `skip` is still honoured, so a ring is drawn only if it is
+  # selected, not skipped, and its data is present.
+  order_keys <- if (!is.null(rings)) rings else names(ring_registry)
+  for (key in order_keys) {
+    entry <- ring_registry[[key]]
+    if (is.null(entry) || key %in% skip) next
+    add_ring(entry$name, entry$get(), entry$low, entry$high)
   }
 
   # Fan tree
@@ -712,6 +716,13 @@ build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes 
 }
 
 if (args$tree_style == "circular") {
+  # 'all' shows every available stat (respecting skip); otherwise use the
+  # curated, ordered ring list from --circular_rings.
+  circular_rings <- if (identical(tolower(args$circular_rings), "all")) {
+    NULL
+  } else {
+    trimws(strsplit(args$circular_rings, ",")[[1]])
+  }
   final_plot <- build_circular_plot(
     tree            = tree,
     tips_order      = tips_order,
@@ -722,7 +733,8 @@ if (args$tree_style == "circular") {
     data_nseqs      = data_nseqs,
     data_ortho      = data_ortho,
     text_size       = args$text_size,
-    skip            = skip
+    skip            = skip,
+    rings           = circular_rings
   )
 } else {
 

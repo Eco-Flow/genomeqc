@@ -508,7 +508,7 @@ build_tree_plot <- function(tree, plots, legends, xlimit, top_margin = 5.5,
 build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes = NULL,
                                 data_busco_geno = NULL, data_busco_prot = NULL,
                                 data_nseqs = NULL, data_ortho = NULL,
-                                text_size = 3, skip = NULL,
+                                text_size = 3, skip = NULL, rings = NULL,
                                 open_angle = 14, ring_width = 0.13) {
 
   if (is.null(skip)) skip <- character(0)
@@ -518,9 +518,6 @@ build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes 
   num_df  <- data.frame(label = labs, num = seq_len(n_tips), stringsAsFactors = FALSE)
   ring_df <- data.frame(label = labs, stringsAsFactors = FALSE)
 
-  # Collect rings that have data and are not skipped, inner -> outer.
-  # Each stat maps to the same skip key as its rectangular-layout panel, so
-  # skip_stats (and the Shiny "Skip Statistics" checkboxes) toggle rings too.
   ring_specs <- list()
   add_ring <- function(name, values, low, high) {
     if (is.null(values) || all(is.na(values))) return(invisible())
@@ -532,35 +529,40 @@ build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes 
     as.numeric(d[[col]])
   }
 
-  if (!is.null(data_quast) && !("ch_plot" %in% skip)) {
-    add_ring("Seq number", col_by_node(data_quast$full, "Sequences"), "#ececec", "#525252")   # grey
-  }
-  if (!is.null(data_quast) && !("len_plot" %in% skip)) {
-    add_ring("Genome size", col_by_node(data_quast$full, "Length"), "#e7edf6", "#274b8f")      # Mb, blue
-  }
-  if (!is.null(data_quast) && !("n50_plot" %in% skip)) {
-    add_ring("N50", col_by_node(data_quast$full, "N50") / 1000000, "#ece7f5", "#5b3a91")       # Mb, purple
-  }
-  if (!is.null(data_genes) && !("gene_plot" %in% skip)) {
-    tot <- data_genes[data_genes$stat == "Total", ]
-    tot <- tot[order(tot$node), ]
-    add_ring("Gene number", as.numeric(tot$value), "#e2f1ee", "#0f7a6c")                       # teal
-  }
-  if (!is.null(data_busco_geno) && !("busco_gen_plot" %in% skip)) {
-    add_ring("BUSCO genome", data_busco_geno$Single + data_busco_geno$Duplicated,
-             "#e9f3e2", "#2f7d2f")                                                             # % complete, green
-  }
-  if (!is.null(data_busco_prot) && !("busco_prot_plot" %in% skip)) {
-    add_ring("BUSCO protein", data_busco_prot$Single + data_busco_prot$Duplicated,
-             "#fdece0", "#c1560f")                                                             # % complete, orange
-  }
-  if (!is.null(data_nseqs) && !("nseqs_plot" %in% skip)) {
-    add_ring("Seqs ≥5 BUSCOs", col_by_node(data_nseqs, names(data_nseqs)[2]),
-             "#f2e9d8", "#8c6d1f")                                                             # gold
-  }
-  if (!is.null(data_ortho) && !("ortho_plot" %in% skip)) {
-    add_ring("Ortho seqs", col_by_node(data_ortho, names(data_ortho)[2]),
-             "#fde0ec", "#a11d5b")                                                             # magenta
+  # Registry of every stat that can be a ring. Each key matches its
+  # rectangular-layout panel (and the Shiny "Skip Statistics" checkboxes);
+  # `get` returns the per-tip values or NULL when that data was not supplied.
+  ring_registry <- list(
+    ch_plot         = list(name = "Seq number",     low = "#ececec", high = "#525252",
+                           get = function() if (!is.null(data_quast)) col_by_node(data_quast$full, "Sequences")),
+    len_plot        = list(name = "Genome size",    low = "#e7edf6", high = "#274b8f",
+                           get = function() if (!is.null(data_quast)) col_by_node(data_quast$full, "Length")),
+    n50_plot        = list(name = "N50",            low = "#ece7f5", high = "#5b3a91",
+                           get = function() if (!is.null(data_quast)) col_by_node(data_quast$full, "N50") / 1000000),
+    gene_plot       = list(name = "Gene number",    low = "#e2f1ee", high = "#0f7a6c",
+                           get = function() {
+                             if (is.null(data_genes)) return(NULL)
+                             tot <- data_genes[data_genes$stat == "Total", ]
+                             as.numeric(tot[order(tot$node), ]$value)
+                           }),
+    busco_gen_plot  = list(name = "BUSCO genome",   low = "#e9f3e2", high = "#2f7d2f",
+                           get = function() if (!is.null(data_busco_geno)) data_busco_geno$Single + data_busco_geno$Duplicated),
+    busco_prot_plot = list(name = "BUSCO protein",  low = "#fdece0", high = "#c1560f",
+                           get = function() if (!is.null(data_busco_prot)) data_busco_prot$Single + data_busco_prot$Duplicated),
+    nseqs_plot      = list(name = "Seqs ≥5 BUSCOs", low = "#f2e9d8", high = "#8c6d1f",
+                           get = function() if (!is.null(data_nseqs)) col_by_node(data_nseqs, names(data_nseqs)[2])),
+    ortho_plot      = list(name = "Ortho seqs",     low = "#fde0ec", high = "#a11d5b",
+                           get = function() if (!is.null(data_ortho)) col_by_node(data_ortho, names(data_ortho)[2]))
+  )
+
+  # `rings` fixes which stats to show and their inner->outer order (the curated
+  # static default). When NULL (e.g. the Shiny app) every available stat is
+  # shown. Either way `skip` is still honoured.
+  order_keys <- if (!is.null(rings)) rings else names(ring_registry)
+  for (key in order_keys) {
+    entry <- ring_registry[[key]]
+    if (is.null(entry) || key %in% skip) next
+    add_ring(entry$name, entry$get(), entry$low, entry$high)
   }
 
   p <- ggtree(tree, layout = "fan", open.angle = open_angle, size = 0.5, colour = "grey30")
@@ -617,9 +619,11 @@ generate_complete_plot <- function(processed_data, text_size = 3, tree_scale = 0
                                    bar_width = 0.7, rad_width = 0.4, skip_stats = NULL,
                                    top_margin = 5.5, right_margin = 5.5, bottom_margin = 5.5,
                                    left_margin = 5.5, tree_margin = 15, tree_space_ratio = 1.3,
-                                   tree_style = "roundrect") {
+                                   tree_style = "roundrect", circular_rings = NULL) {
 
-  # Circular layout is a separate plotting path (rings instead of side panels)
+  # Circular layout is a separate plotting path (rings instead of side panels).
+  # circular_rings = NULL shows every available stat (the interactive Shiny
+  # default); pass an ordered vector of keys to curate/fix the rings.
   if (tree_style == "circular") {
     return(build_circular_plot(
       tree            = processed_data$tree,
@@ -631,7 +635,8 @@ generate_complete_plot <- function(processed_data, text_size = 3, tree_scale = 0
       data_nseqs      = processed_data$data_nseqs,
       data_ortho      = processed_data$data_ortho,
       text_size       = text_size,
-      skip            = skip_stats
+      skip            = skip_stats,
+      rings           = circular_rings
     ))
   }
 
