@@ -603,36 +603,63 @@ if (!is.null(gene_plot)) gene_plot <- gene_plot + new_xlim
 # The circular ("fan") layout is a separate plotting path: instead of the
 # concatenated side panels, each stat is drawn as a concentric coloured ring
 # around a fan tree, tips are numbered, and a species key is shown alongside.
-build_circular_plot <- function(tree, data_quast, data_genes, data_busco_geno,
-                                tips_order, text_size = 3, skip = character(0),
+build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes = NULL,
+                                data_busco_geno = NULL, data_busco_prot = NULL,
+                                data_nseqs = NULL, data_ortho = NULL,
+                                text_size = 3, skip = NULL,
                                 open_angle = 14, ring_width = 0.13) {
+
+  if (is.null(skip)) skip <- character(0)
 
   n_tips <- length(tips_order)
   labs <- gsub("_", " ", tips_order)              # tree tip labels in node order
   num_df  <- data.frame(label = labs, num = seq_len(n_tips), stringsAsFactors = FALSE)
   ring_df <- data.frame(label = labs, stringsAsFactors = FALSE)
 
-  # Collect the rings that have data and are not skipped, inner -> outer
+  # Collect the rings that have data and are not skipped, inner -> outer.
+  # Each stat maps to the same skip key as its rectangular-layout panel, so
+  # --skip_stats (and the Shiny "Skip Statistics" checkboxes) toggle rings too.
   ring_specs <- list()
   add_ring <- function(name, values, low, high) {
+    if (is.null(values) || all(is.na(values))) return(invisible())
     ring_df[[name]] <<- values
     ring_specs[[length(ring_specs) + 1]] <<- list(name = name, low = low, high = high)
   }
+  # pull a stat's per-tip values in node (i.e. labs) order
+  col_by_node <- function(df, col) {
+    d <- df[order(df$node), ]
+    as.numeric(d[[col]])
+  }
 
+  if (!is.null(data_quast) && !("ch_plot" %in% skip)) {
+    add_ring("Seq number", col_by_node(data_quast$full, "Sequences"), "#ececec", "#525252")   # grey
+  }
   if (!is.null(data_quast) && !("len_plot" %in% skip)) {
-    add_ring("Genome size", data_quast$full$Length, "#e7edf6", "#274b8f")          # Mb, blue
+    add_ring("Genome size", col_by_node(data_quast$full, "Length"), "#e7edf6", "#274b8f")      # Mb, blue
   }
   if (!is.null(data_quast) && !("n50_plot" %in% skip)) {
-    add_ring("N50", as.numeric(data_quast$full$N50) / 1000000, "#ece7f5", "#5b3a91") # Mb, purple
+    add_ring("N50", col_by_node(data_quast$full, "N50") / 1000000, "#ece7f5", "#5b3a91")       # Mb, purple
   }
   if (!is.null(data_genes) && !("gene_plot" %in% skip)) {
     tot <- data_genes[data_genes$stat == "Total", ]
     tot <- tot[order(tot$node), ]
-    add_ring("Gene number", tot$value, "#e2f1ee", "#0f7a6c")                        # teal
+    add_ring("Gene number", as.numeric(tot$value), "#e2f1ee", "#0f7a6c")                       # teal
   }
   if (!is.null(data_busco_geno) && !("busco_gen_plot" %in% skip)) {
-    add_ring("BUSCO complete", data_busco_geno$Single + data_busco_geno$Duplicated,
-             "#e9f3e2", "#2f7d2f")                                                  # % complete, green
+    add_ring("BUSCO genome", data_busco_geno$Single + data_busco_geno$Duplicated,
+             "#e9f3e2", "#2f7d2f")                                                             # % complete, green
+  }
+  if (!is.null(data_busco_prot) && !("busco_prot_plot" %in% skip)) {
+    add_ring("BUSCO protein", data_busco_prot$Single + data_busco_prot$Duplicated,
+             "#fdece0", "#c1560f")                                                             # % complete, orange
+  }
+  if (!is.null(data_nseqs) && !("nseqs_plot" %in% skip)) {
+    add_ring("Seqs ≥5 BUSCOs", col_by_node(data_nseqs, names(data_nseqs)[2]),
+             "#f2e9d8", "#8c6d1f")                                                             # gold
+  }
+  if (!is.null(data_ortho) && !("ortho_plot" %in% skip)) {
+    add_ring("Ortho seqs", col_by_node(data_ortho, names(data_ortho)[2]),
+             "#fde0ec", "#a11d5b")                                                             # magenta
   }
 
   # Fan tree
@@ -687,10 +714,13 @@ build_circular_plot <- function(tree, data_quast, data_genes, data_busco_geno,
 if (args$tree_style == "circular") {
   final_plot <- build_circular_plot(
     tree            = tree,
+    tips_order      = tips_order,
     data_quast      = data_quast,
     data_genes      = data_genes,
     data_busco_geno = data_busco_geno,
-    tips_order      = tips_order,
+    data_busco_prot = data_busco_prot,
+    data_nseqs      = data_nseqs,
+    data_ortho      = data_ortho,
     text_size       = args$text_size,
     skip            = skip
   )
