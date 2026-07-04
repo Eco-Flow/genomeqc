@@ -29,6 +29,7 @@ This is the first release of the pipeline, which compares the quality of multipl
 ### `Fixed`
 
 - Fixed BUSCO not showing in the tree
+- Fixed the Shiny app launcher pulling its container from Docker Hub instead of quay.io (the plain `docker run` does not receive the `docker.registry` prefix), which caused a `pull access denied` error.
 
 ### `Dependencies`
 

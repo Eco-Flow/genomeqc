@@ -22,7 +22,10 @@ process SHINY_APP {
     //def args   = task.ext.args ?: ''
     def prefix           = task.ext.prefix ?: "${meta.id}"
     def container_engine = params.container_engine ? "${params.container_engine}" : 'docker'
-    def docker_url       = 'ecoflowucl/genomeqc_tree:v1.5'
+    // Fully qualify the registry: this is a plain `docker run`, so (unlike the
+    // Nextflow-managed processes) it does not get the docker.registry='quay.io'
+    // prefix and would otherwise resolve to Docker Hub, where the image is not published.
+    def docker_url       = 'quay.io/ecoflowucl/genomeqc_tree:v1.5'
     def results_path     = file(params.outdir).toAbsolutePath()
     """
     mkdir app
