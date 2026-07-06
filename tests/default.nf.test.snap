@@ -24,7 +24,7 @@
                     "python": "3.13.5"
                 },
                 "EXCEL_REPORT": {
-                    "python": "3.13.11"
+                    "python": "3.9.5"
                 },
                 "FILTER_BY_LENGTH": {
                     "seqkit": "2.9.0"
@@ -47,7 +47,7 @@
                     "gffread": "0.12.7"
                 },
                 "HTML_REPORT": {
-                    "python": "3.13.11"
+                    "python": "3.9.5"
                 },
                 "ORTHOFINDER_V3": {
                     "orthofinder": "3.1.3"
@@ -1340,9 +1340,16 @@
                 "tidk/Mycoplasmoides_genitalium",
                 "tidk/Mycoplasmoides_genitalium/explore",
                 "tidk/Mycoplasmoides_genitalium/explore/Mycoplasmoides_genitalium.tidk.explore.tsv",
-                "tree_plots",
-                "tree_plots/Rplots.pdf",
-                "tree_plots/tree_plot.pdf"
+                "tree",
+                "tree/Busco_combined_geno.tsv",
+                "tree/Busco_combined_prot.tsv",
+                "tree/Quast_to_plot.tsv",
+                "tree/Rplots.pdf",
+                "tree/gene_stats.tsv",
+                "tree/n_seqs_above_x_buscos_output.tsv",
+                "tree/tree.nw",
+                "tree/tree_plot.pdf",
+                "tree/tree_plot.svg"
             ],
             [
                 "Mycoplasmoides_fastidiosum.agat.gff:md5,8e8ee97f4ea2475236353c74801c0b7a",
@@ -1600,10 +1607,17 @@
                 "Mycoplasmoides_gallisepticum.top.sequence.txt:md5,6cf5284b8860ee431062d86b936adc4d",
                 "Mycoplasmoides_gallisepticum.svg:md5,bd5c7c9028cf81af7f3382f1b6494fb1",
                 "Mycoplasmoides_gallisepticum.tsv:md5,b2a5d3b4e69e0a1c870734a1b229d119",
-                "Mycoplasmoides_genitalium.tidk.explore.tsv:md5,944f49381b397f9292fba77ac2fde706"
+                "Mycoplasmoides_genitalium.tidk.explore.tsv:md5,944f49381b397f9292fba77ac2fde706",
+                "Busco_combined_geno.tsv:md5,26f9c022760f12596975f8f1d85be3c7",
+                "Busco_combined_prot.tsv:md5,1762ec07b7b0bcf0e0e6ffbbb44cd311",
+                "Quast_to_plot.tsv:md5,8999cc8c39faffd39986947d60d65a1c",
+                "gene_stats.tsv:md5,3fe2c13858d88b0f78ce02c9c6c58ced",
+                "n_seqs_above_x_buscos_output.tsv:md5,31ab90ca82335e1f9d19299343a875fd",
+                "tree.nw:md5,36e9088da08e5fea72b693ff9846a3d9",
+                "tree_plot.svg:md5,04844d1b7a6eea1698fa6cde17ff7876"
             ]
         ],
-        "timestamp": "2026-07-02T14:26:35.914041818",
+        "timestamp": "2026-07-06T16:34:37.856425076",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "26.04.4"
