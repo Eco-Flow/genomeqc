@@ -6,6 +6,5 @@ results/
 testing/
 testing*
 *.pyc
-__pycache__/
 null/
 .lineage/
