@@ -1,4 +1,4 @@
-#!/usr/bin/Rscript
+#!/usr/bin/env Rscript
 
 # Written by Chris Wyatt and Fernando Duarte and released under the MIT license.
 # Plots the phylogenetic tree with BUSCO, Quast and gene stats results

@@ -3,9 +3,7 @@ process GENEOVERLAPS {
     label 'process_single'
 
     conda "${moduleDir}/environment.yml"
-    container "${workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container
-        ? 'oras://community.wave.seqera.io/library/r-base_r-dplyr_bioconductor-genomicranges:1e8d4970099749e4'
-        : 'community.wave.seqera.io/library/bioconductor-genomicranges_r-dplyr:f1274f1f9e8a019d' }"
+    container 'ecoflowucl/gene_overlap:v1.0'
 
     input:
     tuple val(meta), path(gff)

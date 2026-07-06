@@ -5,7 +5,8 @@ channels:
   - bioconda
 dependencies:
   - r-base=4.4.1
-  - bioconda::seqkit=2.8.2
-  - bioconda::r-rideogram=0.2.2
+  - seqkit=2.8.2
+  - r-rideogram=0.2.2
   - r-optparse=1.7.5
   - r-ggplot2=3.5.1
+  - r-readr=2.1.5
