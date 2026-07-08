@@ -10,7 +10,7 @@ process HITE {
 
     output:
     tuple val(meta), path("*_hite_results")           , emit: hite_results
-    tuple val(meta), path("*_hite_results/HiTE.tbl")  , emit: tbl
+    tuple val(meta), path("*_hite_results/*.tbl")  , emit: tbl
     path "versions.yml"      , emit: versions
 
     script:
@@ -51,6 +51,8 @@ process HITE {
     if [ ! -f \${mydir}/${prefix}_hite_results/HiTE.tbl ]; then
         touch \${mydir}/${prefix}_hite_results/HiTE.tbl
     fi
+
+    mv \${mydir}/${prefix}_hite_results/HiTE.tbl \${mydir}/${prefix}_hite_results/${prefix}.tbl
 
     cat <<-END_VERSIONS > \${mydir}/versions.yml
     "${task.process}":
