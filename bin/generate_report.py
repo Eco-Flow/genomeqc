@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+
+# Written by Fernando Duarte with AI assistance, released under the MIT license.
+# Generates a self-contained HTML quality report for GenomeQC pipeline results
 """Generate a self-contained HTML quality report for GenomeQC pipeline results."""
 
 import argparse

@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+
+# Written by Fernando Duarte with AI assistance, released under the MIT license.
+# Converts famdb EMBL output to RepeatMasker-compatible FASTA
 """Convert famdb EMBL output to RepeatMasker-compatible FASTA.
 
 Input:  famdb families -f embl  (on stdin)

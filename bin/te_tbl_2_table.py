@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+
+# Written by Fernando Duarte with AI assistance, released under the MIT license.
+# Parses RepeatMasker .tbl files into a combined TSV for tree-summary pie charts
 """
 Parse one or more RepeatMasker .tbl files and produce a combined TSV
 suitable for pie-chart plotting in the tree summary (scatterpie).

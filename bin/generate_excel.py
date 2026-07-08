@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+
+# Written by Fernando Duarte with AI assistance, released under the MIT license.
+# Generates an Excel workbook with raw data tables from GenomeQC pipeline results
 """Generate an Excel workbook with raw data tables from GenomeQC pipeline results.
 
 Each tool's output is placed in a separate sheet. Multiple per-species files of
