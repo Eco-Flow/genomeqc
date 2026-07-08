@@ -20,5 +20,6 @@ orthologous_chromosomes/debug_gene_mapping.txt
 **/*.pdf
 agat/Mycoplasmoides_gallisepticum/stats/Mycoplasmoides_gallisepticum.stats.txt
 **/*/tree.nw
+**/*/tree_plot.*
 **/*.xlsx
 **/*.html
