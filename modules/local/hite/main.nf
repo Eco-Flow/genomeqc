@@ -45,6 +45,13 @@ process HITE {
     --work_dir \${work_dir} \\
     $args
 
+    # HiTE exits 0 even when it finds no transposable elements (small/low-repeat
+    # genomes), in which case it never writes HiTE.tbl. Treat that as a valid
+    # zero-TE result: an empty .tbl parses as 100% non-repeat downstream.
+    if [ ! -f \${mydir}/${prefix}_hite_results/HiTE.tbl ]; then
+        touch \${mydir}/${prefix}_hite_results/HiTE.tbl
+    fi
+
     cat <<-END_VERSIONS > \${mydir}/versions.yml
     "${task.process}":
        Python version: \$(python --version | cut -f 2 -d " ")
