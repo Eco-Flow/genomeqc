@@ -26,10 +26,11 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 - [Decontamination](#decontamination):
   - [FCS-GX](#fcs-gx) - Foreign genome contamination screening.
   - [FCS-adaptor](#fcs-adaptor) - Adaptor and vector contamination screening.
-  - [FCS-adaptor clean genome](#fcs-adaptor-clean-genome) Removal of contamination from assembly.
+  - [FCS-GX clean genome](#fcs-gx-clean-genome) - Removal of contamination from assembly.
   - [Tiara](#tiara) - Sequence classification (domain and organelle level).
 - [GffRead](#gffread) - Extract longest isoform from FASTA file.
 - [BUSCO](#busco) - Genome completeness based on single copy markers.
+- [TE annotation](#te-annotation) (optional) - Transposable element identification and masking.
 - [Orthofinder](#orthofinder) - Phylogenetic orthology inference.
 - [Tree summary](#tree-summary) - Phylogenetic summary plot.
 - [Shiny app](#shiny-app) - Dynamic tree summary plot adjuster.
@@ -100,9 +101,11 @@ It outputs a report with each sequence of the genome assembly labelled as Eukary
 <details markdown="1">
 <summary>Output files</summary>
 
-- `decontamination/tiara`
-  - `<assembly>.txt
-`: Report with sequence classifications.
+- `decontamination/tiara/raw/`
+  - `<assembly>.txt`: Sequence classifications for the original (raw) assembly.
+  - `log_<assembly>.txt`: Log file with classification statistics and model information.
+- `decontamination/tiara/cleaned/`
+  - `<assembly>.txt`: Sequence classifications for the FCS-GX cleaned assembly.
   - `log_<assembly>.txt`: Log file with classification statistics and model information.
 
 </details>
@@ -136,8 +139,8 @@ It generates a report in different formats, as well as an HTML file with in inte
 - `quast/<species_name>/`
   - `icarus.html`: Contig viewer in HTML format
   - `report.html`: Assembly stats in HTML format
-  - `report.pdf`: Assembly stats in tsv format
-  - `report.tsv`: Assembly QC as HTML report
+  - `report.pdf`: Assembly stats in PDF format
+  - `report.tsv`: Assembly statistics in TSV format
 
 </details>
 
@@ -150,9 +153,18 @@ It will use a known telomeric repeat as input string, and will find occurrences 
 <details markdown="1">
 <summary>Output files</summary>
 
-- `tidk/`
-  - `<species_name>.tsv`: Report with the number of repeats found in different number of windows
-  - `<species_name>.svg`: Plot with the repeat distribution
+- `tidk/<species_name>/explore/`
+  - `<species_name>.tidk.explore.tsv`: k-mer frequency table used to identify the candidate telomeric repeat.
+- `tidk/<species_name>/search/aposteriori/`
+  - `<species_name>.tsv`: Repeat counts per window across the genome (a posteriori repeat identified by `tidk explore`).
+  - `<species_name>.bedgraph`: Same data in bedgraph format.
+- `tidk/<species_name>/search/apriori/<repeat>/` _(only when `--repeat` is provided)_
+  - `<species_name>.tsv`: Repeat counts per window for the supplied a priori repeat string.
+  - `<species_name>.bedgraph`: Same data in bedgraph format.
+- `tidk/<species_name>/plot/aposteriori/`
+  - `<species_name>.svg`: Plot of the a posteriori telomeric repeat distribution across the genome.
+- `tidk/<species_name>/plot/apriori/<repeat>/` _(only when `--repeat` is provided)_
+  - `<species_name>.svg`: Plot of the a priori telomeric repeat distribution across the genome.
 
 </details>
 
@@ -169,11 +181,15 @@ It generates a histogram relating k-mer counts in the read set to their associat
 <details markdown="1">
 <summary>Output files</summary>
 
-- `merqury/`
-  - `<assembly>.html`: Contig viewer in HTML format
-  - `<assembly>.html`: Assembly stats in HTML format
-  - `<assembly>.pdf`: Assembly stats in tsv format
-  - `<assembly>.tsv`: Assembly QC as HTML report
+- `merqury/<species_name>/`
+  - `<assembly>.completeness.stats`: Assembly completeness statistics.
+  - `<assembly>.qv`: Assembly quality value (QV) score.
+  - `<assembly>.*.qv`: Per-scaffold quality value scores.
+  - `<assembly>.spectra-cn.ln.png`: Linear-scale copy-number spectrum plot.
+  - `<assembly>.spectra-asm.ln.png`: Linear-scale assembly spectrum plot.
+  - `<assembly>.spectra-cn.fl.png`: Full copy-number spectrum plot (optional).
+  - `<assembly>.spectra-asm.fl.png`: Full assembly spectrum plot (optional).
+  - `<assembly>.hapmers.blob.png`: Haplotype-specific k-mer blob plot (optional).
 
 </details>
 
@@ -186,8 +202,8 @@ To run nf-core/genomeqc with merqury, the flag `--run_merqury` must be provided.
 <details markdown="1">
 <summary>Output files</summary>
 
-- `agat/`
-  - `<species_name>.stats.txt`: Contig viewr in HTML format
+- `agat/<species_name>/stats/`
+  - `<species_name>.stats.txt`: Gene annotation statistics report.
 
 </details>
 
@@ -198,8 +214,8 @@ To run nf-core/genomeqc with merqury, the flag `--run_merqury` must be provided.
 <details markdown="1">
 <summary>Output files</summary>
 
-- `longest/`
-  - `<species_name>.longest.g*f`: Contig viewr in HTML format
+- `agat/<species_name>/longest_isoform/`
+  - `<species_name>.longest.g*f`: GXF file with the longest isoform per gene.
 
 </details>
 
@@ -214,8 +230,8 @@ It outputs a brief report with information about the number of reads, the number
 <details markdown="1">
 <summary>Output files</summary>
 
-- `longest/`
-  - `Count.<species_name>.tsv`: Report in tsv format
+- `gene_overlaps/`
+  - `<species_name>.counts.tsv`: Summary counts of sense and antisense overlapping genes.
 
 </details>
 
@@ -242,19 +258,77 @@ It outputs a report with completness stats, a summarized table with these stats,
 <details markdown="1">
 <summary>Output files</summary>
 
-- `busco/`
-  - `short_summary.specific.<busco_db>.<species_name>.fasta.txt` Completness report in tsv format
-  - `<species_name>-<busco_db>-busco.batch_summary.txt`: Summarized completness report in tsv format
-  - `<species_name>_<lineage>.png` Ideogram with the location of single copy markers
-  </details>
+- `busco/<species_name>/stats/`
+  - `short_summary.specific.<busco_db>.<species_name>.txt`: Per-run BUSCO completeness report.
+  - `<species_name>-<busco_db>-busco.batch_summary.txt`: Summarised completeness report.
+- `busco/<species_name>/ideogram/`
+  - `<species_name>_<lineage>.png`: Ideogram with the chromosomal location of single-copy markers.
+
+</details>
 
 ![output_example_busco](images/output_example/syngnathus_acus_ideogram.png)
 
+### TE annotation
+
+TE annotation is optional and is enabled with `--te hite` or `--te repeatmasker`. See [usage documentation](usage.md#running-te-annotation) for full details.
+
+#### HiTE
+
+[HiTE](https://github.com/BioinformaticsToolsmith/HiTE) is a fast, alignment-free tool for TE identification and masking. It is the recommended option for quick runs or plant genomes (`--is_plant true`).
+
+<details markdown="1">
+<summary>Output files</summary>
+
+- `hite/<species_name>/`
+  - `<species_name>_hite_results/` directory containing all HiTE output files, including the masked genome and identified TE families.
+
+</details>
+
+#### RepeatMasker
+
+The RepeatMasker path masks the genome against the [DFAM](https://www.dfam.org) curated repeat library:
+
+1. **famdb.py** – curated repeat library extracted from DFAM h5 partitions (downloaded automatically unless `--RM_download_db false`).
+2. **CAT + CD-HIT-EST** – deduplicates the library.
+3. **RepeatMasker** – soft-masks the genome.
+
+With `--run_repeatmodeler`, [RepeatModeler](https://github.com/Dfam-consortium/RepeatModeler) is also run to build a de novo library from the genome, which is merged with the famdb library before masking. RepeatModeler employs RECON, RepeatScout and LtrHarvest/Ltr_retriever for complementary repeat boundary identification.
+
+[RepeatMasker](https://www.repeatmasker.org) screens DNA sequences for interspersed repeats and low complexity sequences, producing a soft-masked genome and summary statistics.
+
+<details markdown="1">
+<summary>Output files</summary>
+
+- `repeatmasker/<species_name>/`
+  - `<species_name>.masked` – soft-masked genome in FASTA format.
+  - `<species_name>.out` – detailed table of repeat positions and classifications.
+  - `<species_name>.tbl` – summary table of repeat annotation results.
+  - `<species_name>.gff` – repeat annotations in GFF format (if produced).
+
+</details>
+
 ### Orthofinder
 
-[Orthofinder](https://github.com/davidemms/OrthoFinder) finds groups of orthologous genes and uses these orthologous genes for phylogenetic inference.
+[Orthofinder](https://github.com/davidemms/OrthoFinder) finds groups of orthologous genes and uses these orthologous genes for phylogenetic inference. It outputs a rooted species tree which is later used to present the quality stats of the assemblies.
 
-It output a rooted species tree which is later used to present the quality stats of the assemblies.
+The pipeline supports both OrthoFinder v2 and v3 (selected via `--ortho_version` ; default is v3). Output structure differs slightly between versions, as v3 introduces phylogenetic hierarchical orthogroup inference in addition to the classic MCL-based orthogroups.
+
+<details markdown="1">
+<summary>Output files</summary>
+
+- `orthofinder/`
+  - `Orthogroups/`
+    - Orthogroup assignments from MCL clustering (present in both v2 and v3).
+  - `Species_Tree/`
+    - Rooted species tree used for downstream quality stats, and (v3 only) node-labelled tree (`SpeciesTree_rooted_node_labels.txt`) used to identify clade IDs.
+  - `Phylogenetic_Hierarchical_Orthogroups/` **(v3 only)**
+    - Orthogroups inferred from gene tree analysis at each phylogenetic level in the species tree. These are more accurate than MCL-based orthogroups alone and are the recommended orthogroup set when running v3.
+  - `Comparative_Genomics_Statistics/`
+    - Summary statistics on orthogroup assignment, e.g. `Statistics_Overall.tsv` and `Statistics_PerSpecies.tsv`.
+
+</details>
+
+This directory will only be present if `--save_orthofinder_results` flag is set.
 
 ### Tree summary
 
@@ -265,8 +339,9 @@ The idea of the tree summary is to give some phylogenetic context to the quality
 <details markdown="1">
 <summary>Output files</summary>
 
-- `tree_summary/`
-  - `tree_plot.pdf` Tree summary with quality statistics
+- `tree/genome_anno/` or `tree/genome_only/`
+  - `tree_plot.pdf`: Tree summary with quality statistics.
+  - `tree_plot.svg`: Same plot in SVG format.
 
 </details>
 
@@ -303,8 +378,9 @@ The **Excel report** contains the same summary statistics as separate tables.
 <details markdown="1">
 <summary>Output files</summary>
 
-- `report/`
+- `report/html/`
   - `genomeqc_report.html`: Self-contained HTML report summarising the results from all the tools above.
+- `report/excel/`
   - `genomeqc_tables.xlsx`: Excel spreadsheet with the same summary statistics.
 
 </details>

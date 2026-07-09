@@ -1,6 +1,8 @@
-process GENE_OVERLAPS {
+process GENEOVERLAPS {
     tag "$meta.id"
     label 'process_single'
+
+    conda "${moduleDir}/environment.yml"
     container 'ecoflowucl/gene_overlap:v1.0'
 
     input:
@@ -21,5 +23,16 @@ process GENE_OVERLAPS {
     #Run overlap R script
     gene_overlaps.R $gff ${prefix}.summary.tsv ${prefix}.counts.tsv
 
+    """
+
+    stub:
+    def args = task.ext.args ?: ''
+    def prefix = task.ext.prefix ?: "${meta.id}"
+
+    """
+    echo $args
+
+    touch ${prefix}.summary.tsv
+    touch ${prefix}.counts.tsv
     """
 }

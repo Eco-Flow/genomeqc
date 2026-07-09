@@ -158,7 +158,15 @@ The pipeline will produce a tree plot summary that can be modified in real time 
 
 ### Running tidk
 
-The pipeline will run tidk by default. Users can provide a DNA string correspoding to the telomeric repeat of the assemblies of interest using the `--repeat` flag. If no DNA string is provided, tidk will explore the genome and try to compute the telomeric repeat in its cannonical form.
+The pipeline will run tidk by default. Users can provide a DNA string correspoding to the telomeric repeat of the assemblies of interest using the `--repeat` flag. If no DNA string is provided, tidk will explore the genome and try to compute the telomeric repeat in its cannonical form. E.g.:
+
+```bash
+nextflow run nf-core/genomeqc \
+  --input ./samplesheet.csv \
+  --outdir ./results \
+  --repeat ATCG
+  -profile docker
+```
 
 Users can skip tidk using the `--skip_tidk` flag.
 
@@ -166,9 +174,32 @@ Users can skip tidk using the `--skip_tidk` flag.
 
 Users can also run the pipeline using Merqury by supplying the path to sequencing reads under the **fastq** field. Merqury needs both **fasta** and **fastq** to run. Refer the [GitHub page](https://github.com/marbl/merqury) for more information on Merqury.
 
+The k-mer size used to build the Meryl database can be tuned with `--kvalue` (default: `21`). For highly heterozygous or large genomes, a larger k (e.g. `31`) may give better completeness estimates.
+
 ### Running Decontamination
 
-If an NCBI taxid is provided for an assembly in the samplesheet, and the path to the FCS-GX database or a manifest to download and build it is given via `--gxdb` or `--gxdb_manifiest` respectively, the pipeline will run the decontamination subworkflow.
+If an NCBI taxid is provided for an assembly in the samplesheet through the **taxid** field, and the path to the FCS-GX database or a manifest to download and build it is given via `--gxdb` or `--gxdb_manifiest` respectively, the pipeline will run the decontamination subworkflow. E.g.:
+
+```bash
+nextflow run nf-core/genomeqc \
+  --input ./samplesheet.csv \
+  --outdir ./results \
+  --gxdb /patho/to/fcs-gx/all
+  -profile docker
+```
+
+or
+
+```bash
+nextflow run nf-core/genomeqc \
+  --input ./samplesheet.csv \
+  --outdir ./results \
+  --gxdb_manifest 'https://ftp.ncbi.nlm.nih.gov/genomes/TOOLS/FCS/database/latest/latest.manifest'
+  -profile docker
+```
+
+> [!WARNING]
+> **The FCS-GX database is considerable in size (~500 GB).** Downloading it in advance over using the manifest is highly recommended.
 
 The decontamination subsworkflow consists of three modules:
 
@@ -177,6 +208,145 @@ The decontamination subsworkflow consists of three modules:
 - [Tiara](https://ibe-uw.github.io/tiara/): For DNA sequence classification in two stages:
   1. The sequences are classified to either archaea, bacteria, prokarya, eukarya, organelle or unknown.
   2. The sequences labeled as organelle in the first stage are classified to either mitochondria, plastid or unknown.
+
+> [!WARNING]
+> **FCS-GX requires a large database (~500 GB) and is extremely slow when reading it from a standard disk.**
+>
+> To improve preformance, use `--ramdisk` to point to a `tmpfs` or `ramfs` mount (e.g. `/dev/shm` on Linux). The pipeline will copy the database into memory before each run and clean it up afterwards
+
+### Running TE annotation
+
+The pipeline supports two optional methods for transposable element (TE) annotation, selected with the `--te` parameter. TE annotation is skipped by default.
+
+#### `--te hite`
+
+Runs [HiTE](https://github.com/BioinformaticsToolsmith/HiTE), a fast alignment-free TE identification and masking tool. It is the recommended option for quick runs or plant genomes.
+
+```bash
+nextflow run nf-core/genomeqc \
+   --input samplesheet.csv \
+   --outdir results \
+   --te hite \
+   -profile docker
+```
+
+For plant genomes, also pass `--is_plant true`:
+
+```bash
+nextflow run nf-core/genomeqc \
+   --input samplesheet.csv \
+   --outdir results \
+   --te hite \
+   --is_plant true \
+   -profile docker
+```
+
+#### `--te repeatmasker`
+
+Runs a curated TE masking pipeline using the [DFAM](https://www.dfam.org) repeat library:
+
+1. **famdb.py** – extracts a curated repeat library from DFAM h5 partition files (downloaded automatically by default).
+2. **Clustering** – deduplicates the library using MMseqs2 `easy-linclust` by default (see [Clustering options](#repeat-library-clustering-options) below).
+3. **RepeatMasker** – masks the genome. Runs in rush mode (`-qq`) by default for speed (see [RepeatMasker speed](#repeatmasker-speed) below).
+
+```bash
+nextflow run nf-core/genomeqc \
+   --input samplesheet.csv \
+   --outdir results \
+   --te repeatmasker \
+   -profile docker
+```
+
+To restrict the curated library to a specific taxonomic lineage (strongly recommended — speeds up both the extraction and the masking step), use `--famdb_lineage`:
+
+```bash
+nextflow run nf-core/genomeqc \
+   --input samplesheet.csv \
+   --outdir results \
+   --te repeatmasker \
+   --famdb_lineage hymenoptera \
+   -profile docker
+```
+
+By default, the pipeline downloads partition `0` of the DFAM full database. To download additional partitions (required for full taxonomic coverage beyond the root lineage), pass them via `--RM_db`:
+
+```bash
+--RM_db "['https://www.dfam.org/releases/current/families/FamDB/dfam39_full.0.h5.gz',\
+           'https://www.dfam.org/releases/current/families/FamDB/dfam39_full.1.h5.gz']"
+```
+
+If you already have DFAM h5 partition files on disk, use `--famdb_library` to point at them. The download step is skipped automatically.
+
+`--famdb_library` expects **decompressed `.h5` files** — `.h5.gz` files must be extracted first. Only decompress the partitions relevant to your lineage; decompressing the entire database is unnecessary and expensive (each partition is 10–30 GB uncompressed).
+
+Partition 0 always contains the taxonomy metadata and is required. For most lineages, partitions 0 and 1 are sufficient — check the [DFAM partition guide](https://www.dfam.org/releases/current/families/FamDB/) if you need to identify which partition covers your clade.
+
+```bash
+# Decompress only the partitions you need (once, on the cluster)
+gunzip -k /path/to/dfam38-1_full.0.h5.gz
+gunzip -k /path/to/dfam38-1_full.1.h5.gz
+```
+
+Then pass them via a glob:
+
+```bash
+nextflow run nf-core/genomeqc \
+   --input samplesheet.csv \
+   --outdir results \
+   --te repeatmasker \
+   --famdb_library "/path/to/dfam38-1_full.*.h5" \
+   --famdb_lineage hymenoptera \
+   -profile docker
+```
+
+#### Adding de novo repeat discovery with RepeatModeler
+
+By default, `--te repeatmasker` only uses the curated DFAM library. To also run [RepeatModeler](https://www.repeatmasker.org/RepeatModeler/) for de novo discovery, add `--run_repeatmodeler`:
+
+```bash
+nextflow run nf-core/genomeqc \
+   --input samplesheet.csv \
+   --outdir results \
+   --te repeatmasker \
+   --run_repeatmodeler \
+   --famdb_lineage hymenoptera \
+   -profile docker
+```
+
+The RepeatModeler de novo library is merged with the famdb curated library before masking, giving broader coverage at the cost of significant runtime.
+
+> [!WARNING]
+> RepeatModeler is slow — it typically requires 24 CPUs and 24–48 hours per genome. Only enable it if you need de novo discovery beyond the curated DFAM families for your lineage.
+
+#### Repeat library clustering options
+
+Before RepeatMasker runs, the repeat library is deduplicated by a clustering step. Three tools are available via `--te_clusterer`:
+
+| Value      | Tool                    | Notes                                 |
+| ---------- | ----------------------- | ------------------------------------- |
+| `linclust` | MMseqs2 `easy-linclust` | **Default.** Linear-time, fastest.    |
+| `mmseqs`   | MMseqs2 `easy-cluster`  | Slower than linclust, more sensitive. |
+| `cdhit`    | CD-HIT-EST              | Traditional approach.                 |
+
+Two thresholds can be tuned:
+
+- `--te_cluster_identity` – minimum sequence identity (default `0.8`). Passed as `-c` to CD-HIT-EST and `--min-seq-id` to MMseqs2.
+- `--te_cluster_coverage` – minimum alignment coverage of the shorter sequence (default `0.8`). Passed as `-aS` to CD-HIT-EST and `-c --cov-mode 1` to MMseqs2.
+
+> [!NOTE]
+> When running without `--run_repeatmodeler`, clustering runs **once** for the whole lineage library and the result is shared across all genomes. When RepeatModeler is enabled, clustering runs per genome (each genome has a unique de novo library merged in).
+
+#### RepeatMasker speed
+
+RepeatMasker sensitivity can be controlled with `--repeatmasker_speed`:
+
+| Value     | Flag     | Notes                                                               |
+| --------- | -------- | ------------------------------------------------------------------- |
+| `qq`      | `-qq`    | **Default.** Rush mode — fastest, lowest sensitivity.               |
+| `q`       | `-q`     | Quick mode — ~5× faster than default, slightly reduced sensitivity. |
+| `default` | _(none)_ | Full sensitivity — slowest.                                         |
+
+For TE quantification in a comparative genomics context, `qq` is usually sufficient. Use `default` if you need a publication-quality masked assembly.
 
 ### The Shiny App
 
@@ -194,10 +364,13 @@ You will need docker to run the shiny app, as it comes packaged in a docker cont
 
 The pipeline can be ran using different test profiles:
 
-1. `-profile test` Will run on genome and annotation and Merqury using **RefSeq accessions** and local **fastqs**.
-2. `-profile test_local` Will run on genome and annotation on local files (**fasta** and **gff**).
-3. `-profile test_genomeonly` Will run genome only on local files (**fasta**).
-4. `-profile test_nofastq` Will run genome and annotation using **RefSeq accessions**.
+1. `-profile test` — Runs genome and annotation with Merqury using **RefSeq accessions** and local **fastqs**.
+2. `-profile test_local` — Runs genome and annotation on local files (**fasta** and **gff**).
+3. `-profile test_genomeonly` — Runs genome only on local files (**fasta**).
+4. `-profile test_nofastq` — Runs genome and annotation using **RefSeq accessions** (no fastq/Merqury).
+5. `-profile test_decon` — Tests the decontamination subworkflow (FCS-GX, FCS-Adaptor, Tiara) using the NCBI FCS test-only database.
+6. `-profile test_te` — Tests TE annotation with `--te repeatmasker` and `--run_repeatmodeler` on a minimal genome.
+7. `-profile test_full` — Runs the full pipeline on a set of Hymenoptera genomes.
 
 Test files are stored in the genomeqc branch of the [test-dataset repository](https://github.com/nf-core/test-datasets/tree/genomeqc).
 

@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 # Written by Fernando Duarte with AI assistance, released under the MIT license.
 # Extracts gene overlap statistics from per-sample files into a combined table

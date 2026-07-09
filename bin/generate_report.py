@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+
+# Written by Fernando Duarte with AI assistance, released under the MIT license.
+# Generates a self-contained HTML quality report for GenomeQC pipeline results
 """Generate a self-contained HTML quality report for GenomeQC pipeline results."""
 
 import argparse
@@ -127,6 +130,79 @@ def parse_busco_seqs_table(path):
             except (ValueError, KeyError):
                 result[sp_id] = '—'
     return result, col_label
+
+
+# ── RepeatMasker .tbl parsing ──────────────────────────────────────────────────
+
+_RM_HEADER_RES = {
+    "sequences":    re.compile(r'^sequences:\s*([\d,]+)'),
+    "total_length": re.compile(r'^total length:\s*([\d,]+)\s*bp\s*\(([\d,]+)\s*bp excl N/X-runs\)'),
+    "gc_level":     re.compile(r'^GC level:\s*([\d.]+)\s*%'),
+    "bases_masked": re.compile(r'^bases (?:masked|covered):\s*([\d,]+)\s*bp\s*\(\s*([\d.]+)\s*%\)'),
+}
+
+_RM_ROW_RE = re.compile(
+    r'^(?P<indent>\s*)(?P<label>[^\d].*?):?\s+'
+    r'(?:(?P<elements>\d[\d,]*)\s+)?'
+    r'(?P<length>\d[\d,]*)\s*bp\s*\(?\s*(?P<pct>[\d.]+)\s*%\)?\s*$'
+)
+
+
+def parse_repeatmasker_tbl(path):
+    """Parse a RepeatMasker (or te_tbl.py) .tbl file.
+
+    Returns (info_dict, rows) where rows is a list of
+    {label, indent, elements, length_bp, pct}.
+    """
+    info = {}
+    rows = []
+    with open(path) as fh:
+        for line in fh:
+            line = line.rstrip("\n")
+            stripped = line.strip()
+            if not stripped or stripped.startswith(("=", "-", "*", "file name")):
+                continue
+            if stripped.startswith("number of") or stripped.startswith("elements"):
+                continue
+            matched = False
+            for key, rex in _RM_HEADER_RES.items():
+                m = rex.match(stripped)
+                if not m:
+                    continue
+                matched = True
+                if key == "sequences":
+                    info["sequences"] = m.group(1).replace(",", "")
+                elif key == "total_length":
+                    info["total_length_bp"] = m.group(1).replace(",", "")
+                    info["total_length_excl_bp"] = m.group(2).replace(",", "")
+                elif key == "gc_level":
+                    info["gc_level_pct"] = m.group(1)
+                elif key == "bases_masked":
+                    info["bases_masked_bp"] = m.group(1).replace(",", "")
+                    info["bases_masked_pct"] = m.group(2)
+                break
+            if matched:
+                continue
+            m = _RM_ROW_RE.match(line)
+            if m:
+                elements = m.group("elements")
+                rows.append({
+                    "label":     m.group("label").strip(),
+                    "indent":    len(m.group("indent")) // 2,
+                    "elements":  elements.replace(",", "") if elements else "",
+                    "length_bp": m.group("length").replace(",", ""),
+                    "pct":       m.group("pct"),
+                })
+    return info, rows
+
+
+def parse_repeatmasker_tbls(paths):
+    """Return {species: (info_dict, rows)} from RepeatMasker .tbl files."""
+    result = {}
+    for p in paths:
+        species = Path(p).stem
+        result[species] = parse_repeatmasker_tbl(p)
+    return result
 
 
 # ── SVG chart generators ──────────────────────────────────────────────────────
@@ -469,6 +545,49 @@ def tiara_summary_html(data):
     return f'<div style="overflow-x:auto"><table class="table">{header}{body}</table></div>'
 
 
+def _fmt_int(v):
+    try:
+        return f"{int(v):,}"
+    except (ValueError, TypeError):
+        return v or "—"
+
+
+def repeatmasker_table_html(info, rows):
+    """Render a RepeatMasker .tbl as a summary table + repeat-class breakdown table."""
+    header_rows = [
+        ("Sequences",                          _fmt_int(info.get("sequences"))),
+        ("Total length (bp)",                  _fmt_int(info.get("total_length_bp"))),
+        ("Total length excl. N/X-runs (bp)",   _fmt_int(info.get("total_length_excl_bp"))),
+        ("GC level",                           f'{info.get("gc_level_pct", "—")} %'),
+        ("Bases masked (bp)",                  _fmt_int(info.get("bases_masked_bp"))),
+        ("Bases masked",                       f'{info.get("bases_masked_pct", "—")} %'),
+    ]
+    info_html = "\n".join(
+        f'<tr><td><strong>{k}</strong></td><td>{v}</td></tr>' for k, v in header_rows
+    )
+
+    body_rows = []
+    for r in rows:
+        label = (
+            f'<span style="padding-left:{r["indent"] * 16}px;display:inline-block">'
+            f'{r["label"]}</span>'
+        )
+        elements = _fmt_int(r["elements"]) if r["elements"] else "—"
+        body_rows.append(_td([label, elements, f'{_fmt_int(r["length_bp"])} bp', f'{r["pct"]} %']))
+
+    table = (
+        f'<table class="table">'
+        f'{_th(["Category", "Number of elements", "Length occupied", "% of sequence"])}'
+        f'{"".join(body_rows)}'
+        f'</table>'
+    )
+
+    return (
+        f'<table class="table" style="max-width:420px;margin-bottom:16px">{info_html}</table>'
+        f'<div style="overflow-x:auto">{table}</div>'
+    )
+
+
 def _busco_complete_pct(row):
     """Format a BUSCO row's Complete value as a percentage, or em-dash if absent."""
     if not row:
@@ -613,6 +732,12 @@ document.addEventListener('click', function(e) {
   }
 });
 
+function rmShowSpecies(spId) {
+  document.querySelectorAll('.rm-panel').forEach(function(p) {
+    p.style.display = (p.id === 'rm-panel-' + spId) ? '' : 'none';
+  });
+}
+
 function tidkSetMode(spId, mode) {
   ['aposteriori', 'apriori'].forEach(function(m) {
     var el = document.getElementById('plot-' + m + '-' + spId);
@@ -630,7 +755,7 @@ function tidkSetMode(spId, mode) {
 def build_html(busco_rows, tidk_data, tidk_apriori_data=None,
                fcsgx_data=None, fcsadp_data=None, tiara_data=None,
                busco_seqs_data=None, busco_seqs_col=None,
-               busco_prot_rows=None):
+               busco_prot_rows=None, repeatmasker_data=None):
     tabs = []
     panels = []
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
@@ -734,6 +859,35 @@ def build_html(busco_rows, tidk_data, tidk_apriori_data=None,
             f'<p style="margin-bottom:14px;font-size:12px;color:#888">'
             f'Total telomere repeat density (forward + reverse) per 10 kb window.</p>'
             f'<div class="tidk-grid">{"".join(items)}</div>'
+            f'</div></div>'
+        )
+
+    # ── Repeats tab ───────────────────────────────────────────────────────────
+    if repeatmasker_data:
+        tabs.append(("repeats", "Repeats"))
+        species_list = sorted(repeatmasker_data.keys())
+        options = "\n".join(
+            f'<option value="{_safe_id(sp)}">{sp}</option>' for sp in species_list
+        )
+        rm_panels = []
+        for i, sp in enumerate(species_list):
+            info, rows = repeatmasker_data[sp]
+            sp_id = _safe_id(sp)
+            display = "" if i == 0 else ' style="display:none"'
+            rm_panels.append(
+                f'<div id="rm-panel-{sp_id}" class="rm-panel"{display}>'
+                f'{repeatmasker_table_html(info, rows)}</div>'
+            )
+        panels.append(
+            f'<div id="repeats" class="tab-panel">'
+            f'<div class="card">'
+            f'<h2>Repeat content (RepeatMasker)</h2>'
+            f'<div style="margin-bottom:14px">'
+            f'<label for="rm-species-select" style="font-size:13px;color:#555;margin-right:6px">'
+            f'Species:</label>'
+            f'<select id="rm-species-select" onchange="rmShowSpecies(this.value)">{options}</select>'
+            f'</div>'
+            f'{"".join(rm_panels)}'
             f'</div></div>'
         )
 
@@ -857,6 +1011,11 @@ def main():
         help="ortho_seqs.py output TSV (sequences above BUSCO threshold)",
     )
     parser.add_argument(
+        "--repeatmasker_tbls", nargs="*", default=[],
+        metavar="TBL",
+        help="RepeatMasker *.tbl files (one per species, omit to hide tab)",
+    )
+    parser.add_argument(
         "--output", default="genomeqc_report.html",
         metavar="HTML",
         help="Output HTML file path (default: genomeqc_report.html)",
@@ -878,13 +1037,15 @@ def main():
 
     busco_seqs_data, busco_seqs_col = parse_busco_seqs_table(args.busco_seqs_table) if args.busco_seqs_table else (None, None)
 
+    repeatmasker_data = parse_repeatmasker_tbls(args.repeatmasker_tbls) if args.repeatmasker_tbls else None
+
     if not busco_rows and not busco_prot_rows and not tidk_data and not tidk_apriori_data:
         print("WARNING: no input data found; generating empty report.", file=sys.stderr)
 
     html = build_html(busco_rows, tidk_data, tidk_apriori_data,
                       fcsgx_data=fcsgx_data, fcsadp_data=fcsadp_data, tiara_data=tiara_data,
                       busco_seqs_data=busco_seqs_data, busco_seqs_col=busco_seqs_col,
-                      busco_prot_rows=busco_prot_rows)
+                      busco_prot_rows=busco_prot_rows, repeatmasker_data=repeatmasker_data)
 
     Path(args.output).write_text(html)
     print(f"Report written to {args.output}", file=sys.stderr)

@@ -29,7 +29,8 @@ processed_data <- process_tree_data(
   quast_file = if(file.exists("Quast_to_plot.tsv")) "Quast_to_plot.tsv" else NULL,
   genes_file = if(file.exists("gene_stats.tsv")) "gene_stats.tsv" else NULL,
   nseqs_file = if(file.exists("n_seqs_above_x_buscos_output.tsv")) "n_seqs_above_x_buscos_output.tsv" else NULL,
-  ortho_file = if(file.exists("species_orthologous_chromosomes_output.tsv")) "species_orthologous_chromosomes_output.tsv" else NULL
+  ortho_file = if(file.exists("species_orthologous_chromosomes_output.tsv")) "species_orthologous_chromosomes_output.tsv" else NULL,
+  te_file    = if(file.exists("te_table_output.tsv")) "te_table_output.tsv" else NULL
 )
 
 # UI
@@ -100,7 +101,8 @@ ui <- fluidPage(
                                              "Gene Statistics" = "gene_plot",
                                              "N50 Statistics" = "n50_plot",
                                              "BUSCO Genome Pies" = "busco_gen_plot",
-                                             "BUSCO Protein Pies" = "busco_prot_plot"
+                                             "BUSCO Protein Pies" = "busco_prot_plot",
+                                             "TE Composition" = "te_plot"
                                            )),
                         #selectInput("plot_type", "Plot Type:",
                         #            choices = list("Genome + Annotation" = "genome_anno", "Genome Only" = "genome_only"),

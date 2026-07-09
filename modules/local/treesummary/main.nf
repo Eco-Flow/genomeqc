@@ -1,14 +1,17 @@
-process TREE_SUMMARY {
+process TREESUMMARY {
     tag "$meta.id"
     label 'process_single'
 
-    container 'ecoflowucl/genomeqc_tree:v1.4'
-    publishDir "$params.outdir/tree_plots" , mode: "${params.publish_dir_mode}", pattern:"*.pdf"
+    conda "${moduleDir}/environment.yml"
+    container "${workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container
+        ? 'oras://community.wave.seqera.io/library/python_pandas_r-base_bioconductor-ggtree_pruned:8c55bd10cfed7ddf'
+        : 'community.wave.seqera.io/library/python_pandas_r-base_bioconductor-ggtree_pruned:c663395a0c48f3ef'}"
 
     input:
     tuple val(meta), path(tree)
     tuple val(meta1), path(geno_busco)
     tuple val(meta2), path(prot_busco)
+    tuple val(meta3), path(te_table)
     path  multiqc_files
 
     output:
@@ -39,6 +42,7 @@ process TREE_SUMMARY {
     def prot_busco_combined = prot_busco ? '''{ head -qn 1 *-proteins-busco.batch_summary_modified.txt | head -n 1; tail -q -n 1 *-proteins-busco.batch_summary_modified.txt | sed -E 's/\t+/\t/g' | sed 's/\t$//g'; } > Busco_combined_prot.tsv''' : ''
     def geno_busco_file = geno_busco ? '--busco_geno Busco_combined_geno.tsv' : ''
     def prot_busco_file = prot_busco ? '--busco_prot Busco_combined_prot.tsv' : ''
+    def te_table_file = te_table ? "--te_file $te_table" : ''
 
 
     """
@@ -70,6 +74,7 @@ process TREE_SUMMARY {
     $geno_busco_file \\
     $prot_busco_file \\
     $ortho_file \\
+    $te_table_file \\
     $args
 
     # Make sure input TSV files are captured as outputs by copying them
@@ -83,6 +88,25 @@ process TREE_SUMMARY {
         cp species_orthologous_chromosomes.tsv species_orthologous_chromosomes_output.tsv
     fi
 
+    if [ -n "${te_table}" ] && [ -f "${te_table}" ]; then
+        cp "${te_table}" te_table_output.tsv
+    fi
+
     """
 
+    stub:
+    def args = task.ext.args ?: ''
+    def prefix = task.ext.prefix ?: "${meta.id}"
+
+    """
+    echo $args
+
+    touch tree_plot.pdf
+    touch tree_plot.svg
+    touch tree.nw
+    touch ${prefix}.tsv
+    touch te_table_output.tsv
+    touch n_seqs_above_x_buscos_output.tsv
+    touch species_orthologous_chromosomes_output.tsv
+    """
 }

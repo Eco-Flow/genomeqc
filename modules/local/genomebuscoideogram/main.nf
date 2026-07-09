@@ -1,9 +1,11 @@
-process GENOME_ONLY_BUSCO_IDEOGRAM {
+process GENOMEBUSCOIDEOGRAM {
     tag "$meta.id"
     label 'process_single'
 
-    conda "bioconda::r-rideogram=0.2.2 bioconda::r-svglite=2.1.1"
-    container "community.wave.seqera.io/library/seqkit_r-dplyr_r-optparse_r-readr_pruned:92b750716d244919"
+    conda "${moduleDir}/environment.yml"
+    container "${workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container
+        ? 'oras://community.wave.seqera.io/library/seqkit_r-ggplot2_r-optparse_r-rideogram:dd27bf2f09a9ac59'
+        : 'community.wave.seqera.io/library/seqkit_r-ggplot2_r-optparse_r-rideogram:38eaba661baaec00' }"
 
     input:
     tuple val(meta), path(genome), path(busco_full_table)
@@ -34,5 +36,17 @@ process GENOME_ONLY_BUSCO_IDEOGRAM {
         --prefix ${prefix} \\
         $args
 
+    """
+
+    stub:
+    def args = task.ext.args ?: ''
+    def prefix = task.ext.prefix ?: "${meta.id}"
+
+    """
+    echo $args
+
+    touch ${prefix}.svg
+    touch ${prefix}.png
+    touch ${prefix}.csv
     """
 }
