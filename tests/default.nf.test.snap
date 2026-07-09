@@ -1599,12 +1599,10 @@
                 "Busco_combined_prot.tsv:md5,1762ec07b7b0bcf0e0e6ffbbb44cd311",
                 "Quast_to_plot.tsv:md5,8999cc8c39faffd39986947d60d65a1c",
                 "gene_stats.tsv:md5,3fe2c13858d88b0f78ce02c9c6c58ced",
-                "n_seqs_above_x_buscos_output.tsv:md5,31ab90ca82335e1f9d19299343a875fd",
-                "tree.nw:md5,eb8880ac5ce4443171f8018d5273235d",
-                "tree_plot.svg:md5,1caa57788eb82313cde5b914d2d57bd9"
+                "n_seqs_above_x_buscos_output.tsv:md5,31ab90ca82335e1f9d19299343a875fd"
             ]
         ],
-        "timestamp": "2026-07-08T16:40:04.59948956",
+        "timestamp": "2026-07-09T13:10:33.817470903",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "26.04.4"
