@@ -337,13 +337,6 @@
                 "busco/tables",
                 "busco/tables/min_number_buscos",
                 "busco/tables/min_number_buscos/n_seqs_above_x_buscos.tsv",
-                "gawk",
-                "gawk/Mycoplasmoides_fastidiosum-mycoplasmatales_odb10-genome-busco.batch_summary_modified.txt",
-                "gawk/Mycoplasmoides_fastidiosum-mycoplasmatales_odb10-proteins-busco.batch_summary_modified.txt",
-                "gawk/Mycoplasmoides_gallisepticum-mycoplasmatales_odb10-genome-busco.batch_summary_modified.txt",
-                "gawk/Mycoplasmoides_gallisepticum-mycoplasmatales_odb10-proteins-busco.batch_summary_modified.txt",
-                "gawk/Mycoplasmoides_genitalium-mycoplasmatales_odb10-genome-busco.batch_summary_modified.txt",
-                "gawk/Mycoplasmoides_genitalium-mycoplasmatales_odb10-proteins-busco.batch_summary_modified.txt",
                 "gene_overlaps",
                 "gene_overlaps/Mycoplasmoides_fastidiosum.counts.tsv",
                 "gene_overlaps/Mycoplasmoides_gallisepticum.counts.tsv",
@@ -1557,12 +1550,6 @@
                 "refseq_db.faa.gz.md5:md5,6887879a644001fa73d949edf5363613",
                 "scores_cutoff:md5,2623afeb9d5da7ac653bfc0e035d2221",
                 "n_seqs_above_x_buscos.tsv:md5,31ab90ca82335e1f9d19299343a875fd",
-                "Mycoplasmoides_fastidiosum-mycoplasmatales_odb10-genome-busco.batch_summary_modified.txt:md5,2f21210680da2d3efbbbb08fd5c4075c",
-                "Mycoplasmoides_fastidiosum-mycoplasmatales_odb10-proteins-busco.batch_summary_modified.txt:md5,db998f89e8bfb3420443cda3553010ac",
-                "Mycoplasmoides_gallisepticum-mycoplasmatales_odb10-genome-busco.batch_summary_modified.txt:md5,74126602dd28eb4b9d8d3d6d697214e3",
-                "Mycoplasmoides_gallisepticum-mycoplasmatales_odb10-proteins-busco.batch_summary_modified.txt:md5,c647c30539367148fb02647e80106fb7",
-                "Mycoplasmoides_genitalium-mycoplasmatales_odb10-genome-busco.batch_summary_modified.txt:md5,5840d6e12e3dd7506708ecdbac8f053a",
-                "Mycoplasmoides_genitalium-mycoplasmatales_odb10-proteins-busco.batch_summary_modified.txt:md5,0d683f6c1a83bedc2b4051648c8d905f",
                 "Mycoplasmoides_fastidiosum.counts.tsv:md5,9c26cf55f0816537622549f05bd439ed",
                 "Mycoplasmoides_gallisepticum.counts.tsv:md5,690035540d9d3c1bc0ff661f9037a0f3",
                 "Mycoplasmoides_genitalium.counts.tsv:md5,f63a08e010d95bd0916f02282ad20e2a",
@@ -1613,11 +1600,11 @@
                 "Quast_to_plot.tsv:md5,8999cc8c39faffd39986947d60d65a1c",
                 "gene_stats.tsv:md5,3fe2c13858d88b0f78ce02c9c6c58ced",
                 "n_seqs_above_x_buscos_output.tsv:md5,31ab90ca82335e1f9d19299343a875fd",
-                "tree.nw:md5,36e9088da08e5fea72b693ff9846a3d9",
-                "tree_plot.svg:md5,04844d1b7a6eea1698fa6cde17ff7876"
+                "tree.nw:md5,eb8880ac5ce4443171f8018d5273235d",
+                "tree_plot.svg:md5,1caa57788eb82313cde5b914d2d57bd9"
             ]
         ],
-        "timestamp": "2026-07-06T16:34:37.856425076",
+        "timestamp": "2026-07-08T16:40:04.59948956",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "26.04.4"
