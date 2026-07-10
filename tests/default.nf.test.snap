@@ -93,7 +93,7 @@
                     "pigz": 2.8
                 },
                 "Workflow": {
-                    "nf-core/genomeqc": "v1.0dev"
+                    "nf-core/genomeqc": "v1.0.0"
                 }
             },
             [
@@ -1602,10 +1602,10 @@
                 "n_seqs_above_x_buscos_output.tsv:md5,31ab90ca82335e1f9d19299343a875fd"
             ]
         ],
-        "timestamp": "2026-07-09T13:10:33.817470903",
+        "timestamp": "2026-07-10T10:54:48.127629538",
         "meta": {
             "nf-test": "0.9.5",
-            "nextflow": "26.04.4"
+            "nextflow": "26.04.6"
         }
     }
 }
