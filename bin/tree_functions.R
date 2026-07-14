@@ -659,10 +659,11 @@ build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes 
   }
 
   # Keep the traffic-light (quality) rings visually separate from the neutral
-  # descriptive rings: quality inner, descriptive outer, preserving the requested
-  # order within each group.
+  # descriptive rings: descriptive inner (nearest the tree), quality outer (on the
+  # rim, where they read most clearly), preserving the requested order within each
+  # group.
   is_quality <- vapply(ring_specs, function(s) identical(s$scale, "quality"), logical(1))
-  ring_specs <- c(ring_specs[is_quality], ring_specs[!is_quality])
+  ring_specs <- c(ring_specs[!is_quality], ring_specs[is_quality])
 
   p <- ggtree(tree, layout = "fan", open.angle = open_angle, size = 0.5, colour = "grey30")
 
@@ -681,10 +682,12 @@ build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes 
         color = "white", linewidth = 0.2
       )
     if (identical(spec$scale, "quality")) {
+      # The Good/Warn/Poor key is drawn manually in the side panel: ggplot only
+      # renders legend keys for levels present in the layer that owns the legend,
+      # so Warn/Poor vanish whenever the first quality ring happens to be all-Good.
       p <- p + scale_fill_manual(
-        values = QUALITY_COLOURS, drop = FALSE, na.value = "grey90",
-        name = "Quality",
-        guide = if (!shown_quality_legend) guide_legend(order = 0) else "none"
+        values = QUALITY_COLOURS, limits = names(QUALITY_COLOURS),
+        drop = FALSE, na.value = "grey90", name = "Quality", guide = "none"
       )
       shown_quality_legend <- TRUE
     } else {
@@ -757,16 +760,43 @@ build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes 
   ring_names <- vapply(ring_specs, function(s) s$name, character(1))
   ring_block <- paste0(seq_along(ring_names), ". ", ring_names, collapse = "\n")
 
-  sp_leg <- ggplot() + xlim(0, 1) + ylim(0, 1) +
-    annotate("text", x = 0, y = 1.00, label = "Species",
-             hjust = 0, vjust = 1, fontface = "bold", size = text_size * 1.15) +
-    annotate("text", x = 0, y = 0.94, label = sp_block,
-             hjust = 0, vjust = 1, size = text_size * 0.95, fontface = "italic", lineheight = 1.2) +
-    annotate("text", x = 0, y = 0.90 - n_tips * 0.035, label = "Rings (inner -> outer)",
-             hjust = 0, vjust = 1, fontface = "bold", size = text_size * 1.15) +
-    annotate("text", x = 0, y = 0.84 - n_tips * 0.035, label = ring_block,
-             hjust = 0, vjust = 1, size = text_size * 0.95, lineheight = 1.2) +
-    theme_void()
+  has_quality <- any(vapply(ring_specs, function(s) identical(s$scale, "quality"), logical(1)))
+  lh <- 0.035                                   # one text line, in panel units
+  y  <- 1.00
+  sp_leg <- ggplot() + xlim(0, 1) + ylim(0, 1) + theme_void() +
+    annotate("text", x = 0, y = y, label = "Species",
+             hjust = 0, vjust = 1, fontface = "bold", size = text_size * 1.15)
+  y <- y - lh * 1.6
+  sp_leg <- sp_leg +
+    annotate("text", x = 0, y = y, label = sp_block,
+             hjust = 0, vjust = 1, size = text_size * 0.95, fontface = "italic", lineheight = 1.2)
+  y <- y - lh * n_tips - lh * 0.8
+  sp_leg <- sp_leg +
+    annotate("text", x = 0, y = y, label = "Rings (inner -> outer)",
+             hjust = 0, vjust = 1, fontface = "bold", size = text_size * 1.15)
+  y <- y - lh * 1.6
+  sp_leg <- sp_leg +
+    annotate("text", x = 0, y = y, label = ring_block,
+             hjust = 0, vjust = 1, size = text_size * 0.95, lineheight = 1.2)
+  y <- y - lh * length(ring_names) - lh * 0.8
+
+  # Manual Good / Warn / Poor key - always shows all three swatches
+  if (has_quality) {
+    sp_leg <- sp_leg +
+      annotate("text", x = 0, y = y, label = "Quality",
+               hjust = 0, vjust = 1, fontface = "bold", size = text_size * 1.15)
+    y <- y - lh * 1.4
+    for (k in seq_along(QUALITY_COLOURS)) {
+      yy <- y - (k - 1) * lh
+      sp_leg <- sp_leg +
+        annotate("rect", xmin = 0, xmax = 0.05,
+                 ymin = yy - lh * 0.62, ymax = yy - lh * 0.08,
+                 fill = QUALITY_COLOURS[[k]], colour = NA) +
+        annotate("text", x = 0.075, y = yy - lh * 0.35,
+                 label = names(QUALITY_COLOURS)[k],
+                 hjust = 0, vjust = 0.5, size = text_size * 0.95)
+    }
+  }
 
   sp_leg + p + plot_layout(widths = c(0.35, 1))
 }

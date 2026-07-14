@@ -101,7 +101,7 @@ parser$add_argument('--rad_width', type = 'double', default = 0.4, help = 'Radiu
 parser$add_argument('--skip_stats', type = 'character', default = NULL, help = "Don't plot these stats (comma separated list)")
 parser$add_argument('--type', type = 'character', choices = c('genome_only', 'genome_anno'), default = 'genome_anno', help = 'Select stats for genome only or for both genome and annotation')
 parser$add_argument('--tree_style', type = 'character', choices = c('roundrect', 'ellipse', 'rectangular', 'circular'), default = 'roundrect', help = 'Tree layout style: roundrect (rounded branches, default), ellipse (curved branches with node points), rectangular (legacy look with dotted leader lines), or circular (fan tree with the stats drawn as concentric coloured rings)')
-parser$add_argument('--circular_rings', type = 'character', default = 'ch_plot,n50_plot,busco_gen_plot,busco_prot_plot,len_plot,gene_plot', help = "Circular layout only: comma-separated, ordered (inner->outer) list of stats to draw as rings, or 'all' to show every available stat. Quality rings are always grouped inner and descriptive rings outer, so the traffic-light rings stay visually separate. Keys: ch_plot, len_plot, n50_plot, gene_plot, busco_gen_plot, busco_prot_plot, busco_dup_plot, nseqs_plot, ortho_plot")
+parser$add_argument('--circular_rings', type = 'character', default = 'ch_plot,n50_plot,busco_gen_plot,busco_prot_plot,len_plot,gene_plot', help = "Circular layout only: comma-separated, ordered (inner->outer) list of stats to draw as rings, or 'all' to show every available stat. Descriptive rings are always grouped nearest the tree and quality (traffic-light) rings on the outer rim, so the two stay visually separate. Keys: ch_plot, len_plot, n50_plot, gene_plot, busco_gen_plot, busco_prot_plot, busco_dup_plot, nseqs_plot, ortho_plot")
 parser$add_argument('--quality_preset', type = 'character', choices = c('generic', 'vertebrate', 'insect', 'plant', 'fungi', 'bacteria'), default = 'generic', help = "Circular layout only: phylogenetic-group thresholds used to score the quality rings (traffic light). 'generic' is deliberately lenient; pick the group matching your taxa. The N50/sequence-count cut-offs in particular are starting points and should be tuned per project.")
 parser$add_argument('--show_ring_values', action = 'store_true', help = 'Circular layout only: print each value on its ring (redundant encoding, so the figure is not colour-only). Best for small trees.')
 parser$add_argument('--len_pos_x', type = 'double', default = 5, help = 'Position of the BUSCO legend on the x axis when both genome and protein BUSCO pies are plotted')
@@ -765,10 +765,11 @@ build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes 
   }
 
   # Keep the traffic-light (quality) rings visually separate from the neutral
-  # descriptive rings: quality inner, descriptive outer, preserving the requested
-  # order within each group.
+  # descriptive rings: descriptive inner (nearest the tree), quality outer (on the
+  # rim, where they read most clearly), preserving the requested order within each
+  # group.
   is_quality <- vapply(ring_specs, function(s) identical(s$scale, "quality"), logical(1))
-  ring_specs <- c(ring_specs[is_quality], ring_specs[!is_quality])
+  ring_specs <- c(ring_specs[!is_quality], ring_specs[is_quality])
 
   # Fan tree
   p <- ggtree(tree, layout = "fan", open.angle = open_angle, size = 0.5, colour = "grey30")
@@ -789,10 +790,12 @@ build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes 
         color = "white", linewidth = 0.2
       )
     if (identical(spec$scale, "quality")) {
+      # The Good/Warn/Poor key is drawn manually in the side panel: ggplot only
+      # renders legend keys for levels present in the layer that owns the legend,
+      # so Warn/Poor vanish whenever the first quality ring happens to be all-Good.
       p <- p + scale_fill_manual(
-        values = QUALITY_COLOURS, drop = FALSE, na.value = "grey90",
-        name = "Quality",
-        guide = if (!shown_quality_legend) guide_legend(order = 0) else "none"
+        values = QUALITY_COLOURS, limits = names(QUALITY_COLOURS),
+        drop = FALSE, na.value = "grey90", name = "Quality", guide = "none"
       )
       shown_quality_legend <- TRUE
     } else {
@@ -867,16 +870,43 @@ build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes 
   ring_block <- paste0(seq_along(ring_names), ". ", ring_names, collapse = "\n")
   n_ring_lines <- length(ring_names)
 
-  sp_leg <- ggplot() + xlim(0, 1) + ylim(0, 1) +
-    annotate("text", x = 0, y = 1.00, label = "Species",
-             hjust = 0, vjust = 1, fontface = "bold", size = text_size * 1.15) +
-    annotate("text", x = 0, y = 0.94, label = sp_block,
-             hjust = 0, vjust = 1, size = text_size * 0.95, fontface = "italic", lineheight = 1.2) +
-    annotate("text", x = 0, y = 0.90 - n_tips * 0.035, label = "Rings (inner -> outer)",
-             hjust = 0, vjust = 1, fontface = "bold", size = text_size * 1.15) +
-    annotate("text", x = 0, y = 0.84 - n_tips * 0.035, label = ring_block,
-             hjust = 0, vjust = 1, size = text_size * 0.95, lineheight = 1.2) +
-    theme_void()
+  has_quality <- any(vapply(ring_specs, function(s) identical(s$scale, "quality"), logical(1)))
+  lh <- 0.035                                   # one text line, in panel units
+  y  <- 1.00
+  sp_leg <- ggplot() + xlim(0, 1) + ylim(0, 1) + theme_void() +
+    annotate("text", x = 0, y = y, label = "Species",
+             hjust = 0, vjust = 1, fontface = "bold", size = text_size * 1.15)
+  y <- y - lh * 1.6
+  sp_leg <- sp_leg +
+    annotate("text", x = 0, y = y, label = sp_block,
+             hjust = 0, vjust = 1, size = text_size * 0.95, fontface = "italic", lineheight = 1.2)
+  y <- y - lh * n_tips - lh * 0.8
+  sp_leg <- sp_leg +
+    annotate("text", x = 0, y = y, label = "Rings (inner -> outer)",
+             hjust = 0, vjust = 1, fontface = "bold", size = text_size * 1.15)
+  y <- y - lh * 1.6
+  sp_leg <- sp_leg +
+    annotate("text", x = 0, y = y, label = ring_block,
+             hjust = 0, vjust = 1, size = text_size * 0.95, lineheight = 1.2)
+  y <- y - lh * length(ring_names) - lh * 0.8
+
+  # Manual Good / Warn / Poor key - always shows all three swatches
+  if (has_quality) {
+    sp_leg <- sp_leg +
+      annotate("text", x = 0, y = y, label = "Quality",
+               hjust = 0, vjust = 1, fontface = "bold", size = text_size * 1.15)
+    y <- y - lh * 1.4
+    for (k in seq_along(QUALITY_COLOURS)) {
+      yy <- y - (k - 1) * lh
+      sp_leg <- sp_leg +
+        annotate("rect", xmin = 0, xmax = 0.05,
+                 ymin = yy - lh * 0.62, ymax = yy - lh * 0.08,
+                 fill = QUALITY_COLOURS[[k]], colour = NA) +
+        annotate("text", x = 0.075, y = yy - lh * 0.35,
+                 label = names(QUALITY_COLOURS)[k],
+                 hjust = 0, vjust = 0.5, size = text_size * 0.95)
+    }
+  }
 
   sp_leg + p + plot_layout(widths = c(0.35, 1))
 }
