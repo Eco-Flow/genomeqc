@@ -87,7 +87,17 @@ ui <- fluidPage(
                         wellPanel(
                           h4("Circular Ring Options"),
                           helpText("Rings show every statistic that is not skipped (right-hand panel)."),
-                          sliderInput("ring_width", "Ring thickness:", value = 0.13, min = 0.05, max = 0.4, step = 0.01)
+                          sliderInput("ring_width", "Ring thickness:", value = 0.13, min = 0.05, max = 0.4, step = 0.01),
+                          selectInput("quality_preset", "Quality thresholds (phylo group):",
+                                      choices = c("Generic (lenient)" = "generic",
+                                                  "Vertebrate" = "vertebrate",
+                                                  "Insect" = "insect",
+                                                  "Plant" = "plant",
+                                                  "Fungi" = "fungi",
+                                                  "Bacteria" = "bacteria"),
+                                      selected = "generic"),
+                          helpText("Quality rings are scored Good/Warn/Poor against these thresholds. N50 and sequence-count cut-offs are clade-dependent - pick the group matching your taxa."),
+                          checkboxInput("show_values", "Print values on rings", value = FALSE)
                         )
                       )
                ),
@@ -187,7 +197,7 @@ server <- function(input, output, session) {
   # Generate plot when parameters change or refresh button is clicked
   observeEvent(c(input$refresh_plot, input$text_size, input$tree_scale,
                  input$bar_width, input$rad_width, input$skip_stats, input$tree_style,
-                 input$ring_width,
+                 input$ring_width, input$quality_preset, input$show_values,
                  input$tree_space_ratio, input$top_margin, input$right_margin,
                  input$bottom_margin, input$left_margin, input$tree_margin, input$skip_stats,
                  input$export_width, input$export_height, input$export_dpi), {
@@ -210,7 +220,9 @@ server <- function(input, output, session) {
                      skip_stats = input$skip_stats,
                      tree_space_ratio = input$tree_space_ratio,
                      tree_style = input$tree_style,
-                     ring_width = if (is.null(input$ring_width)) 0.13 else input$ring_width
+                     ring_width = if (is.null(input$ring_width)) 0.13 else input$ring_width,
+                     quality_preset = if (is.null(input$quality_preset)) "generic" else input$quality_preset,
+                     show_values = isTRUE(input$show_values)
 
                    )
 

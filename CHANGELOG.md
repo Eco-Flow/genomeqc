@@ -33,6 +33,7 @@ This is the first release of the pipeline, which compares the quality of multipl
 - Fixed the Shiny app launcher pulling its container from Docker Hub instead of quay.io (the plain `docker run` does not receive the `docker.registry` prefix), which caused a `pull access denied` error.
 - Shiny app: the tree-style controls now show only the options that apply to the selected layout (margin/bar/pie controls for the non-circular styles, a ring-thickness control for the circular style), added a "Ring thickness" slider for the circular layout, and clarified the "Skip Statistics" labels.
 - Circular layout: the "Tip Text Size" control now scales all text (tip numbers, ring legends and the species key), and the ring legends are ordered outer-ring-first to match the ring stack.
+- Circular layout: quality statistics (sequence count, N50, BUSCO complete for genome and protein, BUSCO duplicated) are now scored as a colour-vision-safe **traffic light** (Good/Warn/Poor) against phylogenetic-group thresholds (`--quality_preset`: generic, vertebrate, insect, plant, fungi, bacteria), rather than a sequential ramp that misleadingly implied "dark = good" (it was backwards for sequence count). Descriptive statistics (genome size, gene number, ortho seqs) keep a neutral sequential ramp. `--show_ring_values` prints each value on its ring as a redundant, non-colour-only encoding. Both are also settable in the Shiny app.
 
 ### `Dependencies`
 

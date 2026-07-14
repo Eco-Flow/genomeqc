@@ -1,6 +1,21 @@
 # Design proposal: quality scoring ("traffic lights") for the circular tree plot
 
-**Status:** proposal, for review. No code changes yet.
+**Status:** Phase 1 implemented. Phase 2 (Merqury + FCS plumbing) still to do.
+
+## 0. Decisions taken (review outcome)
+
+- The static figure **mixes** traffic-lit quality rings with neutral descriptive
+  rings (it is not quality-only).
+- BUSCO is limited to **% complete (genome and protein)** plus an optional
+  **% duplicated**. There is **no "missing" ring** — it is essentially the
+  inverse of complete.
+- Thresholds come from a **phylogenetic-group preset** the user selects
+  (`--quality_preset`), defaulting to a deliberately lenient **`generic`**;
+  eukaryote/vertebrate standards are too strict as a global default. The preset
+  is also selectable in the Shiny app.
+- **Printed values** are available as an opt-in redundant encoding
+  (`--show_ring_values`), so the figure is not colour-only.
+- The traffic light uses the **colour-vision-safe** Okabe–Ito triple.
 
 ## 1. The problem
 
@@ -177,11 +192,14 @@ registry's "no data → no ring" behaviour already covers this.
 
 ## 7. Implementation phases
 
-- **Phase 1 (no new plumbing).** Add `scale`/`direction` to the ring registry.
-  Traffic-light BUSCO complete (genome + protein), optional BUSCO duplicated,
-  N50 and sequence count. Switch genome size / gene number / GC / ortho to a
-  neutral palette. Ship configurable thresholds. **Fixes the misleading
-  colours immediately.**
+- **Phase 1 — DONE.** The ring registry now tags each stat as `quality` (discrete
+  traffic light, scored against the selected preset) or `descriptive`
+  (sequential ramp, no good/bad implied). Quality rings: sequence count, N50,
+  BUSCO complete (genome + protein), BUSCO duplicated. All quality rings share a
+  single Good/Warn/Poor legend, so a **ring key (inner -> outer)** is drawn
+  alongside the species key to identify them. New options:
+  `--quality_preset`, `--show_ring_values` (plus the equivalents in the Shiny
+  app). **This fixes the misleading sequence-count colour.**
 - **Phase 2.** Plumb Merqury (QV, k-mer completeness) and FCS-GX
   (contamination %) into `TREE_SUMMARY`; add their rings.
 - **Phase 3 (optional).** tidk telomere completeness, FCS-adaptor, Tiara;
