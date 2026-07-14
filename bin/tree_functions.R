@@ -595,6 +595,12 @@ build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes 
     }
   }
 
+  # Single source of truth for key typography: headers one step larger than body
+  # text. Used by the hand-drawn keys (geom text, mm) and - via .pt - the ggplot
+  # legends (theme text, points), so the two cannot drift apart.
+  key_title_size <- text_size * 1.15
+  key_text_size  <- text_size * 0.95
+
   n_tips <- length(tips_order)
   labs <- gsub("_", " ", tips_order)              # tree tip labels in node order
   num_df  <- data.frame(label = labs, num = seq_len(n_tips), stringsAsFactors = FALSE)
@@ -714,8 +720,8 @@ build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes 
     geom_text(data = num_pos, aes(x = ring_max_x * 1.06, y = y, label = num),
               angle = 0, size = text_size * 0.9, inherit.aes = FALSE) +
     theme(legend.position = "right",
-          legend.title = element_text(size = text_size * 2.7, face = "bold"),
-          legend.text = element_text(size = text_size * 2),
+          legend.title = element_text(size = key_title_size * .pt, face = "bold"),
+          legend.text = element_text(size = key_text_size * .pt),
           legend.key.width = unit(0.3, "cm"),
           legend.key.height = unit(0.35, "cm"))
 
@@ -765,26 +771,26 @@ build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes 
   y  <- 1.00
   sp_leg <- ggplot() + xlim(0, 1) + ylim(0, 1) + theme_void() +
     annotate("text", x = 0, y = y, label = "Species",
-             hjust = 0, vjust = 1, fontface = "bold", size = text_size * 1.15)
+             hjust = 0, vjust = 1, fontface = "bold", size = key_title_size)
   y <- y - lh * 1.6
   sp_leg <- sp_leg +
     annotate("text", x = 0, y = y, label = sp_block,
-             hjust = 0, vjust = 1, size = text_size * 0.95, fontface = "italic", lineheight = 1.2)
+             hjust = 0, vjust = 1, size = key_text_size, fontface = "italic", lineheight = 1.2)
   y <- y - lh * n_tips - lh * 0.8
   sp_leg <- sp_leg +
     annotate("text", x = 0, y = y, label = "Rings (inner -> outer)",
-             hjust = 0, vjust = 1, fontface = "bold", size = text_size * 1.15)
+             hjust = 0, vjust = 1, fontface = "bold", size = key_title_size)
   y <- y - lh * 1.6
   sp_leg <- sp_leg +
     annotate("text", x = 0, y = y, label = ring_block,
-             hjust = 0, vjust = 1, size = text_size * 0.95, lineheight = 1.2)
+             hjust = 0, vjust = 1, size = key_text_size, lineheight = 1.2)
   y <- y - lh * length(ring_names) - lh * 0.8
 
   # Manual Good / Warn / Poor key - always shows all three swatches
   if (has_quality) {
     sp_leg <- sp_leg +
       annotate("text", x = 0, y = y, label = "Quality",
-               hjust = 0, vjust = 1, fontface = "bold", size = text_size * 1.15)
+               hjust = 0, vjust = 1, fontface = "bold", size = key_title_size)
     y <- y - lh * 1.4
     for (k in seq_along(QUALITY_COLOURS)) {
       yy <- y - (k - 1) * lh
@@ -794,7 +800,7 @@ build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes 
                  fill = QUALITY_COLOURS[[k]], colour = NA) +
         annotate("text", x = 0.075, y = yy - lh * 0.35,
                  label = names(QUALITY_COLOURS)[k],
-                 hjust = 0, vjust = 0.5, size = text_size * 0.95)
+                 hjust = 0, vjust = 0.5, size = key_text_size)
     }
     y <- y - lh * length(QUALITY_COLOURS) - lh * 0.8
 
@@ -822,11 +828,11 @@ build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes 
     if (length(rules) > 0) {
       sp_leg <- sp_leg +
         annotate("text", x = 0, y = y, label = "Thresholds (Good / Warn / Poor)",
-                 hjust = 0, vjust = 1, fontface = "bold", size = text_size * 1.05)
+                 hjust = 0, vjust = 1, fontface = "bold", size = key_title_size)
       y <- y - lh * 1.4
       sp_leg <- sp_leg +
         annotate("text", x = 0, y = y, label = paste(rules, collapse = "\n"),
-                 hjust = 0, vjust = 1, size = text_size * 0.85, lineheight = 1.25)
+                 hjust = 0, vjust = 1, size = key_text_size, lineheight = 1.25)
     }
   }
 
