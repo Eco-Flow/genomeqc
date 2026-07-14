@@ -679,7 +679,7 @@ build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes 
                                 data_busco_geno = NULL, data_busco_prot = NULL,
                                 data_nseqs = NULL, data_ortho = NULL,
                                 text_size = 3, skip = NULL, rings = NULL,
-                                quality_preset = "generic", show_values = FALSE,
+                                quality_preset = "generic", thresholds = NULL, show_values = FALSE,
                                 open_angle = 14, ring_width = 0.13) {
 
   if (is.null(skip)) skip <- character(0)
@@ -688,6 +688,12 @@ build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes 
   if (is.null(thr_set)) {
     warning("Unknown quality_preset '", quality_preset, "', falling back to 'generic'")
     thr_set <- QUALITY_PRESETS[["generic"]]
+  }
+  # Explicit per-metric thresholds (e.g. from the Shiny app) override the preset
+  if (!is.null(thresholds)) {
+    for (m in names(thresholds)) {
+      if (!is.null(thresholds[[m]])) thr_set[[m]] <- thresholds[[m]]
+    }
   }
 
   n_tips <- length(tips_order)

@@ -94,9 +94,22 @@ ui <- fluidPage(
                                                   "Insect" = "insect",
                                                   "Plant" = "plant",
                                                   "Fungi" = "fungi",
-                                                  "Bacteria" = "bacteria"),
+                                                  "Bacteria" = "bacteria",
+                                                  "Custom..." = "custom"),
                                       selected = "generic"),
-                          helpText("Quality rings are scored Good/Warn/Poor against these thresholds. N50 and sequence-count cut-offs are clade-dependent - pick the group matching your taxa."),
+                          helpText("Quality rings are scored Good/Warn/Poor against these thresholds. N50 and sequence-count cut-offs are clade-dependent - pick the group matching your taxa, or set them yourself with 'Custom'."),
+                          conditionalPanel(
+                            condition = "input.quality_preset == 'custom'",
+                            helpText("Direction is fixed per metric: BUSCO complete and N50 are higher-is-better; BUSCO duplicated and sequence count are lower-is-better."),
+                            numericInput("thr_busco_good", "BUSCO complete % - Good at or above:", value = 95, min = 0, max = 100, step = 1),
+                            numericInput("thr_busco_warn", "BUSCO complete % - Warn at or above:", value = 90, min = 0, max = 100, step = 1),
+                            numericInput("thr_dup_good",   "BUSCO duplicated % - Good at or below:", value = 5, min = 0, max = 100, step = 1),
+                            numericInput("thr_dup_warn",   "BUSCO duplicated % - Warn at or below:", value = 10, min = 0, max = 100, step = 1),
+                            numericInput("thr_n50_good",   "N50 (bp) - Good at or above:", value = 1e6, min = 0, step = 1e5),
+                            numericInput("thr_n50_warn",   "N50 (bp) - Warn at or above:", value = 1e5, min = 0, step = 1e4),
+                            numericInput("thr_seq_good",   "Sequence count - Good at or below:", value = 1000, min = 0, step = 10),
+                            numericInput("thr_seq_warn",   "Sequence count - Warn at or below:", value = 10000, min = 0, step = 100)
+                          ),
                           checkboxInput("show_values", "Print values on rings", value = FALSE)
                         )
                       )
@@ -198,12 +211,24 @@ server <- function(input, output, session) {
   observeEvent(c(input$refresh_plot, input$text_size, input$tree_scale,
                  input$bar_width, input$rad_width, input$skip_stats, input$tree_style,
                  input$ring_width, input$quality_preset, input$show_values,
+                 input$thr_busco_good, input$thr_busco_warn, input$thr_dup_good, input$thr_dup_warn,
+                 input$thr_n50_good, input$thr_n50_warn, input$thr_seq_good, input$thr_seq_warn,
                  input$tree_space_ratio, input$top_margin, input$right_margin,
                  input$bottom_margin, input$left_margin, input$tree_margin, input$skip_stats,
                  input$export_width, input$export_height, input$export_dpi), {
 
                    # Show loading notification
                    showNotification("Generating plot...", type = "message", duration = 2)
+
+                   # "Custom" thresholds override the phylo-group preset. Directions are
+                   # fixed per metric and must match those in QUALITY_PRESETS.
+                   is_custom <- identical(input$quality_preset, "custom")
+                   custom_thresholds <- if (is_custom) list(
+                     busco_complete   = list(direction = "higher", good = input$thr_busco_good, warn = input$thr_busco_warn),
+                     busco_duplicated = list(direction = "lower",  good = input$thr_dup_good,   warn = input$thr_dup_warn),
+                     n50              = list(direction = "higher", good = input$thr_n50_good,   warn = input$thr_n50_warn),
+                     seq_number       = list(direction = "lower",  good = input$thr_seq_good,   warn = input$thr_seq_warn)
+                   ) else NULL
 
                    # Generate the plot
                    plot_result <- generate_complete_plot(
@@ -221,7 +246,8 @@ server <- function(input, output, session) {
                      tree_space_ratio = input$tree_space_ratio,
                      tree_style = input$tree_style,
                      ring_width = if (is.null(input$ring_width)) 0.13 else input$ring_width,
-                     quality_preset = if (is.null(input$quality_preset)) "generic" else input$quality_preset,
+                     quality_preset = if (is_custom || is.null(input$quality_preset)) "generic" else input$quality_preset,
+                     thresholds = custom_thresholds,
                      show_values = isTRUE(input$show_values)
 
                    )

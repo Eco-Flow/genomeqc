@@ -578,7 +578,7 @@ build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes 
                                 data_busco_geno = NULL, data_busco_prot = NULL,
                                 data_nseqs = NULL, data_ortho = NULL,
                                 text_size = 3, skip = NULL, rings = NULL,
-                                quality_preset = "generic", show_values = FALSE,
+                                quality_preset = "generic", thresholds = NULL, show_values = FALSE,
                                 open_angle = 14, ring_width = 0.13) {
 
   if (is.null(skip)) skip <- character(0)
@@ -587,6 +587,12 @@ build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes 
   if (is.null(thr_set)) {
     warning("Unknown quality_preset '", quality_preset, "', falling back to 'generic'")
     thr_set <- QUALITY_PRESETS[["generic"]]
+  }
+  # Explicit per-metric thresholds (e.g. from the Shiny app) override the preset
+  if (!is.null(thresholds)) {
+    for (m in names(thresholds)) {
+      if (!is.null(thresholds[[m]])) thr_set[[m]] <- thresholds[[m]]
+    }
   }
 
   n_tips <- length(tips_order)
@@ -774,7 +780,7 @@ generate_complete_plot <- function(processed_data, text_size = 3, tree_scale = 0
                                    left_margin = 5.5, tree_margin = 15, tree_space_ratio = 1.3,
                                    tree_style = "roundrect", circular_rings = NULL,
                                    ring_width = 0.13, quality_preset = "generic",
-                                   show_values = FALSE) {
+                                   thresholds = NULL, show_values = FALSE) {
 
   # Circular layout is a separate plotting path (rings instead of side panels).
   # circular_rings = NULL shows every available stat (the interactive Shiny
@@ -796,6 +802,7 @@ generate_complete_plot <- function(processed_data, text_size = 3, tree_scale = 0
       rings           = circular_rings,
       ring_width      = ring_width,
       quality_preset  = quality_preset,
+      thresholds      = thresholds,
       show_values     = show_values
     ))
   }
