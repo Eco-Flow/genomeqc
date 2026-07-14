@@ -796,6 +796,38 @@ build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes 
                  label = names(QUALITY_COLOURS)[k],
                  hjust = 0, vjust = 0.5, size = text_size * 0.95)
     }
+    y <- y - lh * length(QUALITY_COLOURS) - lh * 0.8
+
+    # Spell out what earns each grade, per quality ring, so the figure is
+    # self-documenting rather than relying on the reader knowing the preset.
+    fmt_thr <- function(v) {
+      if (!is.finite(v)) return("?")
+      if (abs(v) >= 1e6)       sprintf("%.1fM", v / 1e6)
+      else if (abs(v) >= 1000) format(round(v), big.mark = ",", trim = TRUE)
+      else                     as.character(round(v, 1))
+    }
+    rules <- character(0)
+    for (i in seq_along(ring_specs)) {
+      sp  <- ring_specs[[i]]
+      if (!identical(sp$scale, "quality")) next
+      thr <- thr_set[[sp$metric]]
+      if (is.null(thr)) next
+      rule <- if (identical(thr$direction, "higher")) {
+        sprintf("%s+ / %s+ / <%s", fmt_thr(thr$good), fmt_thr(thr$warn), fmt_thr(thr$warn))
+      } else {
+        sprintf("<=%s / <=%s / >%s", fmt_thr(thr$good), fmt_thr(thr$warn), fmt_thr(thr$warn))
+      }
+      rules <- c(rules, paste0(i, ". ", sp$name, ": ", rule))
+    }
+    if (length(rules) > 0) {
+      sp_leg <- sp_leg +
+        annotate("text", x = 0, y = y, label = "Thresholds (Good / Warn / Poor)",
+                 hjust = 0, vjust = 1, fontface = "bold", size = text_size * 1.05)
+      y <- y - lh * 1.4
+      sp_leg <- sp_leg +
+        annotate("text", x = 0, y = y, label = paste(rules, collapse = "\n"),
+                 hjust = 0, vjust = 1, size = text_size * 0.85, lineheight = 1.25)
+    }
   }
 
   sp_leg + p + plot_layout(widths = c(0.35, 1))
