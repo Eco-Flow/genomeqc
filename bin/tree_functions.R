@@ -620,11 +620,11 @@ build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes 
   ring_registry <- list(
     ch_plot         = list(name = "Seq number",     scale = "quality", metric = "seq_number",
                            get = function() if (!is.null(data_quast)) col_by_node(data_quast$full, "Sequences")),
-    len_plot        = list(name = "Genome size",    scale = "descriptive", low = "#e7edf6", high = "#274b8f",
+    len_plot        = list(name = "Genome size",    scale = "descriptive", low = "#f0f0f0", high = "#4d4d4d",
                            get = function() if (!is.null(data_quast)) col_by_node(data_quast$full, "Length")),
     n50_plot        = list(name = "N50",            scale = "quality", metric = "n50",
                            get = function() if (!is.null(data_quast)) col_by_node(data_quast$full, "N50")),
-    gene_plot       = list(name = "Gene number",    scale = "descriptive", low = "#e2f1ee", high = "#0f7a6c",
+    gene_plot       = list(name = "Gene number",    scale = "descriptive", low = "#f0f0f0", high = "#4d4d4d",
                            get = function() {
                              if (is.null(data_genes)) return(NULL)
                              tot <- data_genes[data_genes$stat == "Total", ]
@@ -636,9 +636,9 @@ build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes 
                            get = function() if (!is.null(data_busco_prot)) data_busco_prot$Single + data_busco_prot$Duplicated),
     busco_dup_plot  = list(name = "BUSCO duplicated", scale = "quality", metric = "busco_duplicated",
                            get = function() if (!is.null(data_busco_geno)) data_busco_geno$Duplicated),
-    nseqs_plot      = list(name = "Seqs ≥5 BUSCOs", scale = "descriptive", low = "#f2e9d8", high = "#8c6d1f",
+    nseqs_plot      = list(name = "Seqs ≥5 BUSCOs", scale = "descriptive", low = "#f0f0f0", high = "#4d4d4d",
                            get = function() if (!is.null(data_nseqs)) col_by_node(data_nseqs, names(data_nseqs)[2])),
-    ortho_plot      = list(name = "Ortho seqs",     scale = "descriptive", low = "#fde0ec", high = "#a11d5b",
+    ortho_plot      = list(name = "Ortho seqs",     scale = "descriptive", low = "#f0f0f0", high = "#4d4d4d",
                            get = function() if (!is.null(data_ortho)) col_by_node(data_ortho, names(data_ortho)[2]))
   )
 
@@ -651,6 +651,12 @@ build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes 
     if (is.null(entry) || key %in% skip) next
     add_ring(entry, entry$get())
   }
+
+  # Keep the traffic-light (quality) rings visually separate from the neutral
+  # descriptive rings: quality inner, descriptive outer, preserving the requested
+  # order within each group.
+  is_quality <- vapply(ring_specs, function(s) identical(s$scale, "quality"), logical(1))
+  ring_specs <- c(ring_specs[is_quality], ring_specs[!is_quality])
 
   p <- ggtree(tree, layout = "fan", open.angle = open_angle, size = 0.5, colour = "grey30")
 

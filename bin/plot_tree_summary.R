@@ -101,7 +101,7 @@ parser$add_argument('--rad_width', type = 'double', default = 0.4, help = 'Radiu
 parser$add_argument('--skip_stats', type = 'character', default = NULL, help = "Don't plot these stats (comma separated list)")
 parser$add_argument('--type', type = 'character', choices = c('genome_only', 'genome_anno'), default = 'genome_anno', help = 'Select stats for genome only or for both genome and annotation')
 parser$add_argument('--tree_style', type = 'character', choices = c('roundrect', 'ellipse', 'rectangular', 'circular'), default = 'roundrect', help = 'Tree layout style: roundrect (rounded branches, default), ellipse (curved branches with node points), rectangular (legacy look with dotted leader lines), or circular (fan tree with the stats drawn as concentric coloured rings)')
-parser$add_argument('--circular_rings', type = 'character', default = 'ch_plot,n50_plot,busco_gen_plot,busco_prot_plot,len_plot,gene_plot', help = "Circular layout only: comma-separated, ordered (inner->outer) list of stats to draw as rings, or 'all' to show every available stat. The default mixes quality rings with descriptive ones. Keys: ch_plot, len_plot, n50_plot, gene_plot, busco_gen_plot, busco_prot_plot, busco_dup_plot, nseqs_plot, ortho_plot")
+parser$add_argument('--circular_rings', type = 'character', default = 'ch_plot,n50_plot,busco_gen_plot,busco_prot_plot,len_plot,gene_plot', help = "Circular layout only: comma-separated, ordered (inner->outer) list of stats to draw as rings, or 'all' to show every available stat. Quality rings are always grouped inner and descriptive rings outer, so the traffic-light rings stay visually separate. Keys: ch_plot, len_plot, n50_plot, gene_plot, busco_gen_plot, busco_prot_plot, busco_dup_plot, nseqs_plot, ortho_plot")
 parser$add_argument('--quality_preset', type = 'character', choices = c('generic', 'vertebrate', 'insect', 'plant', 'fungi', 'bacteria'), default = 'generic', help = "Circular layout only: phylogenetic-group thresholds used to score the quality rings (traffic light). 'generic' is deliberately lenient; pick the group matching your taxa. The N50/sequence-count cut-offs in particular are starting points and should be tuned per project.")
 parser$add_argument('--show_ring_values', action = 'store_true', help = 'Circular layout only: print each value on its ring (redundant encoding, so the figure is not colour-only). Best for small trees.')
 parser$add_argument('--len_pos_x', type = 'double', default = 5, help = 'Position of the BUSCO legend on the x axis when both genome and protein BUSCO pies are plotted')
@@ -725,11 +725,11 @@ build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes 
   ring_registry <- list(
     ch_plot         = list(name = "Seq number",     scale = "quality", metric = "seq_number",
                            get = function() if (!is.null(data_quast)) col_by_node(data_quast$full, "Sequences")),
-    len_plot        = list(name = "Genome size",    scale = "descriptive", low = "#e7edf6", high = "#274b8f",
+    len_plot        = list(name = "Genome size",    scale = "descriptive", low = "#f0f0f0", high = "#4d4d4d",
                            get = function() if (!is.null(data_quast)) col_by_node(data_quast$full, "Length")),
     n50_plot        = list(name = "N50",            scale = "quality", metric = "n50",
                            get = function() if (!is.null(data_quast)) col_by_node(data_quast$full, "N50")),
-    gene_plot       = list(name = "Gene number",    scale = "descriptive", low = "#e2f1ee", high = "#0f7a6c",
+    gene_plot       = list(name = "Gene number",    scale = "descriptive", low = "#f0f0f0", high = "#4d4d4d",
                            get = function() {
                              if (is.null(data_genes)) return(NULL)
                              tot <- data_genes[data_genes$stat == "Total", ]
@@ -741,9 +741,9 @@ build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes 
                            get = function() if (!is.null(data_busco_prot)) data_busco_prot$Single + data_busco_prot$Duplicated),
     busco_dup_plot  = list(name = "BUSCO duplicated", scale = "quality", metric = "busco_duplicated",
                            get = function() if (!is.null(data_busco_geno)) data_busco_geno$Duplicated),
-    nseqs_plot      = list(name = "Seqs ≥5 BUSCOs", scale = "descriptive", low = "#f2e9d8", high = "#8c6d1f",
+    nseqs_plot      = list(name = "Seqs ≥5 BUSCOs", scale = "descriptive", low = "#f0f0f0", high = "#4d4d4d",
                            get = function() if (!is.null(data_nseqs)) col_by_node(data_nseqs, names(data_nseqs)[2])),
-    ortho_plot      = list(name = "Ortho seqs",     scale = "descriptive", low = "#fde0ec", high = "#a11d5b",
+    ortho_plot      = list(name = "Ortho seqs",     scale = "descriptive", low = "#f0f0f0", high = "#4d4d4d",
                            get = function() if (!is.null(data_ortho)) col_by_node(data_ortho, names(data_ortho)[2]))
   )
 
@@ -757,6 +757,12 @@ build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes 
     if (is.null(entry) || key %in% skip) next
     add_ring(entry, entry$get())
   }
+
+  # Keep the traffic-light (quality) rings visually separate from the neutral
+  # descriptive rings: quality inner, descriptive outer, preserving the requested
+  # order within each group.
+  is_quality <- vapply(ring_specs, function(s) identical(s$scale, "quality"), logical(1))
+  ring_specs <- c(ring_specs[is_quality], ring_specs[!is_quality])
 
   # Fan tree
   p <- ggtree(tree, layout = "fan", open.angle = open_angle, size = 0.5, colour = "grey30")
