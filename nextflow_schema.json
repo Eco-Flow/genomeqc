@@ -383,7 +383,8 @@
                 "show_ring_values": {
                     "type": "boolean",
                     "description": "Circular layout only: print each value on its ring.",
-                    "help_text": "Adds a redundant, non-colour-only encoding (important for accessibility, since the traffic-light rings otherwise rely on colour alone). Best suited to small trees."
+                    "help_text": "Adds a redundant, non-colour-only encoding (important for accessibility, since the traffic-light rings otherwise rely on colour alone). Best suited to small trees.",
+                    "default": false
                 }
             }
         }
