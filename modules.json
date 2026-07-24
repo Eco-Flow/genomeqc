@@ -25,6 +25,21 @@
                         "git_sha": "6d46786420b4d7bc88eba026eb389c0c5535d120",
                         "installed_by": ["modules"]
                     },
+                    "busco/download": {
+                        "branch": "master",
+                        "git_sha": "c65517224900fbc03611170224ee63fa16287d83",
+                        "installed_by": ["modules"]
+                    },
+                    "cat/cat": {
+                        "branch": "master",
+                        "git_sha": "eeda4136c096688d04cc40bb3c70d948213ed641",
+                        "installed_by": ["modules"]
+                    },
+                    "cdhit/cdhitest": {
+                        "branch": "master",
+                        "git_sha": "6d46786420b4d7bc88eba026eb389c0c5535d120",
+                        "installed_by": ["modules"]
+                    },
                     "fastqc": {
                         "branch": "master",
                         "git_sha": "6d46786420b4d7bc88eba026eb389c0c5535d120",
@@ -60,6 +75,11 @@
                         "git_sha": "c9ad4d691aa339e478a77847e3ef854ccd21778b",
                         "installed_by": ["modules"]
                     },
+                    "mdust": {
+                        "branch": "master",
+                        "git_sha": "6d46786420b4d7bc88eba026eb389c0c5535d120",
+                        "installed_by": ["modules"]
+                    },
                     "merqury/merqury": {
                         "branch": "master",
                         "git_sha": "6d46786420b4d7bc88eba026eb389c0c5535d120",
@@ -71,6 +91,11 @@
                         "installed_by": ["modules"]
                     },
                     "meryl/unionsum": {
+                        "branch": "master",
+                        "git_sha": "6d46786420b4d7bc88eba026eb389c0c5535d120",
+                        "installed_by": ["modules"]
+                    },
+                    "mmseqs/easycluster": {
                         "branch": "master",
                         "git_sha": "6d46786420b4d7bc88eba026eb389c0c5535d120",
                         "installed_by": ["modules"]
@@ -99,6 +124,23 @@
                         "branch": "master",
                         "git_sha": "6d46786420b4d7bc88eba026eb389c0c5535d120",
                         "installed_by": ["modules"]
+                    },
+                    "repeatmasker/repeatmasker": {
+                        "branch": "master",
+                        "git_sha": "6d46786420b4d7bc88eba026eb389c0c5535d120",
+                        "installed_by": ["modules"],
+                        "patch": "modules/nf-core/repeatmasker/repeatmasker/repeatmasker-repeatmasker.diff"
+                    },
+                    "repeatmodeler/builddatabase": {
+                        "branch": "master",
+                        "git_sha": "6d46786420b4d7bc88eba026eb389c0c5535d120",
+                        "installed_by": ["modules"]
+                    },
+                    "repeatmodeler/repeatmodeler": {
+                        "branch": "master",
+                        "git_sha": "6d46786420b4d7bc88eba026eb389c0c5535d120",
+                        "installed_by": ["modules"],
+                        "patch": "modules/nf-core/repeatmodeler/repeatmodeler/repeatmodeler-repeatmodeler.diff"
                     },
                     "seqkit/seq": {
                         "branch": "master",

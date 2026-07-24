@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 # Written by Chris Wyatt and released under the MIT license. Converts a group of quast outputs to a table to plot on a tree
 

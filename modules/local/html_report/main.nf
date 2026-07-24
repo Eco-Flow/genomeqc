@@ -2,7 +2,10 @@ process HTML_REPORT {
     tag "genomeqc_report"
     label 'process_single'
 
-    container 'ecoflowucl/genomeqc_tree:v1.5'
+    conda "${moduleDir}/environment.yml"
+    container "${workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container
+        ? 'https://depot.galaxyproject.org/singularity/python:3.9--1'
+        : 'quay.io/biocontainers/python:3.9--1'}"
 
     input:
     path busco_tables,       stageAs: "busco/*"         // genome BUSCO batch_summary_modified.txt files (one per species)
@@ -13,6 +16,7 @@ process HTML_REPORT {
     path fcsadp_reports,     stageAs: "fcsadp/*"        // FCS-Adaptor report files (optional)
     path tiara_reports,      stageAs: "tiara/*"         // Tiara classification files (optional)
     path busco_seqs_table,   stageAs: "busco_seqs/*"    // ortho_seqs.py output (optional)
+    path repeatmasker_tbls,  stageAs: "repeatmasker/*"  // RepeatMasker *.tbl files (optional)
 
     output:
     path "genomeqc_report.html", emit: report
@@ -30,6 +34,7 @@ process HTML_REPORT {
     def fcsadp_arg       = fcsadp_reports    ? "--fcsadp_reports fcsadp/*"          : ""
     def tiara_arg        = tiara_reports     ? "--tiara_reports tiara/*"            : ""
     def busco_seqs_arg   = busco_seqs_table  ? "--busco_seqs_table busco_seqs/*"    : ""
+    def repeatmasker_arg = repeatmasker_tbls ? "--repeatmasker_tbls repeatmasker/*" : ""
     """
     generate_report.py \\
         ${busco_arg} \\
@@ -40,6 +45,7 @@ process HTML_REPORT {
         ${fcsadp_arg} \\
         ${tiara_arg} \\
         ${busco_seqs_arg} \\
+        ${repeatmasker_arg} \\
         --output genomeqc_report.html
     """
 }

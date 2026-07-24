@@ -41,15 +41,17 @@ The pipeline takes a list of genomes and annotations (from local files or ncbi a
       - [FCS-GX](https://github.com/ncbi/fcs/wiki/FCS-GX-quickstart): Detection and removal of foreign organisms contamination.
       - [FCS-adaptor](https://github.com/ncbi/fcs/wiki/FCS-adaptor-quickstart): Detection and removal of adaptor and vector contamination.
       - [Tiara](https://ibe-uw.github.io/tiara/): DNA sequence classification.
-   7. More options...
-3. Describes annotation :
+   7. TE annotation (optional, `--te`):
+      - [`--te hite`](https://github.com/BioinformaticsToolsmith/HiTE): Fast, alignment-free TE identification and masking.
+      - `--te repeatmasker`: Curated TE masking using [DFAM famdb](https://www.dfam.org) + [RepeatMasker](https://www.repeatmasker.org). Add `--run_repeatmodeler` to also build a de novo library with [RepeatModeler](https://www.repeatmasker.org/RepeatModeler/) (slow — 24–48 h per genome). The repeat library is dereplicated using [MMseqs2](https://github.com/soedinglab/MMseqs2) `easy-linclust` by default; use `--te_clusterer` to switch tools and `--te_cluster_identity`/`--te_cluster_coverage` to tune thresholds. RepeatMasker runs in rush mode (`-qq`) by default; use `--repeatmasker_speed` to adjust.
+3. Describes annotation:
    1. [AGAT](https://agat.readthedocs.io/en/latest/): Number of genes, features, length...
    2. **Gene Overlaps**: Finds the number of overlapping genes.
 4. Extracts longest protein isoform: [GffRead](https://github.com/gpertea/gffread).
 5. Finds orthologous genes: [Orthofinder](https://github.com/davidemms/OrthoFinder).
 6. Plots an orthology-based - if annotation is given - or BUSCO marker-based - if no annotation is given - phylogenetic tree with summary statistics: **Tree Summary**
 7. Summary with **HTML and excel** custom reports.
-7. Summary with [MultiQC](http://multiqc.info).
+8. Summary with [MultiQC](http://multiqc.info).
 
 The pipeline outputs an executable that launches a shiny app with the tree plot and the summary statistics. The parameters of the plot can be modified, and summary statistics can be added or removed in real time. Once the plot has been adjusted, it can be saved as png/svg. The tree plot needs **at least three assemblies to be plotted**, and it servers as a quick overview of the quality of all assemblies.
 
@@ -151,10 +153,7 @@ For further information or help, don't hesitate to get in touch on the [Slack `#
 
 ## Citations
 
-<!-- TODO nf-core: Add citation for pipeline after first release. Uncomment lines below and update Zenodo doi and badge at the top of this file. -->
-<!-- If you use nf-core/genomeqc for your analysis, please cite it using the following doi: [10.5281/zenodo.XXXXXX](https://doi.org/10.5281/zenodo.XXXXXX) -->
-
-<!-- TODO nf-core: Add bibliography of tools and data used in your pipeline -->
+If you use nf-core/genomeqc for your analysis, please cite it using the following doi: https://doi.org/10.48546/WORKFLOWHUB.WORKFLOW.2181.1, until the paper is accepted in a peer reviwed journal.
 
 An extensive list of references for the tools used by the pipeline can be found in the [`CITATIONS.md`](CITATIONS.md) file.
 

@@ -3,9 +3,9 @@ process SHINY_APP {
     label 'process_single'
 
     conda "${moduleDir}/environment.yml"
-    container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-    'https://depot.galaxyproject.org/singularity/ubuntu:22.04' :
-    'nf-core/ubuntu:22.04' }"
+    container "${workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container
+        ? 'https://depot.galaxyproject.org/singularity/ubuntu:22.04'
+        : 'nf-core/ubuntu:22.04' }"
 
     input:
     tuple val(meta), path(tables), path(tree)
@@ -25,7 +25,7 @@ process SHINY_APP {
     // Fully qualify the registry: this is a plain `docker run`, so (unlike the
     // Nextflow-managed processes) it does not get the docker.registry='quay.io'
     // prefix and would otherwise resolve to Docker Hub, where the image is not published.
-    def docker_url       = 'quay.io/ecoflowucl/genomeqc_tree:v1.5'
+    def docker_url       = 'community.wave.seqera.io/library/python_pandas_r-base_bioconductor-ggtreeextra_pruned:60dbbdd8c84de8ef'
     def results_path     = file(params.outdir).toAbsolutePath()
     """
     mkdir app
@@ -35,7 +35,7 @@ process SHINY_APP {
 
     # Using port 8000 as is the one usually available
 
-    echo 'CONTAINER_ID=\$($container_engine run -d -v \$(pwd):/app -p 8000:8000 $docker_url)' >> shiny_app.sh
+    echo 'CONTAINER_ID=\$($container_engine run -d -v \$(pwd):/app -w /app -p 8000:8000 $docker_url Rscript shiny_app.R)' >> shiny_app.sh
     echo 'sleep 2' >> shiny_app.sh
 
     # Ensure the container is stopped and port is available again once script exits

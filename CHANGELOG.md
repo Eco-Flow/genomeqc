@@ -3,6 +3,25 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v0.0.1 (dev) - [15 June 2026]
+
+Initial pre-release of nf-core/genomeqc, created with the [nf-core](https://nf-co.re/) template.
+
+This is the first release of the pipeline, which compares the quality of multiple genomes and their annotations. The pipeline runs in two modes depending on the inputs provided: **Genome only** (FASTA files) and **Genome and Annotation** (FASTA plus GTF/GFF files).
+
+### `Added`
+
+- Added `--te_clusterer` parameter to select the repeat library clustering tool used before RepeatMasker. Accepts `linclust` (default, MMseqs2 `easy-linclust`, linear time), `mmseqs` (MMseqs2 `easy-cluster`), or `cdhit` (CD-HIT-EST).
+- Added `--te_cluster_identity` parameter (default `0.8`) to set the sequence identity threshold for repeat library clustering, applied across all three tools.
+- Added `--te_cluster_coverage` parameter (default `0.8`) to set the alignment coverage threshold for repeat library clustering, applied across all three tools.
+- Added `--repeatmasker_speed` parameter to control RepeatMasker sensitivity: `qq` (rush, default), `q` (quick), or `default` (most sensitive).
+
+### `Fixed`
+
+### `Dependencies`
+
+### `Deprecated`
+
 ## v0.0.1 (dev) - [12 June 2026]
 
 Initial pre-release of nf-core/genomeqc, created with the [nf-core](https://nf-co.re/) template.
@@ -24,17 +43,10 @@ This is the first release of the pipeline, which compares the quality of multipl
 - An executable Shiny app for interactively adjusting the tree plot and summary statistics, with PNG/SVG export.
 - HTML and Excel summary reports.
 - Aggregated quality-control report with [MultiQC](http://multiqc.info).
-- New `--tree_style` option for the **Tree Summary** plot: `roundrect` (rounded branches, new default), `ellipse` (curved branches with node points), `rectangular` (legacy look with dotted leader lines), and `circular` (fan tree with the summary statistics drawn as concentric coloured rings and a numbered species key). Selectable in the Shiny app.
-- New `--circular_rings` option controlling which stats appear as rings in the circular layout (any of `ch_plot`, `len_plot`, `n50_plot`, `gene_plot`, `busco_gen_plot`, `busco_prot_plot`, `nseqs_plot`, `ortho_plot`, or `all`). The static pipeline figure defaults to a curated assembly/annotation-quality set (sequence number, N50, genome BUSCO, protein BUSCO), while the Shiny app shows every non-skipped stat.
 
 ### `Fixed`
 
 - Fixed BUSCO not showing in the tree
-- Fixed the Shiny app launcher pulling its container from Docker Hub instead of quay.io (the plain `docker run` does not receive the `docker.registry` prefix), which caused a `pull access denied` error.
-- Shiny app: the tree-style controls now show only the options that apply to the selected layout (margin/bar/pie controls for the non-circular styles, a ring-thickness control for the circular style), added a "Ring thickness" slider for the circular layout, and clarified the "Skip Statistics" labels.
-- Circular layout: the "Tip Text Size" control now scales all text (tip numbers, ring legends and the species key), and the ring legends are ordered outer-ring-first to match the ring stack.
-- Shiny app: the circular layout now offers a "Quality thresholds (phylo group)" preset selector plus a "Custom..." option exposing per-metric Good/Warn cut-offs (BUSCO complete, BUSCO duplicated, N50, sequence count), and a "Print values on rings" toggle.
-- Circular layout: quality statistics (sequence count, N50, BUSCO complete for genome and protein, BUSCO duplicated) are now scored as a colour-vision-safe **traffic light** (Good/Warn/Poor) against phylogenetic-group thresholds (`--quality_preset`: generic, vertebrate, insect, plant, fungi, bacteria), rather than a sequential ramp that misleadingly implied "dark = good" (it was backwards for sequence count). Descriptive statistics (genome size, gene number, ortho seqs) are drawn in a neutral **grey** ramp and grouped as a separate outer block, so they never borrow the traffic-light colours or sit interleaved with the quality rings. `--show_ring_values` prints each value on its ring as a redundant, non-colour-only encoding. Both are also settable in the Shiny app.
 
 ### `Dependencies`
 

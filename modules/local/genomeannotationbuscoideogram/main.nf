@@ -1,9 +1,11 @@
-process GENOME_ANNOTATION_BUSCO_IDEOGRAM {
+process GENOMEANNOTATIONBUSCOIDEOGRAM {
     tag "${genusspeci}_${lineage}"
     label 'process_single'
 
-    conda "bioconda::r-rideogram=0.2.2 bioconda::r-svglite=2.1.1"
-    container "community.wave.seqera.io/library/seqkit_r-dplyr_r-optparse_r-readr_pruned:92b750716d244919"
+    conda "${moduleDir}/environment.yml"
+    container "${workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container
+        ? 'oras://community.wave.seqera.io/library/r-base_seqkit_r-rideogram_r-optparse_pruned:db707efb147636c0'
+        : 'community.wave.seqera.io/library/r-base_seqkit_r-rideogram_r-optparse_pruned:07dcf079214428f3' }"
 
     input:
     tuple val(genusspeci), val(lineage), path(busco_full_table), path(genome), path(gff)
@@ -34,5 +36,17 @@ process GENOME_ANNOTATION_BUSCO_IDEOGRAM {
         --prefix ${genusspeci} \\
         $args
 
+    """
+
+    stub:
+    def args = task.ext.args ?: ''
+    def prefix = "${genusspeci}_${lineage}"
+
+    """
+    echo $args
+
+    touch ${genusspeci}.svg
+    touch ${genusspeci}.png
+    touch ${genusspeci}.csv
     """
 }
