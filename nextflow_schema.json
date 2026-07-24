@@ -372,7 +372,6 @@
                 },
                 "quality_preset": {
                     "type": "string",
-                    "default": "generic",
                     "description": "Circular layout only: phylogenetic-group thresholds used to score the quality (traffic-light) rings.",
                     "help_text": "Quality rings (sequence count, N50, BUSCO completeness/duplication) are scored Good/Warn/Poor against these thresholds. 'generic' is deliberately lenient. The N50 and sequence-count cut-offs are clade-dependent starting points and should be tuned per project.",
                     "enum": [
