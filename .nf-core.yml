@@ -1,4 +1,9 @@
-nf_core_version: 4.0.2
+lint:
+  files_unchanged:
+    - assets/nf-core-genomeqc_logo_light.png
+    - docs/images/nf-core-genomeqc_logo_light.png
+    - docs/images/nf-core-genomeqc_logo_dark.png
+nf_core_version: 4.0.3
 repository_type: pipeline
 template:
   author: Chris Wyatt, Fernando Duarte
@@ -8,4 +13,4 @@ template:
   name: genomeqc
   org: nf-core
   outdir: .
-  version: 1.0dev
+  version: 1.0.0
