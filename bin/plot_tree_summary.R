@@ -105,7 +105,7 @@ parser$add_argument('--tree_style', type = 'character', choices = c('roundrect',
 parser$add_argument('--circular_rings', type = 'character', default = 'ch_plot,n50_plot,busco_gen_plot,busco_prot_plot,len_plot,gene_plot', help = "Circular layout only: comma-separated, ordered (inner->outer) list of stats to draw as rings, or 'all' to show every available stat. Descriptive rings are always grouped nearest the tree and quality (traffic-light) rings on the outer rim, so the two stay visually separate. Keys: ch_plot, len_plot, n50_plot, gene_plot, busco_gen_plot, busco_prot_plot, busco_dup_plot, nseqs_plot, ortho_plot")
 parser$add_argument('--quality_preset', type = 'character', choices = c('generic', 'vertebrate', 'insect', 'plant', 'fungi', 'bacteria'), default = 'generic', help = "Circular layout only: phylogenetic-group thresholds used to score the quality rings (traffic light). 'generic' is deliberately lenient; pick the group matching your taxa. The N50/sequence-count cut-offs in particular are starting points and should be tuned per project.")
 parser$add_argument('--show_ring_values', action = 'store_true', help = 'Circular layout only: print each value on its ring (redundant encoding, so the figure is not colour-only). Best for small trees.')
-parser$add_argument('--len_pos_x', type = 'double', default = 5, help = 'Position of the BUSCO legend on the x axis when both genome and protein BUSCO pies are plotted')
+parser$add_argument('--len_pos_x', type = 'double', default = 0.5, help = 'Position (legend.justification x-anchor) of the BUSCO/TE pie legends')
 
 args <- parser$parse_args()
 
@@ -531,7 +531,8 @@ make_te_scatterpie <- function(data_te,
 # BUSCO plots
 # -- if both genome and proteome busco datasets are present,
 # change legend x position so that it's not skewed --
-len_pos_x <- args$len_pos_x * (!is.null(data_busco_geno) && !is.null(data_busco_prot)) # very smart chatgpt
+# len_pos_x <- args$len_pos_x * (!is.null(data_busco_geno) && !is.null(data_busco_prot)) # very smart chatgpt
+len_pos_x <- args$len_pos_x
 
 # Plot both genome and proteome BUSCO pies
 busco_gen_plot <- make_busco_scatterpie(
@@ -551,8 +552,8 @@ busco_prot_plot <- make_busco_scatterpie(
 # TE plots
 te_plot <- make_te_scatterpie(
   data_te = data_te,
-  rad_width  = args$rad_width
-  #len_pos_x = len_pos_x,
+  rad_width  = args$rad_width,
+  len_pos_x = len_pos_x
 )
 
 #if (!is.null(data_busco)) {
