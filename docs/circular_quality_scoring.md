@@ -23,15 +23,15 @@ The circular plot currently draws every ring with a sequential `low -> high`
 colour ramp (light -> dark). A reader inevitably interprets **dark = high =
 good**. That reading is only correct for some of the statistics:
 
-| Ring | Reads as "dark = good"? | Reality |
-| --- | --- | --- |
-| BUSCO complete | correct | higher really is better |
-| N50 | correct | higher really is better |
-| **Seq number** | **wrong** | dark = thousands of contigs = a *worse* assembly |
-| Genome size | meaningless | a biological property; big is not "good" |
-| Gene number | meaningless | varies by lineage |
-| GC % | meaningless | biology, not quality |
-| Ortho seqs | meaningless | synteny/descriptive |
+| Ring           | Reads as "dark = good"? | Reality                                          |
+| -------------- | ----------------------- | ------------------------------------------------ |
+| BUSCO complete | correct                 | higher really is better                          |
+| N50            | correct                 | higher really is better                          |
+| **Seq number** | **wrong**               | dark = thousands of contigs = a _worse_ assembly |
+| Genome size    | meaningless             | a biological property; big is not "good"         |
+| Gene number    | meaningless             | varies by lineage                                |
+| GC %           | meaningless             | biology, not quality                             |
+| Ortho seqs     | meaningless             | synteny/descriptive                              |
 
 So the plot is actively misleading for `Seq number`, and it implies a
 good/bad judgement for several stats that simply do not have one.
@@ -56,26 +56,26 @@ good/bad judgement for several stats that simply do not have one.
 
 Direction: ↑ = higher is better, ↓ = lower is better.
 
-| Metric | Tool | Dir | Good (green) | Warn (amber) | Poor (red) | Available today |
-| --- | --- | --- | --- | --- | --- | --- |
-| BUSCO complete, genome | BUSCO | ↑ | ≥ 95 % | 90–95 % | < 90 % | yes |
-| BUSCO complete, protein | BUSCO | ↑ | ≥ 95 % | 90–95 % | < 90 % | yes |
-| BUSCO duplicated *(optional)* | BUSCO | ↓ | < 5 % | 5–10 % | > 10 % | yes |
-| Scaffold N50 | QUAST | ↑ | ≥ 10 Mb | 1–10 Mb | < 1 Mb | yes |
-| Sequence count | QUAST | ↓ | *see §5* | | | yes |
-| Consensus QV | Merqury | ↑ | ≥ 40 | 30–40 | < 30 | **needs plumbing** |
-| k-mer completeness | Merqury | ↑ | ≥ 95 % | 90–95 % | < 90 % | **needs plumbing** |
-| Contamination % | FCS-GX | ↓ | < 0.1 % | 0.1–1 % | > 1 % | **needs plumbing** |
-| Adaptor hits | FCS-adaptor | ↓ | none | few | many | **needs plumbing** |
-| Foreign-domain seqs | Tiara | ↓ | low | | high | **needs plumbing** |
-| Telomere-complete scaffolds | tidk | ↑ | — | | | **needs plumbing** |
+| Metric                        | Tool        | Dir | Good (green) | Warn (amber) | Poor (red) | Available today    |
+| ----------------------------- | ----------- | --- | ------------ | ------------ | ---------- | ------------------ |
+| BUSCO complete, genome        | BUSCO       | ↑   | ≥ 95 %       | 90–95 %      | < 90 %     | yes                |
+| BUSCO complete, protein       | BUSCO       | ↑   | ≥ 95 %       | 90–95 %      | < 90 %     | yes                |
+| BUSCO duplicated _(optional)_ | BUSCO       | ↓   | < 5 %        | 5–10 %       | > 10 %     | yes                |
+| Scaffold N50                  | QUAST       | ↑   | ≥ 10 Mb      | 1–10 Mb      | < 1 Mb     | yes                |
+| Sequence count                | QUAST       | ↓   | _see §5_     |              |            | yes                |
+| Consensus QV                  | Merqury     | ↑   | ≥ 40         | 30–40        | < 30       | **needs plumbing** |
+| k-mer completeness            | Merqury     | ↑   | ≥ 95 %       | 90–95 %      | < 90 %     | **needs plumbing** |
+| Contamination %               | FCS-GX      | ↓   | < 0.1 %      | 0.1–1 %      | > 1 %      | **needs plumbing** |
+| Adaptor hits                  | FCS-adaptor | ↓   | none         | few          | many       | **needs plumbing** |
+| Foreign-domain seqs           | Tiara       | ↓   | low          |              | high       | **needs plumbing** |
+| Telomere-complete scaffolds   | tidk        | ↑   | —            |              |            | **needs plumbing** |
 
 **BUSCO scope (per review):** show **% complete** for **genome** and **protein**
 only, plus optionally **% duplicated**. We deliberately **do not** show
-*missing*: `complete + fragmented + missing ≈ 100 %`, so a missing ring is
+_missing_: `complete + fragmented + missing ≈ 100 %`, so a missing ring is
 largely the inverse of the complete ring and adds no information.
 
-*Complete* = Single + Duplicated. *Duplicated* is worth its own ring because a
+_Complete_ = Single + Duplicated. _Duplicated_ is worth its own ring because a
 high value flags uncollapsed haplotypes / assembly duplication — a distinct
 failure mode that a single "complete" number hides.
 
@@ -85,29 +85,29 @@ BUSCO ≥ 90 %). They are **defaults, not law** — see §5.
 
 ### 3.2 Descriptive metrics (neutral palette, never traffic-lit)
 
-| Metric | Tool | Why not quality |
-| --- | --- | --- |
-| Genome size | QUAST | biological property |
-| GC % | QUAST | biology; only extreme values hint at contamination |
-| Gene number | AGAT / gene overlaps | varies by lineage |
-| Ortho seqs | OrthoFinder | synteny/descriptive |
-| Seqs ≥5 BUSCOs | BUSCO-derived | ambiguous direction |
+| Metric         | Tool                 | Why not quality                                    |
+| -------------- | -------------------- | -------------------------------------------------- |
+| Genome size    | QUAST                | biological property                                |
+| GC %           | QUAST                | biology; only extreme values hint at contamination |
+| Gene number    | AGAT / gene overlaps | varies by lineage                                  |
+| Ortho seqs     | OrthoFinder          | synteny/descriptive                                |
+| Seqs ≥5 BUSCOs | BUSCO-derived        | ambiguous direction                                |
 
 ## 4. Colour design
 
 A literal red/amber/green traffic light is a poor choice for red–green colour
-blindness (~8 % of men). Proposal: keep the traffic-light *semantics* but use a
+blindness (~8 % of men). Proposal: keep the traffic-light _semantics_ but use a
 colour-vision-safe triple (Okabe–Ito):
 
-| State | Colour | Hex |
-| --- | --- | --- |
-| Good | bluish green | `#009E73` |
-| Warn | orange | `#E69F00` |
-| Poor | vermillion | `#D55E00` |
+| State | Colour       | Hex       |
+| ----- | ------------ | --------- |
+| Good  | bluish green | `#009E73` |
+| Warn  | orange       | `#E69F00` |
+| Poor  | vermillion   | `#D55E00` |
 
 These stay distinguishable under deuteranopia/protanopia while still reading as
 good → bad. Descriptive rings would use a single neutral hue (e.g. greys or a
-muted blue) so they are visually *distinct from* the quality rings — the reader
+muted blue) so they are visually _distinct from_ the quality rings — the reader
 can tell at a glance which rings are judgements and which are just data.
 
 Because colour is the only channel available in a ring, we should consider a
@@ -117,8 +117,8 @@ is not colour-only. **Open question** — see §8.
 ## 5. Thresholds: the hard part
 
 **Absolute cut-offs do not travel across clades.** The N50 defaults above are
-eukaryote-oriented and are *nonsense* for the bacterial test data: a
-*Mycoplasma* genome is < 1 Mb in **total**, so it can never reach a 10 Mb
+eukaryote-oriented and are _nonsense_ for the bacterial test data: a
+_Mycoplasma_ genome is < 1 Mb in **total**, so it can never reach a 10 Mb
 "green" scaffold N50. The same applies to sequence count (a good bacterial
 assembly may be 1 contig; a good mammal may be thousands of scaffolds).
 
@@ -148,10 +148,10 @@ with each metric expressed as direction + two cut-offs, e.g.
 
 ```yaml
 busco_complete_geno: { direction: higher, good: 95, warn: 90 }
-n50:                 { direction: higher, good: 10e6, warn: 1e6 }
-seq_number:          { direction: lower,  good: 100, warn: 1000 }
-merqury_qv:          { direction: higher, good: 40, warn: 30 }
-fcs_contamination:   { direction: lower,  good: 0.1, warn: 1 }
+n50: { direction: higher, good: 10e6, warn: 1e6 }
+seq_number: { direction: lower, good: 100, warn: 1000 }
+merqury_qv: { direction: higher, good: 40, warn: 30 }
+fcs_contamination: { direction: lower, good: 0.1, warn: 1 }
 ```
 
 ## 6. Plumbing plan (Merqury + FCS)
@@ -160,13 +160,13 @@ Good news: the channels already exist in `workflows/genomeqc.nf` and currently
 feed `HTML_REPORT`. Routing them into `TREE_SUMMARY` is mostly adding module
 inputs, not building new plumbing.
 
-| Channel | Defined at | Currently used by |
-| --- | --- | --- |
-| `ch_merqury_qv` (`MERQURY_MERQURY.out.assembly_qv`) | `genomeqc.nf:219` | — |
-| `ch_merqury_stats` (`.out.stats`) | `genomeqc.nf:220` | — |
-| `ch_fcsgx` (`DECONTAMINATION.out.fcs_gx_report`) | `genomeqc.nf:417` | `HTML_REPORT` |
-| `ch_fcsadp` (`.out.adaptor_report`) | `genomeqc.nf:418` | `HTML_REPORT` |
-| `ch_tiara` (`.out.tiara_cleaned`) | `genomeqc.nf:419` | `HTML_REPORT` |
+| Channel                                             | Defined at        | Currently used by |
+| --------------------------------------------------- | ----------------- | ----------------- |
+| `ch_merqury_qv` (`MERQURY_MERQURY.out.assembly_qv`) | `genomeqc.nf:219` | —                 |
+| `ch_merqury_stats` (`.out.stats`)                   | `genomeqc.nf:220` | —                 |
+| `ch_fcsgx` (`DECONTAMINATION.out.fcs_gx_report`)    | `genomeqc.nf:417` | `HTML_REPORT`     |
+| `ch_fcsadp` (`.out.adaptor_report`)                 | `genomeqc.nf:418` | `HTML_REPORT`     |
+| `ch_tiara` (`.out.tiara_cleaned`)                   | `genomeqc.nf:419` | `HTML_REPORT`     |
 
 Work required:
 
@@ -179,9 +179,9 @@ Work required:
    - **Merqury completeness** — `*.completeness.stats`: completeness %.
    - **FCS-GX** — `*.fcs_gx_report.txt`: sum the lengths of sequences actioned
      as `EXCLUDE`/`TRIM`, divide by assembly length → contamination %.
-   > The exact column layouts must be **verified against real outputs** before
-   > coding; the above is from the module definitions, not from inspecting a
-   > real run.
+     > The exact column layouts must be **verified against real outputs** before
+     > coding; the above is from the module definitions, not from inspecting a
+     > real run.
 4. Add the new stats to the ring registry in `build_circular_plot`
    (`bin/plot_tree_summary.R` and `bin/tree_functions.R`) with a `scale`
    (`quality` | `descriptive`) and a `direction`.
@@ -216,7 +216,7 @@ registry's "no data → no ring" behaviour already covers this.
    and neutral descriptive rings (recommended), or should quality and
    descriptive be separate figures?
 4. **Static default.** Should the curated static figure default to
-   *quality-only* rings (BUSCO ×2, N50, seq count, + QV/contamination when
+   _quality-only_ rings (BUSCO ×2, N50, seq count, + QV/contamination when
    available)?
 5. **Threshold defaults.** Ship eukaryote defaults (and document that the
    bacterial test profile will look "red"), or ship no defaults and require the
