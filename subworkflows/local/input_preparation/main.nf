@@ -3,6 +3,7 @@ include { NCBIGENOMEDOWNLOAD                       } from '../../../modules/nf-c
 include { PIGZ_UNCOMPRESS as UNCOMPRESS_FASTA      } from '../../../modules/nf-core/pigz/uncompress/main'
 include { PIGZ_UNCOMPRESS as UNCOMPRESS_GXF        } from '../../../modules/nf-core/pigz/uncompress/main'
 include { BUSCO_DOWNLOAD                           } from '../../../modules/nf-core/busco/download/main'
+include { NCBIDATASETS                             } from '../../../modules/local/ncbidatasets/main'
 
 
 workflow INPUT_PREPARATION {
@@ -30,15 +31,23 @@ workflow INPUT_PREPARATION {
                     }
 
     //
-    // MODULE: Run ncbigenomedownload for RefSeq IDs
+    // MODULE: Run ncbigenomedownload/ncbi-datasets
     //
+    if ( params.fetch_tool == 'ncbidatasets' ) {
+        NCBIDATASETS (
+                ch_ncbi.map { meta, refseq, _fq -> tuple( meta, refseq ) }
+        )
+    } else {
+        NCBIGENOMEDOWNLOAD (
+            ch_ncbi_input.meta,
+            ch_ncbi_input.accession,
+            [],
+            params.groups
+        )
+    }
 
-    NCBIGENOMEDOWNLOAD (
-        ch_ncbi_input.meta,
-        ch_ncbi_input.accession,
-        [],
-        params.groups
-    )
+    ch_ncbi_genome = params.fetch_tool == 'ncbidatasets' ? NCBIDATASETS.out.fasta : NCBIGENOMEDOWNLOAD.out.fna
+    ch_ncbi_gxf    = params.fetch_tool == 'ncbidatasets' ? NCBIDATASETS.out.gff : NCBIGENOMEDOWNLOAD.out.gff
 
     //
     // Prepare fasta channels
@@ -48,7 +57,7 @@ workflow INPUT_PREPARATION {
     // then RefSeq IDs should be missing, and viceversa
     fasta        = ch_local
                  | map { meta, fasta, _gxf, _fq -> tuple( meta, fasta) }
-                 | mix ( NCBIGENOMEDOWNLOAD.out.fna )
+                 | mix ( ch_ncbi_genome )
 
     // Filter fasta files by extension and create channels for each file type
     gz_fasta     = fasta.filter { _meta, fasta_compressed -> fasta_compressed.name.endsWith(".gz") }
@@ -65,7 +74,7 @@ workflow INPUT_PREPARATION {
     // then RefSeq IDs should be missing, and viceversa
     gxf         = ch_local
                 | map { meta, _fasta, gxf, _fq ->  tuple( meta,  gxf) }
-                | mix ( NCBIGENOMEDOWNLOAD.out.gff )
+                | mix ( ch_ncbi_gxf )
 
     // Filter gxf files by extension and create channels for each file type
     gz_gxf      = gxf.filter { _meta, gxf_compressed -> gxf_compressed  && gxf_compressed.name.endsWith(".gz")  }

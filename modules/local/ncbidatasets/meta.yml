@@ -1,0 +1,82 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "ncbidatasets"
+description: Download a genome assembly (and, for RefSeq accessions, its GFF3 annotation) from NCBI using the `datasets` CLI
+keywords:
+  - download
+  - genome
+  - ncbi
+  - datasets
+  - refseq
+  - genbank
+tools:
+  - "ncbidatasets":
+      description: "Easily gather data from across NCBI databases"
+      homepage: "https://www.ncbi.nlm.nih.gov/datasets/docs/v2/download-and-install/"
+      documentation: "https://www.ncbi.nlm.nih.gov/datasets/docs/v2/download-and-install/"
+      tool_dev_url: "https://github.com/ncbi/datasets"
+      licence: ["Unlicense"]
+      identifier: ""
+
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. `[ id:'sample1' ]`
+    - accession:
+        type: string
+        description: |
+          NCBI Assembly accession. A GenBank accession (`GCA_*`) downloads only the genome
+          sequence; a RefSeq accession (`GCF_*`) also downloads the GFF3 annotation.
+
+output:
+  fasta:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. `[ id:'sample1' ]`
+      - "*.fna.gz":
+          type: file
+          description: Genome assembly sequence
+          pattern: "*.fna.gz"
+          ontologies:
+            - edam: "http://edamontology.org/format_1929" # FASTA
+  gff:
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. `[ id:'sample1' ]`
+      - "*.gff.gz":
+          type: file
+          description: Genome annotation, only produced for RefSeq (`GCF_*`) accessions
+          pattern: "*.gff.gz"
+          ontologies:
+            - edam: "http://edamontology.org/format_1975" # GFF3
+  versions_ncbidatasets:
+    - - "${task.process}":
+          type: string
+          description: The name of the process
+      - "ncbidatasets":
+          type: string
+          description: The name of the tool
+      - "datasets --version":
+          type: eval
+          description: The expression to obtain the version of the tool
+
+topics:
+  versions:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - ncbidatasets:
+          type: string
+          description: The name of the tool
+      - datasets --version:
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@FernandoDuarteF"
+maintainers:
+  - "@FernandoDuarteF"
