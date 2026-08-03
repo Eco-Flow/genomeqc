@@ -104,6 +104,7 @@ parser$add_argument('--type', type = 'character', choices = c('genome_only', 'ge
 parser$add_argument('--tree_style', type = 'character', choices = c('roundrect', 'ellipse', 'rectangular', 'circular'), default = 'roundrect', help = 'Tree layout style: roundrect (rounded branches, default), ellipse (curved branches with node points), rectangular (legacy look with dotted leader lines), or circular (fan tree with the stats drawn as concentric coloured rings)')
 parser$add_argument('--circular_rings', type = 'character', default = 'ch_plot,n50_plot,busco_gen_plot,busco_prot_plot,len_plot,gene_plot', help = "Circular layout only: comma-separated, ordered (inner->outer) list of stats to draw as rings, or 'all' to show every available stat. Descriptive rings are always grouped nearest the tree and quality (traffic-light) rings on the outer rim, so the two stay visually separate. Keys: ch_plot, len_plot, n50_plot, gene_plot, busco_gen_plot, busco_prot_plot, busco_dup_plot, nseqs_plot, ortho_plot")
 parser$add_argument('--quality_preset', type = 'character', choices = c('generic', 'vertebrate', 'insect', 'plant', 'fungi', 'bacteria'), default = 'generic', help = "Circular layout only: phylogenetic-group thresholds used to score the quality rings (traffic light). 'generic' is deliberately lenient; pick the group matching your taxa. The N50/sequence-count cut-offs in particular are starting points and should be tuned per project.")
+parser$add_argument('--quality_thresholds', type = 'character', default = NULL, help = "Circular layout only: override individual --quality_preset cut-offs, as comma-separated 'metric=good:warn' pairs. Metrics: busco_complete, busco_duplicated, n50, seq_number (direction is fixed per metric, so only the cut-offs are given). Example: 'n50=2e6:5e5,seq_number=500:5000'. Unmentioned metrics keep the preset's cut-offs.")
 parser$add_argument('--show_ring_values', action = 'store_true', help = 'Circular layout only: print each value on its ring (redundant encoding, so the figure is not colour-only). Best for small trees.')
 parser$add_argument('--len_pos_x', type = 'double', default = 0.5, help = 'Position (legend.justification x-anchor) of the BUSCO/TE pie legends')
 
@@ -765,6 +766,36 @@ classify_quality <- function(values, thr) {
   factor(out, levels = names(QUALITY_COLOURS))
 }
 
+# Parse --quality_thresholds ('metric=good:warn' pairs) into the same shape as
+# a QUALITY_PRESETS entry. Direction is looked up per metric (never taken from
+# the CLI) so a custom threshold cannot silently invert a metric's meaning.
+QUALITY_METRIC_DIRECTIONS <- vapply(QUALITY_PRESETS$generic, `[[`, character(1), "direction")
+
+parse_quality_thresholds <- function(spec) {
+  if (is.null(spec) || !nzchar(trimws(spec))) return(NULL)
+  out <- list()
+  for (part in strsplit(spec, ",")[[1]]) {
+    part <- trimws(part)
+    if (!nzchar(part)) next
+    kv <- strsplit(part, "=", fixed = TRUE)[[1]]
+    if (length(kv) != 2) {
+      stop("Malformed --quality_thresholds entry '", part, "': expected 'metric=good:warn'")
+    }
+    metric <- trimws(kv[1])
+    if (!metric %in% names(QUALITY_METRIC_DIRECTIONS)) {
+      stop("Unknown metric '", metric, "' in --quality_thresholds. Expected one of: ",
+           paste(names(QUALITY_METRIC_DIRECTIONS), collapse = ", "))
+    }
+    gw <- strsplit(trimws(kv[2]), ":", fixed = TRUE)[[1]]
+    if (length(gw) != 2 || anyNA(suppressWarnings(as.numeric(gw)))) {
+      stop("Malformed cut-offs for '", metric, "' in --quality_thresholds: expected 'good:warn' numbers")
+    }
+    out[[metric]] <- list(direction = QUALITY_METRIC_DIRECTIONS[[metric]],
+                           good = as.numeric(gw[1]), warn = as.numeric(gw[2]))
+  }
+  out
+}
+
 # --- Circular layout helper ---------------------------------------------------
 # The circular ("fan") layout is a separate plotting path: instead of the
 # concatenated side panels, each stat is drawn as a concentric coloured ring
@@ -1064,6 +1095,7 @@ if (args$tree_style == "circular") {
     skip            = skip,
     rings           = circular_rings,
     quality_preset  = args$quality_preset,
+    thresholds      = parse_quality_thresholds(args$quality_thresholds),
     show_values     = isTRUE(args$show_ring_values)
   )
 } else {

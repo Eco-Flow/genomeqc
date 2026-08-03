@@ -349,6 +349,11 @@
                     "help_text": "Quality rings (sequence count, N50, BUSCO completeness/duplication) are scored Good/Warn/Poor against these thresholds. 'generic' is deliberately lenient. The N50 and sequence-count cut-offs are clade-dependent starting points and should be tuned per project.",
                     "enum": ["generic", "vertebrate", "insect", "plant", "fungi", "bacteria"]
                 },
+                "quality_thresholds": {
+                    "type": "string",
+                    "description": "Circular layout only: override individual --quality_preset cut-offs.",
+                    "help_text": "Comma-separated 'metric=good:warn' pairs, e.g. 'n50=2e6:5e5,seq_number=500:5000'. Metrics: busco_complete, busco_duplicated, n50, seq_number. Direction (higher/lower is better) is fixed per metric, so only the cut-off values are given. Metrics not mentioned keep the selected preset's cut-offs."
+                },
                 "show_ring_values": {
                     "type": "boolean",
                     "description": "Circular layout only: print each value on its ring.",

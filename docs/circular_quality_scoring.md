@@ -137,22 +137,19 @@ Options, in increasing order of robustness:
 add (3) later as presets on top. Offer (2) for N50 and sequence count where the
 normalisation is unambiguous.
 
-### Proposed config surface
+### Config surface (implemented)
 
 ```
---quality_thresholds  <file.yml|json>   # overrides any/all defaults
---quality_preset      vertebrate|bacteria|...   # (later) named preset
+--quality_preset      generic|vertebrate|insect|plant|fungi|bacteria
+--quality_thresholds  'metric=good:warn,metric=good:warn'   # overrides individual preset cut-offs
 ```
 
-with each metric expressed as direction + two cut-offs, e.g.
-
-```yaml
-busco_complete_geno: { direction: higher, good: 95, warn: 90 }
-n50: { direction: higher, good: 10e6, warn: 1e6 }
-seq_number: { direction: lower, good: 100, warn: 1000 }
-merqury_qv: { direction: higher, good: 40, warn: 30 }
-fcs_contamination: { direction: lower, good: 0.1, warn: 1 }
-```
+e.g. `--quality_preset bacteria --quality_thresholds 'n50=2e6:5e5,seq_number=50:500'`. Direction
+(higher/lower is better) is fixed per metric and not settable from the CLI, so a threshold
+cannot silently invert a metric's meaning. A file-based (`.yml`/`.json`) surface was considered
+but dropped in favour of an inline string: it needs no new R dependency (no YAML/JSON parser is
+installed in the `genomeqc_tree` container) and no extra Nextflow file-staging plumbing. The same
+overrides are also settable interactively in the Shiny app ("Custom..." preset).
 
 ## 6. Plumbing plan (Merqury + FCS)
 
@@ -198,8 +195,9 @@ registry's "no data → no ring" behaviour already covers this.
   BUSCO complete (genome + protein), BUSCO duplicated. All quality rings share a
   single Good/Warn/Poor legend, so a **ring key (inner -> outer)** is drawn
   alongside the species key to identify them. New options:
-  `--quality_preset`, `--show_ring_values` (plus the equivalents in the Shiny
-  app). **This fixes the misleading sequence-count colour.**
+  `--quality_preset`, `--quality_thresholds` (per-metric overrides on top of the
+  preset), `--show_ring_values` (plus the equivalents in the Shiny app).
+  **This fixes the misleading sequence-count colour.**
 - **Phase 2.** Plumb Merqury (QV, k-mer completeness) and FCS-GX
   (contamination %) into `TREE_SUMMARY`; add their rings.
 - **Phase 3 (optional).** tidk telomere completeness, FCS-adaptor, Tiara;
