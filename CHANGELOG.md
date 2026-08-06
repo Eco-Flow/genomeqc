@@ -4,6 +4,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## v1.0.0 - [date]
+
 ## v0.0.1 (dev) - [15 June 2026]
 
 Initial pre-release of nf-core/genomeqc, created with the [nf-core](https://nf-co.re/) template.
