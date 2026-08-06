@@ -314,6 +314,7 @@
                 },
                 "tree_margin": {
                     "type": "string",
+                    "description": "Tree's right margin size for the non-circular layouts.",
                     "hidden": true
                 },
                 "tree_style": {
@@ -411,7 +412,7 @@
                 "RM_download_db": {
                     "type": "boolean",
                     "description": "Download h5 partition files from the URLs specified in RM_db.",
-                    "default": true,
+                    "default": false,
                     "fa_icon": "fas fa-download"
                 },
                 "RM_db": {
