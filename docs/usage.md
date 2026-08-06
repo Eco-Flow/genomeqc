@@ -6,58 +6,99 @@
 
 ## Introduction
 
-<!-- TODO nf-core: Add documentation about anything specific to running your pipeline. For general topics, please point to (and add to) the main nf-core website. -->
+**nf-core/genomeqc** is a pipeline build to aid in the diagnosis of the quality of genome assemblies. It can input several genomes and/or their annotations, and generates metrics such as completeness, contiguity, GC% or number of overlapping genes, which can be later used to assess their quality. Additionally, it outputs a phylogenetic tree plot with the summary metrics. The tree building method uses orthologous genes/BUSCO markers for a quick comparision of metrics across species/samples. This pipeline should not be used for phylogenetic inference.
 
 ## Samplesheet input
 
-You will need to create a samplesheet with information about the samples you would like to analyse before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 3 columns, and a header row as shown in the examples below.
+Before running the pipeline, you will need to create a samplesheet with information about the assemblies you want to process. Use this parameter to specify its location. It has to be a comma-separated file with 5 columns, and a header row as shown in the examples below.
 
 ```bash
 --input '[path to samplesheet file]'
 ```
 
-### Multiple runs of the same sample
+The pipeline can be run using NCBI accessions (RefSeq or GenBank) or local files. It needs at least a **genome** (GenBank accession or local file in FASTA format) per species to run. If annotations (RefSeq accession or local file in GTF/GFF format) are added, the pipeline will run on both **genomes and annotations**. If you provide local FASTQ reads for an assembly, the pipeline will run Merqury to evaluate completness (see [Running Merqury](#running-merqury)). If you provide taxids in NCBI format and an FCS-GX database, it will run the decontamination subworkflow (see [Running the Decontamination subworkflow](#running-the-decontamination-subworkflow)).
 
-The `sample` identifiers have to be the same when you have re-sequenced the same sample more than once e.g. to increase sequencing depth. The pipeline will concatenate the raw reads before performing any downstream analysis. Below is an example for the same sample sequenced across 3 lanes:
-
-```csv title="samplesheet.csv"
-sample,fastq_1,fastq_2
-CONTROL_REP1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz
-CONTROL_REP1,AEG588A1_S1_L003_R1_001.fastq.gz,AEG588A1_S1_L003_R2_001.fastq.gz
-CONTROL_REP1,AEG588A1_S1_L004_R1_001.fastq.gz,AEG588A1_S1_L004_R2_001.fastq.gz
-```
-
-### Full samplesheet
-
-The pipeline will auto-detect whether a sample is single- or paired-end using the information provided in the samplesheet. The samplesheet can have as many columns as you desire, however, there is a strict requirement for the first 3 columns to match those defined in the table below.
-
-A final samplesheet file consisting of both single- and paired-end data may look something like the one below. This is for 6 samples, where `TREATMENT_REP3` has been sequenced twice.
+If running the pipeline using **local** files, point to the location these files using the **fasta** and/or **gff** fields:
 
 ```csv title="samplesheet.csv"
-sample,fastq_1,fastq_2
-CONTROL_REP1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz
-CONTROL_REP2,AEG588A2_S2_L002_R1_001.fastq.gz,AEG588A2_S2_L002_R2_001.fastq.gz
-CONTROL_REP3,AEG588A3_S3_L002_R1_001.fastq.gz,AEG588A3_S3_L002_R2_001.fastq.gz
-TREATMENT_REP1,AEG588A4_S4_L003_R1_001.fastq.gz,
-TREATMENT_REP2,AEG588A5_S5_L003_R1_001.fastq.gz,
-TREATMENT_REP3,AEG588A6_S6_L003_R1_001.fastq.gz,
-TREATMENT_REP3,AEG588A6_S6_L004_R1_001.fastq.gz,
+species,fasta,gff
+species_1,/path/to/genome1.fasta,/path/to/annotation1.gxf
+species_2,/path/to/genome2.fasta,/path/to/annotation2.gxf
+species_3,/path/to/genome3.fasta,/path/to/annotation3.gxf
 ```
 
-| Column    | Description                                                                                                                                                                            |
-| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sample`  | Custom sample name. This entry will be identical for multiple sequencing libraries/runs from the same sample. Spaces in sample names are automatically converted to underscores (`_`). |
-| `fastq_1` | Full path to FastQ file for Illumina short reads 1. File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                             |
-| `fastq_2` | Full path to FastQ file for Illumina short reads 2. File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".                                                             |
+If running the pipeline using **ncbi accessions (GenBank and/or RefSeq)**, indicate the corresponding ID using the `ncbi` field:
 
-An [example samplesheet](../assets/samplesheet.csv) has been provided with the pipeline.
+```csv title="samplesheet.csv"
+species,ncbi
+species_1,GCF_000000001.1
+species_2,GCF_000000002.1
+species_3,GCF_000000003.1
+```
+
+<!-- If running with **Merqury**, you must point to the location of fastq files using the **fastq** field:
+
+```csv title="samplesheet.csv"
+species,fasta,gxf,fastq
+species_1,/path/to/genome.fasta,/path/to/annotation.gxf,/path/to/reads.fastq
+species_2,/path/to/genome.fasta,/path/to/annotation.gxf,/path/to/reads.fastq
+species_3,/path/to/genome.fasta,/path/to/annotation.gxf,/path/to/reads.fastq
+```
+-->
+
+This is what the complete samplesheet would look like if using NCBI accessions, and adding FASTQ paths and tax IDs:
+
+```csv title="samplesheet.csv"
+species,fasta,gff,fastq,taxid
+species_1,/path/to/genome.fasta,/path/to/annotation.gxf,/path/to/reads.fastq,1234
+species_2,/path/to/genome.fasta,/path/to/annotation.gxf,/path/to/reads.fastq,1245
+species_3,/path/to/genome.fasta,/path/to/annotation.gxf,/path/to/reads.fastq,4321
+```
+
+This is what the complete samplesheet would look like if using local files, and adding FASTQ paths and tax IDs:
+
+```csv title="samplesheet.csv"
+species,ncbi,fastq,taxid
+species_1,GCF_000000001.1,/path/to/reads.fastq,1234
+species_2,GCF_000000002.1,/path/to/reads.fastq,1245
+species_3,GCF_000000003.1,/path/to/reads.fastq,4321
+```
+
+You can mix different input types in the same samplesheet. If a specific field doesn’t apply to a row, leave it empty (as shown below). The pipeline will automatically detect the input type for each row and run the appropiate subworkflow:
+
+```csv title="samplesheet.csv"
+species,ncbi,fasta,gff,fastq,taxid
+species_1,,/path/to/genome.fasta,/path/to/annotation.gxf,/path/to/reads.fastq,1234
+species_2,,/path/to/genome.fasta,/path/to/annotation.gxf,,4321
+species_3,,/path/to/genome.fasta,/path/to/annotation.gxf,
+species_4,,/path/to/genome.fasta,,/path/to/reads.fastq,1245
+species_5,,/path/to/genome.fasta,,
+species_6,,/path/to/genome.fassta,,
+species_7,GCF_000000007.1,,,/path/to/reads.fastq
+species_8,GCF_000000008.1,,,
+species_9,GCA_000000009.1,,,/path/to/reads.fastq
+species_10,GCA_000000010.1,,,,1324
+```
+
+As for now, the pipeline doesn't support SRA accession for **Merqury**. We will consider this option the future.
+
+| Column    | Description                                                                                                                         |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `species` | Species name or custom sample name. Spaces in sample names are automatically converted to underscores (`_`).                        |
+| `ncbi`    | ncbi acession. Can be GenBank (starts with `GCA`) or RefSeq (starts with `GCF`).                                                    |
+| `fasta`   | Full path to the genome fasta file. Can be compressed or uncompressed.                                                              |
+| `gff`     | Full path to the genome annotation gff/gtf file. Can be compressed or uncompressed.                                                 |
+| `fastq`   | Full path to FastQ file for long reads (e.g. PacBio or ONT). File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz". |
+| `taxid`   | Species taxid for decontamination screening, must be a valid NCBI taxid (numeric string without spaces).                            |
+
+An [example samplesheet](../assets/samplesheet.csv) is provided with the pipeline.
 
 ## Running the pipeline
 
 The typical command for running the pipeline is as follows:
 
 ```bash
-nextflow run nf-core/genomeqc --input ./samplesheet.csv --outdir ./results --genome GRCh37 -profile docker
+nextflow run nf-core/genomeqc --input ./samplesheet.csv --outdir ./results -profile docker
 ```
 
 This will launch the pipeline with the `docker` configuration profile. See below for more information about profiles.
@@ -89,11 +130,249 @@ with:
 ```yaml title="params.yaml"
 input: './samplesheet.csv'
 outdir: './results/'
-genome: 'GRCh37'
 <...>
 ```
 
 You can also generate such `YAML`/`JSON` files via [nf-core/launch](https://nf-co.re/launch).
+
+### Modes
+
+#### Genome only
+
+This is the minimal run. The pipeline will run on genome only mode if these inputs are provided in the samplesheet:
+
+1. Path to **fasta** OR
+2. **ncbi** GenaBank accession.
+
+The pipeline will produce a tree plot summary that can be modified in real time using a packaged shiny app, as well as a MultiQC report with quality statistics.
+
+#### Genome and annotation
+
+The pipeline will run on genome and annotation mode if these inputs are provided in the samplesheet:
+
+1. Path to **fasta** AND
+2. Path to **gff** OR
+3. **ncbi** RefSeq accession.
+
+The pipeline will produce a tree plot summary that can be modified in real time using a packaged shiny app, as well as a MultiQC report with quality statistics.
+
+### Running tidk
+
+The pipeline will run tidk by default. Users can provide a DNA string correspoding to the telomeric repeat of the assemblies of interest using the `--repeat` flag. If no DNA string is provided, tidk will explore the genome and try to compute the telomeric repeat in its cannonical form. E.g.:
+
+```bash
+nextflow run nf-core/genomeqc \
+  --input ./samplesheet.csv \
+  --outdir ./results \
+  --repeat ATCG
+  -profile docker
+```
+
+Users can skip tidk using the `--skip_tidk` flag.
+
+### Running Merqury
+
+Users can also run the pipeline using Merqury by supplying the path to sequencing reads under the **fastq** field. Merqury needs both **fasta** and **fastq** to run. Refer the [GitHub page](https://github.com/marbl/merqury) for more information on Merqury.
+
+The k-mer size used to build the Meryl database can be tuned with `--kvalue` (default: `21`). For highly heterozygous or large genomes, a larger k (e.g. `31`) may give better completeness estimates.
+
+### Running Decontamination
+
+If an NCBI taxid is provided for an assembly in the samplesheet through the **taxid** field, and the path to the FCS-GX database or a manifest to download and build it is given via `--gxdb` or `--gxdb_manifiest` respectively, the pipeline will run the decontamination subworkflow. E.g.:
+
+```bash
+nextflow run nf-core/genomeqc \
+  --input ./samplesheet.csv \
+  --outdir ./results \
+  --gxdb /patho/to/fcs-gx/all
+  -profile docker
+```
+
+or
+
+```bash
+nextflow run nf-core/genomeqc \
+  --input ./samplesheet.csv \
+  --outdir ./results \
+  --gxdb_manifest 'https://ftp.ncbi.nlm.nih.gov/genomes/TOOLS/FCS/database/latest/latest.manifest'
+  -profile docker
+```
+
+> [!WARNING]
+> **The FCS-GX database is considerable in size (~500 GB).** Downloading it in advance over using the manifest is highly recommended.
+
+The decontamination subsworkflow consists of three modules:
+
+- [FCS-GX](https://github.com/ncbi/fcs/wiki/FCS-GX-quickstart): Detection and removal of foreign organisms contamination. Requires the FCS-GX database.
+- [FCS-adaptor](https://github.com/ncbi/fcs/wiki/FCS-adaptor-quickstart): Detection and removal of adaptor and vector contamination.
+- [Tiara](https://ibe-uw.github.io/tiara/): For DNA sequence classification in two stages:
+  1. The sequences are classified to either archaea, bacteria, prokarya, eukarya, organelle or unknown.
+  2. The sequences labeled as organelle in the first stage are classified to either mitochondria, plastid or unknown.
+
+> [!WARNING]
+> **FCS-GX requires a large database (~500 GB) and is extremely slow when reading it from a standard disk.**
+>
+> To improve preformance, use `--ramdisk` to point to a `tmpfs` or `ramfs` mount (e.g. `/dev/shm` on Linux). The pipeline will copy the database into memory before each run and clean it up afterwards
+
+### Running TE annotation
+
+The pipeline supports two optional methods for transposable element (TE) annotation, selected with the `--te` parameter. TE annotation is skipped by default.
+
+#### `--te hite`
+
+Runs [HiTE](https://github.com/BioinformaticsToolsmith/HiTE), a fast alignment-free TE identification and masking tool. It is the recommended option for quick runs or plant genomes.
+
+```bash
+nextflow run nf-core/genomeqc \
+   --input samplesheet.csv \
+   --outdir results \
+   --te hite \
+   -profile docker
+```
+
+For plant genomes, also pass `--is_plant true`:
+
+```bash
+nextflow run nf-core/genomeqc \
+   --input samplesheet.csv \
+   --outdir results \
+   --te hite \
+   --is_plant true \
+   -profile docker
+```
+
+#### `--te repeatmasker`
+
+Runs a curated TE masking pipeline using the [DFAM](https://www.dfam.org) repeat library:
+
+1. **famdb.py** – extracts a curated repeat library from DFAM h5 partition files (downloaded automatically by default).
+2. **Clustering** – deduplicates the library using MMseqs2 `easy-linclust` by default (see [Clustering options](#repeat-library-clustering-options) below).
+3. **RepeatMasker** – masks the genome. Runs in rush mode (`-qq`) by default for speed (see [RepeatMasker speed](#repeatmasker-speed) below).
+
+```bash
+nextflow run nf-core/genomeqc \
+   --input samplesheet.csv \
+   --outdir results \
+   --te repeatmasker \
+   -profile docker
+```
+
+To restrict the curated library to a specific taxonomic lineage (strongly recommended — speeds up both the extraction and the masking step), use `--famdb_lineage`:
+
+```bash
+nextflow run nf-core/genomeqc \
+   --input samplesheet.csv \
+   --outdir results \
+   --te repeatmasker \
+   --famdb_lineage hymenoptera \
+   -profile docker
+```
+
+By default, the pipeline downloads partition `0` of the DFAM full database. To download additional partitions (required for full taxonomic coverage beyond the root lineage), pass them via `--RM_db`:
+
+```bash
+--RM_db "['https://www.dfam.org/releases/current/families/FamDB/dfam39_full.0.h5.gz',\
+           'https://www.dfam.org/releases/current/families/FamDB/dfam39_full.1.h5.gz']"
+```
+
+If you already have DFAM h5 partition files on disk, use `--famdb_library` to point at them. The download step is skipped automatically.
+
+`--famdb_library` expects **decompressed `.h5` files** — `.h5.gz` files must be extracted first. Only decompress the partitions relevant to your lineage; decompressing the entire database is unnecessary and expensive (each partition is 10–30 GB uncompressed).
+
+Partition 0 always contains the taxonomy metadata and is required. For most lineages, partitions 0 and 1 are sufficient — check the [DFAM partition guide](https://www.dfam.org/releases/current/families/FamDB/) if you need to identify which partition covers your clade.
+
+```bash
+# Decompress only the partitions you need (once, on the cluster)
+gunzip -k /path/to/dfam38-1_full.0.h5.gz
+gunzip -k /path/to/dfam38-1_full.1.h5.gz
+```
+
+Then pass them via a glob:
+
+```bash
+nextflow run nf-core/genomeqc \
+   --input samplesheet.csv \
+   --outdir results \
+   --te repeatmasker \
+   --famdb_library "/path/to/dfam38-1_full.*.h5" \
+   --famdb_lineage hymenoptera \
+   -profile docker
+```
+
+#### Adding de novo repeat discovery with RepeatModeler
+
+By default, `--te repeatmasker` only uses the curated DFAM library. To also run [RepeatModeler](https://www.repeatmasker.org/RepeatModeler/) for de novo discovery, add `--run_repeatmodeler`:
+
+```bash
+nextflow run nf-core/genomeqc \
+   --input samplesheet.csv \
+   --outdir results \
+   --te repeatmasker \
+   --run_repeatmodeler \
+   --famdb_lineage hymenoptera \
+   -profile docker
+```
+
+The RepeatModeler de novo library is merged with the famdb curated library before masking, giving broader coverage at the cost of significant runtime.
+
+> [!WARNING]
+> RepeatModeler is slow — it typically requires 24 CPUs and 24–48 hours per genome. Only enable it if you need de novo discovery beyond the curated DFAM families for your lineage.
+
+#### Repeat library clustering options
+
+Before RepeatMasker runs, the repeat library is deduplicated by a clustering step. Three tools are available via `--te_clusterer`:
+
+| Value      | Tool                    | Notes                                 |
+| ---------- | ----------------------- | ------------------------------------- |
+| `linclust` | MMseqs2 `easy-linclust` | **Default.** Linear-time, fastest.    |
+| `mmseqs`   | MMseqs2 `easy-cluster`  | Slower than linclust, more sensitive. |
+| `cdhit`    | CD-HIT-EST              | Traditional approach.                 |
+
+Two thresholds can be tuned:
+
+- `--te_cluster_identity` – minimum sequence identity (default `0.8`). Passed as `-c` to CD-HIT-EST and `--min-seq-id` to MMseqs2.
+- `--te_cluster_coverage` – minimum alignment coverage of the shorter sequence (default `0.8`). Passed as `-aS` to CD-HIT-EST and `-c --cov-mode 1` to MMseqs2.
+
+> [!NOTE]
+> When running without `--run_repeatmodeler`, clustering runs **once** for the whole lineage library and the result is shared across all genomes. When RepeatModeler is enabled, clustering runs per genome (each genome has a unique de novo library merged in).
+
+#### RepeatMasker speed
+
+RepeatMasker sensitivity can be controlled with `--repeatmasker_speed`:
+
+| Value     | Flag     | Notes                                                               |
+| --------- | -------- | ------------------------------------------------------------------- |
+| `qq`      | `-qq`    | **Default.** Rush mode — fastest, lowest sensitivity.               |
+| `q`       | `-q`     | Quick mode — ~5× faster than default, slightly reduced sensitivity. |
+| `default` | _(none)_ | Full sensitivity — slowest.                                         |
+
+For TE quantification in a comparative genomics context, `qq` is usually sufficient. Use `default` if you need a publication-quality masked assembly.
+
+### The Shiny App
+
+The pipeline outputs an executable that will open a shiny app in your web browser once executed. The app allows the user to change the tree plot parameters in real time, as well as append and remove summary plot statistics. The modified plot can be saved as a png/svg file.
+
+To open the shiny app, do:
+
+```
+bash ./results_folder/shiny/app/shiny_app.sh
+```
+
+You will need docker to run the shiny app, as it comes packaged in a docker container.
+
+### Running tests
+
+The pipeline can be ran using different test profiles:
+
+1. `-profile test` — Runs genome and annotation with Merqury using **RefSeq accessions** and local **fastqs**.
+2. `-profile test_local` — Runs genome and annotation on local files (**fasta** and **gff**).
+3. `-profile test_genomeonly` — Runs genome only on local files (**fasta**).
+4. `-profile test_nofastq` — Runs genome and annotation using **RefSeq accessions** (no fastq/Merqury).
+5. `-profile test_decon` — Tests the decontamination subworkflow (FCS-GX, FCS-Adaptor, Tiara) using the NCBI FCS test-only database.
+6. `-profile test_te` — Tests TE annotation with `--te repeatmasker` and `--run_repeatmodeler` on a minimal genome.
+7. `-profile test_full` — Runs the full pipeline on a set of Hymenoptera genomes.
+
+Test files are stored in the genomeqc branch of the [test-dataset repository](https://github.com/nf-core/test-datasets/tree/genomeqc).
 
 ### Updating the pipeline
 

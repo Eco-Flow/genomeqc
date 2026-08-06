@@ -1,0 +1,45 @@
+{
+    "test-ncbigenomedownload": {
+        "content": [
+            [
+                "ACCESSION   NC_007795",
+                "VERSION     NC_007795.1",
+                "DBLINK      BioProject: PRJNA57795",
+                "            Assembly: GCF_000013425.1",
+                "KEYWORDS    RefSeq."
+            ],
+            [
+                "GATACTCTATAGAAGGAAAAGTTATCCACTTATGCACATTTATAGTTTTCAGAATTGTGGATAATTAGAAATTACACACA",
+                "AAGTTATACTATTTTTAGCAACATATTCACAGGTATTTGACATATAGAGAACTGAAAAAGTATAATTGTGTGGATAAGTC",
+                "GTCCAACTCATGATTTTATAAGGATTTATTTATTGATTTTTACATAAAAATACTGTGCATAACTAATAAGCAAGATAAAG",
+                "TTATCCACCGATTGTTATTAACTTGTGGATAATTATTAACATGGTGTGTTTAGAAGTTATCCACGGCTGTTATTTTTGTG",
+                "TATAACTTAAAAATTTAAGAAAGATGGAGTAAATTTATGTCGGAAAAAGAAATTTGGGAAAAAGTGCTTGAAATTGCTCA"
+            ],
+            [
+                [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        }
+                    ],
+                    "GCF_000013425.1_ASM1342v1_assembly_stats.txt:md5,23b5b3a7daa354cb5a61819cd2f2b47f"
+                ]
+            ],
+            {
+                "versions_ncbigenomedownload": [
+                    [
+                        "NCBIGENOMEDOWNLOAD",
+                        "ncbigenomedownload",
+                        "0.3.3"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-03-12T13:17:24.89950318",
+        "meta": {
+            "nf-test": "0.9.4",
+            "nextflow": "25.10.4"
+        }
+    }
+}

@@ -1,6 +1,6 @@
 {
     "@context": [
-        "https://w3id.org/ro/crate/1.2/context",
+        "https://w3id.org/ro/crate/1.1/context",
         {
             "GithubService": "https://w3id.org/ro/terms/test#GithubService",
             "JenkinsService": "https://w3id.org/ro/terms/test#JenkinsService",
@@ -29,7 +29,13 @@
                     "@id": "main.nf"
                 },
                 {
+                    "@id": "docs/images/nf-core-genomeqc_metro_map.png"
+                },
+                {
                     "@id": "assets/"
+                },
+                {
+                    "@id": "bin/"
                 },
                 {
                     "@id": "conf/"
@@ -42,6 +48,9 @@
                 },
                 {
                     "@id": "modules/"
+                },
+                {
+                    "@id": "modules/local/"
                 },
                 {
                     "@id": "modules/nf-core/"
@@ -112,7 +121,7 @@
             },
             "conformsTo": [
                 {
-                    "@id": "https://w3id.org/ro/crate/1.2"
+                    "@id": "https://w3id.org/ro/crate/1.1"
                 },
                 {
                     "@id": "https://w3id.org/workflowhub/workflow-ro-crate/1.0"
@@ -121,7 +130,34 @@
         },
         {
             "@id": "main.nf",
-            "@type": ["File", "SoftwareSourceCode", "ComputationalWorkflow"],
+            "@type": [
+                "File",
+                "SoftwareSourceCode",
+                "ComputationalWorkflow"
+            ],
+            "author": [
+                {
+                    "@id": "https://orcid.org/0000-0001-8033-2213"
+                },
+                {
+                    "@id": "https://orcid.org/0009-0003-2093-1734"
+                },
+                {
+                    "@id": "#5fe7bbf7-7cd0-4866-b7e7-aa26dfac965e"
+                },
+                {
+                    "@id": "#beba4f58-b02b-46f0-929f-8d77ceb74058"
+                },
+                {
+                    "@id": "https://orcid.org/0009-0000-9575-9818"
+                },
+                {
+                    "@id": "#07bdf9f0-469d-4a66-995c-2ef7104bb00a"
+                },
+                {
+                    "@id": "https://orcid.org/0000-0002-6629-0173"
+                }
+            ],
             "contributor": [
                 {
                     "@id": "#2d957144-eec0-422d-a78f-6b7add5e26f6"
@@ -133,6 +169,9 @@
             "dateCreated": "",
             "dateModified": "2026-07-24T12:35:45Z",
             "dct:conformsTo": "https://bioschemas.org/profiles/ComputationalWorkflow/1.0-RELEASE/",
+            "image": {
+                "@id": "docs/images/nf-core-genomeqc_metro_map.png"
+            },
             "keywords": [
                 "nf-core",
                 "nextflow",
@@ -141,8 +180,20 @@
                 "phylogenetic-trees",
                 "quality-control"
             ],
-            "license": ["MIT"],
-            "name": ["nf-core/genomeqc"],
+            "license": [
+                "MIT"
+            ],
+            "maintainer": [
+                {
+                    "@id": "https://orcid.org/0000-0001-8033-2213"
+                },
+                {
+                    "@id": "https://orcid.org/0009-0003-2093-1734"
+                }
+            ],
+            "name": [
+                "nf-core/genomeqc"
+            ],
             "programmingLanguage": {
                 "@id": "https://w3id.org/workflowhub/workflow-ro-crate#nextflow"
             },
@@ -201,6 +252,11 @@
             "description": "Additional files"
         },
         {
+            "@id": "bin/",
+            "@type": "Dataset",
+            "description": "Scripts that must be callable from a pipeline process"
+        },
+        {
             "@id": "conf/",
             "@type": "Dataset",
             "description": "Configuration files"
@@ -219,6 +275,11 @@
             "@id": "modules/",
             "@type": "Dataset",
             "description": "Modules used by the pipeline"
+        },
+        {
+            "@id": "modules/local/",
+            "@type": "Dataset",
+            "description": "Pipeline-specific modules"
         },
         {
             "@id": "modules/nf-core/",
@@ -307,14 +368,72 @@
             "url": "https://nf-co.re/"
         },
         {
-            "@id": "#2d957144-eec0-422d-a78f-6b7add5e26f6",
+            "@id": "https://orcid.org/0000-0001-8033-2213",
             "@type": "Person",
-            "name": "Chris Wyatt"
+            "affiliation": "University College London",
+            "email": "9978862+chriswyatt1@users.noreply.github.com",
+            "name": "Chris Wyatt",
+            "url": "https://github.com/chriswyatt1"
         },
         {
-            "@id": "#704ca643-56a9-4256-ab03-17ecfb6722a3",
+            "@id": "https://orcid.org/0009-0003-2093-1734",
             "@type": "Person",
-            "name": "Fernando Duarte"
+            "affiliation": "University College London",
+            "email": "123090819+FernandoDuarteF@users.noreply.github.com",
+            "name": "Fernando Duarte",
+            "url": "https://github.com/FernandoDuarteF"
+        },
+        {
+            "@id": "#5fe7bbf7-7cd0-4866-b7e7-aa26dfac965e",
+            "@type": "Person",
+            "affiliation": "Colossal Biosciences",
+            "email": "vustephen@gmail.com",
+            "name": "Stephen Turner",
+            "url": "https://github.com/stephenturner"
+        },
+        {
+            "@id": "#beba4f58-b02b-46f0-929f-8d77ceb74058",
+            "@type": "Person",
+            "affiliation": "Institute of Agrifood Research and Technology (IRTA)",
+            "name": "Felipe Perez Cobos",
+            "url": "https://github.com/fperezcobos"
+        },
+        {
+            "@id": "https://orcid.org/0009-0000-9575-9818",
+            "@type": "Person",
+            "affiliation": "Schmidt Ocean Institute",
+            "name": "Lauren Huet",
+            "url": "https://github.com/LaurenHuet"
+        },
+        {
+            "@id": "#07bdf9f0-469d-4a66-995c-2ef7104bb00a",
+            "@type": "Person",
+            "affiliation": "Nextflow Ambassador",
+            "email": "simondonaldmurray@gmail.com",
+            "name": "Simon Murray",
+            "url": "https://github.com/SimonDMurray"
+        },
+        {
+            "@id": "https://orcid.org/0000-0002-6629-0173",
+            "@type": "Person",
+            "affiliation": "IRD",
+            "email": "jacques.dainat@gmail.com",
+            "name": "Jacques Dainat",
+            "url": "https://github.com/Juke34"
+        },
+        {
+            "@id": "https://orcid.org/0000-0003-1675-0677",
+            "@type": "Person",
+            "affiliation": "National Bioinformatics Infrastructure Sweden (NBIS)",
+            "name": "Mahesh Binzer-Panchal",
+            "url": "https://github.com/mahesh-panchal"
+        },
+        {
+            "@id": "#094e12fd-7a01-4d2b-b4aa-5ccb480a5c3f",
+            "@type": "Person",
+            "affiliation": "The New Zealand Institute for Plant and Food Research",
+            "name": "Usman Rashid",
+            "url": "https://github.com/GallVp"
         }
     ]
 }

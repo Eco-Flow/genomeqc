@@ -1,0 +1,52 @@
+process GENOMEANNOTATIONBUSCOIDEOGRAM {
+    tag "${genusspeci}_${lineage}"
+    label 'process_single'
+
+    conda "${moduleDir}/environment.yml"
+    container "${workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container
+        ? 'oras://community.wave.seqera.io/library/r-base_seqkit_r-rideogram_r-optparse_pruned:db707efb147636c0'
+        : 'community.wave.seqera.io/library/r-base_seqkit_r-rideogram_r-optparse_pruned:07dcf079214428f3' }"
+
+    input:
+    tuple val(genusspeci), val(lineage), path(busco_full_table), path(genome), path(gff)
+
+    output:
+    tuple val(genusspeci), val(lineage), path("*.svg"), emit: svg
+    tuple val(genusspeci), val(lineage), path("*.png"), emit: png
+    tuple val(genusspeci), path("*.csv"), emit: busco_mappings
+    tuple val("${task.process}"), val('r_base'), eval('Rscript -e "cat(as.character(getRversion()))"'), emit: versions_r_base, topic: versions
+    tuple val("${task.process}"), val('r_rideogram'), eval('Rscript -e "cat(as.character(packageVersion(\'RIdeogram\')))"'), emit: versions_rideogram, topic: versions
+
+    script:
+    def args = task.ext.args ?: ''
+    def prefix = "${genusspeci}_${lineage}"
+    """
+    # Get chromosome lengths:
+    seqkit fx2tab -i -n -l ${genome} > ${prefix}_for_karyotype.txt
+
+    # Call the R script for plotting
+    plot_busco_ideogram_kayrotyope_setup.R ${prefix}_for_karyotype.txt ${prefix}
+
+    #Extract the information from gff and busco report to get locations of busco genes:
+    busco_create_table_for_plot.R ${busco_full_table}  ${gff} busco_data_to_plot.tsv
+
+    plot_busco_ideogram.R \\
+        --busco_output busco_data_to_plot.tsv \\
+        --karyotype ${prefix}_karyotype.txt \\
+        --prefix ${genusspeci} \\
+        $args
+
+    """
+
+    stub:
+    def args = task.ext.args ?: ''
+    def prefix = "${genusspeci}_${lineage}"
+
+    """
+    echo $args
+
+    touch ${genusspeci}.svg
+    touch ${genusspeci}.png
+    touch ${genusspeci}.csv
+    """
+}
