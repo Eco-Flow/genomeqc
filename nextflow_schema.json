@@ -10,10 +10,7 @@
             "type": "object",
             "fa_icon": "fas fa-terminal",
             "description": "Define where the pipeline should find input data and save output data.",
-            "required": [
-                "input",
-                "outdir"
-            ],
+            "required": ["input", "outdir"],
             "properties": {
                 "input": {
                     "type": "string",
@@ -86,10 +83,7 @@
                     "type": "string",
                     "default": "proteins",
                     "description": "A flag to set the busco mode for genome and annotation mode ('genome' is hardcoded in genome only mode).",
-                    "enum": [
-                        "proteins",
-                        "genome"
-                    ]
+                    "enum": ["proteins", "genome"]
                 },
                 "busco_lineage": {
                     "type": "string",
@@ -159,10 +153,7 @@
                     "type": "string",
                     "default": "agat",
                     "description": "Tool for gxf validation.",
-                    "enum": [
-                        "agat",
-                        "gffread"
-                    ]
+                    "enum": ["agat", "gffread"]
                 }
             }
         },
@@ -177,10 +168,7 @@
                     "default": "v3",
                     "description": "Which version of orthoginder to run (v3 vs v2).",
                     "help_text": "Use 'v2' on arm64 (Apple Silicon) hosts, where OrthoFinder v3 does not work.",
-                    "enum": [
-                        "v2",
-                        "v3"
-                    ]
+                    "enum": ["v2", "v3"]
                 },
                 "save_orthofinder_results": {
                     "type": "boolean",
@@ -276,10 +264,7 @@
                 "te": {
                     "type": "string",
                     "description": "TE annotation method to run. Use 'hite' for HiTE or 'repeatmasker' for the full RepeatMasker pipeline. Omit to skip TE annotation.",
-                    "enum": [
-                        "hite",
-                        "repeatmasker"
-                    ],
+                    "enum": ["hite", "repeatmasker"],
                     "fa_icon": "fas fa-dna"
                 },
                 "is_plant": {
@@ -313,11 +298,7 @@
                     "type": "string",
                     "description": "RepeatMasker sensitivity/speed mode. 'default' is most sensitive; 'q' (quick) is ~5x faster; 'qq' (rush) is fastest with lowest sensitivity.",
                     "default": "qq",
-                    "enum": [
-                        "default",
-                        "q",
-                        "qq"
-                    ],
+                    "enum": ["default", "q", "qq"],
                     "fa_icon": "fas fa-tachometer-alt"
                 },
                 "RM_download_db": {
@@ -338,11 +319,7 @@
                     "type": "string",
                     "description": "Clustering tool used to dereplicate the repeat library before RepeatMasker. 'mmseqs' (default) uses MMseqs2 easy-cluster; 'linclust' uses MMseqs2 easy-linclust (linear time, less sensitive); 'cdhit' uses CD-HIT-EST.",
                     "default": "linclust",
-                    "enum": [
-                        "mmseqs",
-                        "linclust",
-                        "cdhit"
-                    ],
+                    "enum": ["mmseqs", "linclust", "cdhit"],
                     "fa_icon": "fas fa-object-group"
                 },
                 "te_cluster_identity": {
@@ -430,14 +407,7 @@
                     "description": "Method used to save pipeline results to output directory.",
                     "help_text": "The Nextflow `publishDir` option specifies which intermediate files should be saved to the output directory. This option tells the pipeline what method should be used to move these files. See [Nextflow docs](https://www.nextflow.io/docs/latest/process.html#publishdir) for details.",
                     "fa_icon": "fas fa-copy",
-                    "enum": [
-                        "symlink",
-                        "rellink",
-                        "link",
-                        "copy",
-                        "copyNoFollow",
-                        "move"
-                    ],
+                    "enum": ["symlink", "rellink", "link", "copy", "copyNoFollow", "move"],
                     "hidden": true
                 },
                 "email_on_fail": {
@@ -507,10 +477,7 @@
                     "hidden": true
                 },
                 "help": {
-                    "type": [
-                        "boolean",
-                        "string"
-                    ],
+                    "type": ["boolean", "string"],
                     "description": "Display the help message."
                 },
                 "help_full": {
