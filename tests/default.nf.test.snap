@@ -93,7 +93,7 @@
                     "pigz": 2.8
                 },
                 "Workflow": {
-                    "nf-core/genomeqc": "v1.0.0"
+                    "nf-core/genomeqc": "v1.0.0dev"
                 }
             },
             [
@@ -1334,15 +1334,15 @@
                 "tidk/Mycoplasmoides_genitalium/explore",
                 "tidk/Mycoplasmoides_genitalium/explore/Mycoplasmoides_genitalium.tidk.explore.tsv",
                 "tree",
-                "tree/Busco_combined_geno.tsv",
-                "tree/Busco_combined_prot.tsv",
-                "tree/Quast_to_plot.tsv",
-                "tree/Rplots.pdf",
-                "tree/gene_stats.tsv",
-                "tree/n_seqs_above_x_buscos_output.tsv",
-                "tree/tree.nw",
-                "tree/tree_plot.pdf",
-                "tree/tree_plot.svg"
+                "tree/genome_anno",
+                "tree/genome_anno/Busco_combined_geno.tsv",
+                "tree/genome_anno/Busco_combined_prot.tsv",
+                "tree/genome_anno/Quast_to_plot.tsv",
+                "tree/genome_anno/gene_stats.tsv",
+                "tree/genome_anno/n_seqs_above_x_buscos_output.tsv",
+                "tree/genome_anno/tree.nw",
+                "tree/genome_anno/tree_plot.pdf",
+                "tree/genome_anno/tree_plot.svg"
             ],
             [
                 "Mycoplasmoides_fastidiosum.agat.gff:md5,8e8ee97f4ea2475236353c74801c0b7a",
@@ -1583,9 +1583,9 @@
                 "Quast_to_plot.tsv:md5,8999cc8c39faffd39986947d60d65a1c",
                 "gene_stats.tsv:md5,3fe2c13858d88b0f78ce02c9c6c58ced",
                 "n_seqs_above_x_buscos_output.tsv:md5,31ab90ca82335e1f9d19299343a875fd",
-                "shiny_app.R:md5,ff3143aaeaea2dbf69f82ed753a45fad",
-                "shiny_app.sh:md5,1396f7fd34601732f562128e8fe24eed",
-                "tree_functions.R:md5,1a05842b7cc1492f1ead6a5c65d4970f",
+                "shiny_app.R:md5,fb92385c8e1487a68c1c90d2d005d7e2",
+                "shiny_app.sh:md5,808c1c0dedc4852a0b57f8a16ea489f3",
+                "tree_functions.R:md5,c4f94416d5e1f57ada5a06db16891242",
                 "Mycoplasmoides_fastidiosum.tidk.explore.tsv:md5,e6ff77119b43653fb2a42b770185fd2a",
                 "Mycoplasmoides_fastidiosum.top.sequence.txt:md5,7d47950ab0a4c8167d2d382a3b51ef06",
                 "Mycoplasmoides_fastidiosum.svg:md5,c0cccaa230b5840079739c8496e8f1ff",
@@ -1602,7 +1602,7 @@
                 "n_seqs_above_x_buscos_output.tsv:md5,31ab90ca82335e1f9d19299343a875fd"
             ]
         ],
-        "timestamp": "2026-07-10T10:54:48.127629538",
+        "timestamp": "2026-08-07T12:14:39.221328386",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "26.04.6"
