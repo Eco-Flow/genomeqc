@@ -4,8 +4,8 @@ process TREESUMMARY {
 
     conda "${moduleDir}/environment.yml"
     container "${workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container
-        ? 'oras://community.wave.seqera.io/library/python_pandas_r-base_bioconductor-ggtree_pruned:8c55bd10cfed7ddf'
-        : 'community.wave.seqera.io/library/python_pandas_r-base_bioconductor-ggtree_pruned:c663395a0c48f3ef'}"
+        ? 'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/22/222cecd2ebec39f4c73b3b8608ffddd0bfae8a9b5aad392ab4da1e75d25a5e9e/data'
+        : 'community.wave.seqera.io/library/python_pandas_r-base_bioconductor-ggtree_pruned:f9ab550d092fa61d'}"
 
     input:
     tuple val(meta), path(tree)
