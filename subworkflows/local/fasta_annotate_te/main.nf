@@ -39,7 +39,8 @@ workflow FASTA_ANNOTATE_TE {
     if (params.te == 'repeatmasker') {
         // MODULE: RM_DOWNLOAD_DB
         // Download h5 partition files from DFAM — versions flow via Channel.topic('versions')
-        RM_DOWNLOAD_DB ( ch_rm_db )
+        // skip if ch_rm_db is empty
+        RM_DOWNLOAD_DB ( ch_rm_db.filter { _meta, db_url -> db_url != [] } )
 
         // Collect all h5 partitions (downloaded + any pre-staged) for famdb.py.
         // famdb.py uses '-i ./' so all files must be staged in the same work directory.
