@@ -25,9 +25,7 @@ nextflow_process {
         }
 
         then {
-            // svg/png are rendered by RIdeogram/Cairo and aren't byte-stable
-            // across environments, so only the CSV summary (and existence of
-            // the plot files) is snapshotted.
+            // svg/png aren't byte-stable across environments, so only checked for existence.
             assertAll(
                 { assert process.success },
                 { assert path(process.out.svg[0][2]).exists() },

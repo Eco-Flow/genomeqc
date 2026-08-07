@@ -22,9 +22,7 @@ nextflow_process {
         }
 
         then {
-            // The script embeds datetime.now() in both the GFF "##date" header
-            // and the JSON "timestamp" field, so those are stripped before
-            // snapshotting to keep the test deterministic across runs.
+            // Non-deterministic ##date/timestamp fields stripped before snapshotting.
             assertAll(
                 { assert process.success },
                 { assert snapshot(

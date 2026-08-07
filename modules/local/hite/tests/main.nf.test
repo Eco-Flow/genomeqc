@@ -11,19 +11,13 @@ nextflow_process {
 
     test("hite - tiny genome - zero TEs found") {
 
-        // HiTE exits 0 even when it finds no transposable elements, which is
-        // the expected outcome for this small synthetic fixture (verified
-        // manually beforehand: HiTE completes in ~1 minute and reports
-        // "Cannot find TE path", never writing HiTE.tbl). The module's own
-        // fallback then produces an empty .tbl. Log/intermediate files embed
-        // timestamps and aren't stable across runs, so only file existence
-        // is checked here, not content.
+        // Named test.fasta to match meta.id 'test': regression test for the input/output filename collision.
         when {
             process {
                 """
                 input[0] = [
                     [ id:'test' ], // meta map
-                    file("\${baseDir}/modules/local/hite/tests/genome.fasta", checkIfExists: true)
+                    file("\${baseDir}/modules/local/hite/tests/test.fasta", checkIfExists: true)
                 ]
                 """
             }
@@ -48,7 +42,7 @@ nextflow_process {
                 """
                 input[0] = [
                     [ id:'test' ], // meta map
-                    file("\${baseDir}/modules/local/hite/tests/genome.fasta", checkIfExists: true)
+                    file("\${baseDir}/modules/local/hite/tests/test.fasta", checkIfExists: true)
                 ]
                 """
             }

@@ -21,9 +21,9 @@ process HITE {
     if [ -f *.gz ]; then
       gunzip -c "$fasta" > myunzip.fa
       #myunzip.fa=\$(gunzip -c "$fasta")
-      awk '/^>/ { print (NR==1 ? "" : RS) \$0; next } { printf "%s", \$0 } END { printf RS }' myunzip.fa > ${prefix}.fasta
+      awk '/^>/ { print (NR==1 ? "" : RS) \$0; next } { printf "%s", \$0 } END { printf RS }' myunzip.fa > ${prefix}.unwrapped.fasta
     else
-      awk '/^>/ { print (NR==1 ? "" : RS) \$0; next } { printf "%s", \$0 } END { printf RS }' $fasta > ${prefix}.fasta
+      awk '/^>/ { print (NR==1 ? "" : RS) \$0; next } { printf "%s", \$0 } END { printf RS }' $fasta > ${prefix}.unwrapped.fasta
     fi
 
     # Capture the current working directory
@@ -32,7 +32,7 @@ process HITE {
     # Create the output directory
     mkdir -p \${mydir}/${prefix}_hite_results
 
-    newpath=`realpath ${prefix}.fasta`
+    newpath=`realpath ${prefix}.unwrapped.fasta`
 
     cd /HiTE
 

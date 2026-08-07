@@ -16,10 +16,7 @@ nextflow_process {
         when {
             process {
                 """
-                // Both fixtures are named 'proteome.fasta' upstream, which would
-                // collide once staged into input/, so they're copied under
-                // distinct names first (same approach as the nf-core/orthofinder
-                // module test).
+                // Fixtures renamed to avoid colliding: both are 'proteome.fasta' upstream.
                 file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/proteome.fasta', checkIfExists: true)
                     .copyTo("\${workDir}/sarscov2.fasta")
                 file(params.modules_testdata_base_path + 'genomics/prokaryotes/candidatus_portiera_aleyrodidarum/genome/proteome.fasta', checkIfExists: true)
@@ -39,10 +36,7 @@ nextflow_process {
         then {
             assert process.success
 
-            // OrthoFinder's own working-directory files (alignments, trees, logs)
-            // embed run timestamps/thread-dependent ordering, so only a handful
-            // of known-stable summary files are snapshotted, mirroring the
-            // approach used by the upstream nf-core/orthofinder module test.
+            // Only known-stable summary files are snapshotted; others embed timestamps/ordering.
             def all_files = []
             file(process.out.orthofinder[0][1]).eachFileRecurse(FileType.FILES) { f -> all_files << f }
 
@@ -72,10 +66,7 @@ nextflow_process {
         when {
             process {
                 """
-                // Both fixtures are named 'proteome.fasta' upstream, which would
-                // collide once staged into input/, so they're copied under
-                // distinct names first (same approach as the nf-core/orthofinder
-                // module test).
+                // Fixtures renamed to avoid colliding: both are 'proteome.fasta' upstream.
                 file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/proteome.fasta', checkIfExists: true)
                     .copyTo("\${workDir}/sarscov2.fasta")
                 file(params.modules_testdata_base_path + 'genomics/prokaryotes/candidatus_portiera_aleyrodidarum/genome/proteome.fasta', checkIfExists: true)

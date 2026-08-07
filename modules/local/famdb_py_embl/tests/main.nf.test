@@ -8,11 +8,7 @@ nextflow_process {
     tag "modules_local"
     tag "famdb_py_embl"
 
-    // test.0.h5 is a tiny synthetic famdb database (not a real Dfam export)
-    // built by build_test_famdb.py against famdb.py's own internal classes,
-    // matching the famdb format version (2.0.5) bundled with this module's
-    // pinned RepeatMasker container. See that script's header for details
-    // and how to regenerate it if the container's famdb.py is ever upgraded.
+    // test.0.h5 is synthetic, built by build_test_famdb.py (see that file to regenerate).
     test("famdb_py_embl - descendants of test taxon") {
 
         when {

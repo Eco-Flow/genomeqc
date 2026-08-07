@@ -46,9 +46,7 @@ nextflow_process {
         }
 
         then {
-            // The rendered PDF/SVG figures aren't byte-stable across ggtree/Cairo
-            // environments, so only their presence is checked; the combined
-            // intermediate tables (deterministic) are snapshotted.
+            // PDF/SVG figures aren't byte-stable across environments, so only checked for existence.
             def table_names = process.out.tables[0][1].collect { new File(it).name }.sort()
             def table_path = { name -> process.out.tables[0][1].find { new File(it).name == name } }
             assertAll(
@@ -62,10 +60,7 @@ nextflow_process {
                 { assert table_names.contains('Quast_to_plot.tsv') },
                 { assert table_names.contains('n_seqs_above_x_buscos_output.tsv') },
                 { assert table_names.contains('te_table_output.tsv') },
-                // species_orthologous_chromosomes.tsv never actually reaches this
-                // process in production (see subworkflows/local/genome_and_annotation.nf,
-                // the ch_tree_data.mix(ORTHOLOGOUS_CHROMOSOMES...) line is commented
-                // out), so no *_output.tsv copy of it is produced here either.
+                // species_orthologous_chromosomes.tsv never reaches this process (see genome_and_annotation.nf).
                 { assert !table_names.contains('species_orthologous_chromosomes_output.tsv') },
                 { assert snapshot(
                     path(table_path('gene_stats.tsv')),

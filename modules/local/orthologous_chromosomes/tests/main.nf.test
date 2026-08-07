@@ -23,9 +23,7 @@ nextflow_process {
         }
 
         then {
-            // Row order in the pairwise/species outputs depends on Python set
-            // iteration order, which varies between runs (hash randomization),
-            // so lines are sorted before snapshotting to keep this deterministic.
+            // Lines sorted before snapshotting: row order isn't stable (Python set iteration).
             assertAll(
                 { assert process.success },
                 { assert snapshot(

@@ -8,10 +8,7 @@ nextflow_process {
     tag "modules_local"
     tag "rm_download_db"
 
-    // Uses a file:// URL pointing at a local gzipped fixture (plus its .md5
-    // manifest) instead of a real remote server, so this still exercises the
-    // real curl download + MD5 verification + gunzip logic without a network
-    // dependency.
+    // Uses a file:// URL to a local fixture instead of a real remote server.
     test("rm_download_db - local file url - checksum ok") {
 
         when {
