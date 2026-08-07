@@ -46,19 +46,23 @@ This is the first release of the pipeline, which compares the quality of multipl
 - An executable Shiny app for interactively adjusting the tree plot and summary statistics, with PNG/SVG export.
 - HTML and Excel summary reports.
 - Aggregated quality-control report with [MultiQC](http://multiqc.info).
-
-### `Changed`
-
-- Expanded the `manifest.contributors` list in `nextflow.config` to credit Stephen Turner, Felipe Perez Cobos, Lauren Huet, Simon Murray, and Jacques Dainat as authors/contributors, and Mahesh Binzer-Panchal and Usman Rashid as contributors.
-- Fixed a stray leading space in Fernando Duarte's name in `manifest.contributors`.
-- Added missing tool citations to `CITATIONS.md` (AGAT, ape, BUSCO, FCS-GX/FCS-adaptor, GenomicRanges, GffRead, ggplot2, ggtree, Merqury, ncbi-genome-download, OrthoFinder, pandas, QUAST, SeqKit, Shiny, tidk, tidyverse, Tiara), with DOIs verified against current published references (including the published tidk paper and the OrthoFinder v3 paper).
-- Populated the MultiQC methods description with per-tool citations (`toolCitationText`/`toolBibliographyText` in the pipeline utils subworkflow), gated on the relevant params so the rendered text matches the tools actually run, and removed the leftover template TODO from `assets/methods_description_template.yml`.
-- Removed unused iGenomes `--genome` template boilerplate from `main.nf` (the `getGenomeAttribute` example block and import), which the pipeline does not use.
+- New `--tree_style` option for the **Tree Summary** plot: `roundrect` (rounded branches, new default), `ellipse` (curved branches with node points), `rectangular` (legacy look with dotted leader lines), and `circular` (fan tree with the summary statistics drawn as concentric coloured rings and a numbered species key). Selectable in the Shiny app.
+- New `--circular_rings` option controlling which stats appear as rings in the circular layout (any of `ch_plot`, `len_plot`, `n50_plot`, `gene_plot`, `busco_gen_plot`, `busco_prot_plot`, `nseqs_plot`, `ortho_plot`, or `all`). The static pipeline figure defaults to a curated assembly/annotation-quality set (sequence number, N50, genome BUSCO, protein BUSCO), while the Shiny app shows every non-skipped stat.
+- Circular layout: the Good/Warn/Poor key now lists the per-metric thresholds (e.g. `BUSCO genome: 95+ / 90+ / <90`), read from whichever `--quality_preset` or custom thresholds are in force.
+- New `--quality_thresholds` option to override individual `--quality_preset` cut-offs from the CLI, as comma-separated `metric=good:warn` pairs (e.g. `n50=2e6:5e5,seq_number=500:5000`; metrics: `busco_complete`, `busco_duplicated`, `n50`, `seq_number`). Previously, per-metric custom thresholds were only settable interactively in the Shiny app.
 
 ### `Fixed`
 
-- Fixed BUSCO pies not showing in the tree plot
+- Fixed BUSCO not showing in the tree
+- Fixed the Shiny app launcher pulling its container from Docker Hub instead of quay.io (the plain `docker run` does not receive the `docker.registry` prefix), which caused a `pull access denied` error.
+- Shiny app: the tree-style controls now show only the options that apply to the selected layout (margin/bar/pie controls for the non-circular styles, a ring-thickness control for the circular style), added a "Ring thickness" slider for the circular layout, and clarified the "Skip Statistics" labels.
+- Circular layout: the "Tip Text Size" control now scales all text (tip numbers, ring legends and the species key), and the ring legends are ordered outer-ring-first to match the ring stack.
+- Shiny app: the circular layout now offers a "Quality thresholds (phylo group)" preset selector plus a "Custom..." option exposing per-metric Good/Warn cut-offs (BUSCO complete, BUSCO duplicated, N50, sequence count), and a "Print values on rings" toggle.
+- Circular layout: quality statistics (sequence count, N50, BUSCO complete for genome and protein, BUSCO duplicated) are now scored as a colour-vision-safe **traffic light** (Good/Warn/Poor) against phylogenetic-group thresholds (`--quality_preset`: generic, vertebrate, insect, plant, fungi, bacteria), rather than a sequential ramp that misleadingly implied "dark = good" (it was backwards for sequence count). Descriptive statistics (genome size, gene number, ortho seqs) are drawn in a neutral **grey** ramp and grouped as a separate outer block, so they never borrow the traffic-light colours or sit interleaved with the quality rings. `--show_ring_values` prints each value on its ring as a redundant, non-colour-only encoding. Both are also settable in the Shiny app.
+- Circular layout: quality rings are now placed on the outer rim and descriptive rings nearest the tree, so the judgement-carrying rings read most clearly. The Good/Warn/Poor key is now drawn explicitly rather than relying on ggplot's legend, so all three swatches always appear, even when a ring happens to be a single grade throughout.
 
 ### `Dependencies`
+
+- Added `ggtreeExtra` and `ggnewscale` to the `genomeqc_tree` container (bumped to `v1.5`), required by the `circular` tree layout.
 
 ### `Deprecated`
