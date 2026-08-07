@@ -1,0 +1,84 @@
+{
+    "rm_download_db - local file url - checksum ok": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test_db.h5:md5,87649df71ddcf8c9908b6a7422079398"
+                    ]
+                ],
+                "1": [
+                    [
+                        "RM_DOWNLOAD_DB",
+                        "<curl>",
+                        "7.80.0"
+                    ]
+                ],
+                "h5": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test_db.h5:md5,87649df71ddcf8c9908b6a7422079398"
+                    ]
+                ],
+                "versions": [
+                    [
+                        "RM_DOWNLOAD_DB",
+                        "<curl>",
+                        "7.80.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-08-07T18:01:19.628827",
+        "meta": {
+            "nf-test": "0.9.4",
+            "nextflow": "25.10.4"
+        }
+    },
+    "rm_download_db - local file url - checksum ok - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test_db.h5:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        "RM_DOWNLOAD_DB",
+                        "<curl>",
+                        "7.80.0"
+                    ]
+                ],
+                "h5": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test_db.h5:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions": [
+                    [
+                        "RM_DOWNLOAD_DB",
+                        "<curl>",
+                        "7.80.0"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-08-07T18:01:32.791878",
+        "meta": {
+            "nf-test": "0.9.4",
+            "nextflow": "25.10.4"
+        }
+    }
+}

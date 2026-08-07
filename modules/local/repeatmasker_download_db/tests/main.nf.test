@@ -1,0 +1,58 @@
+nextflow_process {
+
+    name "Test Process RM_DOWNLOAD_DB"
+    script "../main.nf"
+    process "RM_DOWNLOAD_DB"
+
+    tag "modules"
+    tag "modules_local"
+    tag "rm_download_db"
+
+    // Uses a file:// URL pointing at a local gzipped fixture (plus its .md5
+    // manifest) instead of a real remote server, so this still exercises the
+    // real curl download + MD5 verification + gunzip logic without a network
+    // dependency.
+    test("rm_download_db - local file url - checksum ok") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'test' ], // meta map
+                    "file://\${baseDir}/modules/local/repeatmasker_download_db/tests/test_db.h5.gz"
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+    }
+
+    test("rm_download_db - local file url - checksum ok - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'test' ], // meta map
+                    "file://\${baseDir}/modules/local/repeatmasker_download_db/tests/test_db.h5.gz"
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+    }
+}

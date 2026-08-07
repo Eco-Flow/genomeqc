@@ -63,4 +63,12 @@ process HITE {
         LTRPipeline version: \$(LTRPipeline -version)
     END_VERSIONS
     """
+
+    stub:
+    def prefix = task.ext.prefix ?: "${meta.id}"
+    """
+    mkdir -p ${prefix}_hite_results
+    touch ${prefix}_hite_results/${prefix}.tbl
+    touch versions.yml
+    """
 }

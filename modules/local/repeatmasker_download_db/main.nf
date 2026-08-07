@@ -34,4 +34,11 @@ process RM_DOWNLOAD_DB {
         exit 1
     fi
     """
+
+    stub:
+    def filename   = db_url.tokenize('/')[-1]
+    def out_gunzip = filename.replaceAll(/\.gz$/, '')
+    """
+    touch ${out_gunzip}
+    """
 }

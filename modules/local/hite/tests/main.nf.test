@@ -1,0 +1,64 @@
+nextflow_process {
+
+    name "Test Process HITE"
+    script "../main.nf"
+    process "HITE"
+    config "./nextflow.config"
+
+    tag "modules"
+    tag "modules_local"
+    tag "hite"
+
+    test("hite - tiny genome - zero TEs found") {
+
+        // HiTE exits 0 even when it finds no transposable elements, which is
+        // the expected outcome for this small synthetic fixture (verified
+        // manually beforehand: HiTE completes in ~1 minute and reports
+        // "Cannot find TE path", never writing HiTE.tbl). The module's own
+        // fallback then produces an empty .tbl. Log/intermediate files embed
+        // timestamps and aren't stable across runs, so only file existence
+        // is checked here, not content.
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'test' ], // meta map
+                    file("\${baseDir}/modules/local/hite/tests/genome.fasta", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert path(process.out.hite_results[0][1]).exists() },
+                { assert path(process.out.tbl[0][1]).exists() },
+                { assert path(process.out.versions[0]).exists() }
+            )
+        }
+    }
+
+    test("hite - tiny genome - zero TEs found - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'test' ], // meta map
+                    file("\${baseDir}/modules/local/hite/tests/genome.fasta", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+    }
+}

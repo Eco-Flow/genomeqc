@@ -1,5 +1,6 @@
 name: "rm_download_db"
-description: Downloads a RepeatMasker/Dfam database file and verifies it against its published MD5 checksum
+description: Downloads a RepeatMasker/Dfam database file and verifies it against
+  its published MD5 checksum
 keywords:
   - repeatmasker
   - dfam
@@ -7,10 +8,13 @@ keywords:
   - database
 tools:
   - "curl":
-      description: "curl is a command-line tool for transferring data with URLs, used here to fetch a RepeatMasker/Dfam database file and its MD5 checksum manifest."
+      description: "curl is a command-line tool for transferring data with URLs, used
+        here to fetch a RepeatMasker/Dfam database file and its MD5 checksum manifest."
       homepage: "https://curl.se/"
       documentation: "https://curl.se/docs/"
-      licence: ["curl"]
+      licence:
+        - "curl"
+      identifier: ""
 input:
   - - meta:
         type: map
@@ -19,7 +23,8 @@ input:
           e.g. [ id:'test' ]
     - db_url:
         type: string
-        description: URL of the RepeatMasker/Dfam database file to download (a matching "<url>.md5" manifest must also exist)
+        description: URL of the RepeatMasker/Dfam database file to download (a
+          matching "<url>.md5" manifest must also exist)
 output:
   h5:
     - - meta:
@@ -29,29 +34,19 @@ output:
             e.g. [ id:'test' ]
       - "*.h5":
           type: file
-          description: Downloaded and checksum-verified, decompressed database file
+          description: Downloaded and checksum-verified, decompressed database
+            file
           pattern: "*.h5"
+          ontologies: []
   versions:
-    - - ${task.process}:
-          type: string
-          description: The name of the process
-      - "<curl>":
-          type: string
-          description: The name of the tool
-      - curl --version | head -1 | cut -d " " -f2:
-          type: eval
-          description: The expression to obtain the version of the tool
+    - curl --version | head -1 | cut -d " " -f2:
+        type: eval
+        description: The expression to obtain the version of the tool
 topics:
   versions:
-    - - ${task.process}:
-          type: string
-          description: The name of the process
-      - "<curl>":
-          type: string
-          description: The name of the tool
-      - curl --version | head -1 | cut -d " " -f2:
-          type: eval
-          description: The expression to obtain the version of the tool
+    - curl --version | head -1 | cut -d " " -f2:
+        type: eval
+        description: The expression to obtain the version of the tool
 authors:
   - "@chriswyatt1"
 maintainers:

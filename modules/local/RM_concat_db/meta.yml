@@ -1,5 +1,6 @@
 name: "rm_concat_db"
-description: Concatenates per-lineage Dfam HDF5 repeat family databases into a single combined database
+description: Concatenates per-lineage Dfam HDF5 repeat family databases into a
+  single combined database
 keywords:
   - dfam
   - repeatmasker
@@ -7,42 +8,36 @@ keywords:
   - database
 tools:
   - "h5copy":
-      description: "h5copy (part of the HDF5 toolkit, bundled with pbh5tools) copies HDF5 objects between files, used here to merge per-lineage Dfam databases into one combined file."
+      description: "h5copy (part of the HDF5 toolkit, bundled with pbh5tools) copies
+        HDF5 objects between files, used here to merge per-lineage Dfam databases into
+        one combined file."
       homepage: "https://github.com/PacificBiosciences/pbh5tools"
       documentation: "https://docs.hdfgroup.org/hdf5/develop/_h5_c_p__u_g.html"
-      licence: ["BSD-3-Clause"]
+      licence:
+        - "BSD-3-Clause"
+      identifier: ""
 input:
   - h5_files:
       type: file
       description: Per-lineage Dfam HDF5 database files to merge
       pattern: "*.h5"
+      ontologies: []
 output:
   h5:
-    - "dfam_full.h5":
+    - dfam_full.h5:
         type: file
         description: Combined Dfam HDF5 database
         pattern: "dfam_full.h5"
+        ontologies: []
   versions:
-    - - ${task.process}:
-          type: string
-          description: The name of the process
-      - "<htools5>":
-          type: string
-          description: The name of the tool
-      - htools5 --version | head -1 | cut -d " " -f2:
-          type: eval
-          description: The expression to obtain the version of the tool
+    - htools5 --version | head -1 | cut -d " " -f2:
+        type: eval
+        description: The expression to obtain the version of the tool
 topics:
   versions:
-    - - ${task.process}:
-          type: string
-          description: The name of the process
-      - "<htools5>":
-          type: string
-          description: The name of the tool
-      - htools5 --version | head -1 | cut -d " " -f2:
-          type: eval
-          description: The expression to obtain the version of the tool
+    - htools5 --version | head -1 | cut -d " " -f2:
+        type: eval
+        description: The expression to obtain the version of the tool
 authors:
   - "@chriswyatt1"
 maintainers:

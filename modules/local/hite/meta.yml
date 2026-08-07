@@ -1,17 +1,22 @@
 name: "hite"
-description: Runs HiTE to detect and classify transposable elements in a genome assembly
+description: Runs HiTE to detect and classify transposable elements in a genome
+  assembly
 keywords:
   - transposable elements
   - repeat annotation
   - hite
 tools:
   - "hite":
-      description: "HiTE is a fast and accurate dynamic boundary adjustment approach for full-length Transposable Element (TE) detection and annotation in genome assemblies."
+      description: "HiTE is a fast and accurate dynamic boundary adjustment approach
+        for full-length Transposable Element (TE) detection and annotation in genome
+        assemblies."
       homepage: "https://github.com/CSU-KangHu/HiTE"
       documentation: "https://github.com/CSU-KangHu/HiTE"
       tool_dev_url: "https://github.com/CSU-KangHu/HiTE"
       doi: "10.1186/s13059-024-03288-6"
-      licence: ["GPL v3"]
+      licence:
+        - "GPL v3"
+      identifier: biotools:hite
 input:
   - - meta:
         type: map
@@ -22,6 +27,7 @@ input:
         type: file
         description: Genome assembly FASTA (gzipped or uncompressed)
         pattern: "*.{fa,fasta,fna}{.gz,}"
+        ontologies: []
 output:
   hite_results:
     - - meta:
@@ -40,13 +46,17 @@ output:
             e.g. [ id:'test' ]
       - "*_hite_results/*.tbl":
           type: file
-          description: RepeatMasker-style .tbl repeat-composition summary (empty if HiTE found no TEs)
+          description: RepeatMasker-style .tbl repeat-composition summary (empty
+            if HiTE found no TEs)
           pattern: "*.tbl"
+          ontologies: []
   versions:
     - "versions.yml":
         type: file
         description: File containing software versions
         pattern: "versions.yml"
+        ontologies:
+          - edam: http://edamontology.org/format_3750
 authors:
   - "@chriswyatt1"
 maintainers:

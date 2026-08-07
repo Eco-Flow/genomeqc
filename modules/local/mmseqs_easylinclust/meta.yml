@@ -1,5 +1,6 @@
 name: "mmseqs_easylinclust"
-description: Clusters sequences with MMseqs2 easy-linclust and keeps one representative sequence per cluster
+description: Clusters sequences with MMseqs2 easy-linclust and keeps one
+  representative sequence per cluster
 keywords:
   - clustering
   - mmseqs2
@@ -7,12 +8,14 @@ keywords:
   - deduplication
 tools:
   - "mmseqs2":
-      description: "MMseqs2 (Many-against-Many sequence searching) is a software suite to search and cluster huge protein and nucleotide sequence sets."
+      description: "MMseqs2 (Many-against-Many sequence searching) is a software suite
+        to search and cluster huge protein and nucleotide sequence sets."
       homepage: "https://github.com/soedinglab/MMseqs2"
       documentation: "https://github.com/soedinglab/MMseqs2/wiki"
       tool_dev_url: "https://github.com/soedinglab/MMseqs2"
       doi: "10.1038/nbt.3988"
-      licence: ["GPL v3"]
+      licence:
+        - "GPL v3"
       identifier: "biotools:mmseqs2"
 input:
   - - meta:
@@ -22,8 +25,10 @@ input:
           e.g. [ id:'test' ]
     - fasta:
         type: file
-        description: FASTA file of sequences to cluster (e.g. a combined repeat library)
+        description: FASTA file of sequences to cluster (e.g. a combined repeat
+          library)
         pattern: "*.{fa,fasta,fna}"
+        ontologies: []
 output:
   representatives:
     - - meta:
@@ -35,6 +40,7 @@ output:
           type: file
           description: FASTA of one representative sequence per cluster
           pattern: "*_rep_seq.fasta"
+          ontologies: []
   versions_mmseqs:
     - - ${task.process}:
           type: string

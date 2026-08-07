@@ -1,5 +1,7 @@
 name: "treesummary"
-description: Combines per-species QC tables (BUSCO, QUAST, gene overlaps, orthologous chromosomes, TE composition) and renders the phylogenetic tree summary plot
+description: Combines per-species QC tables (BUSCO, QUAST, gene overlaps,
+  orthologous chromosomes, TE composition) and renders the phylogenetic tree
+  summary plot
 keywords:
   - tree
   - phylogenetics
@@ -8,10 +10,14 @@ keywords:
   - summary
 tools:
   - "treesummary":
-      description: "In-house step that assembles the various per-species QC tables produced across the pipeline into the inputs expected by plot_tree_summary.R, and renders the combined phylogenetic tree summary figure (PDF/SVG)."
+      description: "In-house step that assembles the various per-species QC tables produced
+        across the pipeline into the inputs expected by plot_tree_summary.R, and renders
+        the combined phylogenetic tree summary figure (PDF/SVG)."
       homepage: "https://github.com/nf-core/genomeqc"
       documentation: "https://github.com/nf-core/genomeqc"
-      licence: ["MIT"]
+      licence:
+        - "MIT"
+      identifier: ""
 input:
   - - meta:
         type: map
@@ -20,7 +26,8 @@ input:
           e.g. [ id:'test', mode:'genome_anno' ]
     - tree:
         type: directory
-        description: OrthoFinder results directory, used for its Species_Tree/SpeciesTree_rooted_node_labels.txt
+        description: OrthoFinder results directory, used for its
+          Species_Tree/SpeciesTree_rooted_node_labels.txt
   - - meta1:
         type: map
         description: |
@@ -28,8 +35,10 @@ input:
           e.g. [ id:'test' ]
     - geno_busco:
         type: file
-        description: Combined genome-mode BUSCO batch_summary_modified.txt files (optional; pass an empty list to omit)
+        description: Combined genome-mode BUSCO batch_summary_modified.txt files
+          (optional; pass an empty list to omit)
         pattern: "*-genome-busco.batch_summary_modified.txt"
+        ontologies: []
   - - meta2:
         type: map
         description: |
@@ -37,8 +46,10 @@ input:
           e.g. [ id:'test' ]
     - prot_busco:
         type: file
-        description: Combined protein-mode BUSCO batch_summary_modified.txt files (optional; pass an empty list to omit)
+        description: Combined protein-mode BUSCO batch_summary_modified.txt files
+          (optional; pass an empty list to omit)
         pattern: "*-proteins-busco.batch_summary_modified.txt"
+        ontologies: []
   - - meta3:
         type: map
         description: |
@@ -46,23 +57,29 @@ input:
           e.g. [ id:'test' ]
     - te_table:
         type: file
-        description: Combined TE-composition summary TSV, as produced by te_tbl_2_table (optional; pass an empty list to omit)
+        description: Combined TE-composition summary TSV, as produced by
+          te_tbl_2_table (optional; pass an empty list to omit)
         pattern: "*.tsv"
+        ontologies:
+          - edam: http://edamontology.org/format_3475
   - multiqc_files:
       type: file
       description: Per-species QUAST TSVs and gene-overlap counts TSVs to combine
       pattern: "*.{quast.tsv,counts.tsv}"
+      ontologies: []
 output:
   figure:
     - "*.pdf":
         type: file
         description: Tree summary figure (PDF)
         pattern: "*.pdf"
+        ontologies: []
   figure_svg:
     - "*.svg":
         type: file
         description: Tree summary figure (SVG)
         pattern: "*.svg"
+        ontologies: []
   tables:
     - - meta:
           type: map
@@ -71,8 +88,11 @@ output:
             e.g. [ id:'test' ]
       - "*.tsv":
           type: file
-          description: Combined per-species QC tables used to build the tree summary plot
+          description: Combined per-species QC tables used to build the tree
+            summary plot
           pattern: "*.tsv"
+          ontologies:
+            - edam: http://edamontology.org/format_3475
   tree:
     - - meta:
           type: map
@@ -81,8 +101,10 @@ output:
             e.g. [ id:'test' ]
       - "tree.nw":
           type: file
-          description: Newick species tree, extracted from the OrthoFinder results and used by SHINY_APP
+          description: Newick species tree, extracted from the OrthoFinder results
+            and used by SHINY_APP
           pattern: "tree.nw"
+          ontologies: []
   versions_r_base:
     - - ${task.process}:
           type: string
@@ -110,7 +132,7 @@ output:
       - ggtree:
           type: string
           description: The name of the tool
-      - "Rscript -e \"cat(as.character(packageVersion('ggtree')))\"":
+      - 'Rscript -e "cat(as.character(packageVersion(''ggtree'')))"':
           type: eval
           description: The expression to obtain the version of the tool
   versions_ggplot2:
@@ -120,7 +142,7 @@ output:
       - ggplot2:
           type: string
           description: The name of the tool
-      - "Rscript -e \"cat(as.character(packageVersion('ggplot2')))\"":
+      - 'Rscript -e "cat(as.character(packageVersion(''ggplot2'')))"':
           type: eval
           description: The expression to obtain the version of the tool
   versions_patchwork:
@@ -130,7 +152,7 @@ output:
       - patchwork:
           type: string
           description: The name of the tool
-      - "Rscript -e \"cat(as.character(packageVersion('patchwork')))\"":
+      - 'Rscript -e "cat(as.character(packageVersion(''patchwork'')))"':
           type: eval
           description: The expression to obtain the version of the tool
   versions_argparse:
@@ -140,7 +162,7 @@ output:
       - argparse:
           type: string
           description: The name of the tool
-      - "Rscript -e \"cat(as.character(packageVersion('argparse')))\"":
+      - 'Rscript -e "cat(as.character(packageVersion(''argparse'')))"':
           type: eval
           description: The expression to obtain the version of the tool
   versions_dplyr:
@@ -150,7 +172,7 @@ output:
       - dplyr:
           type: string
           description: The name of the tool
-      - "Rscript -e \"cat(as.character(packageVersion('dplyr')))\"":
+      - 'Rscript -e "cat(as.character(packageVersion(''dplyr'')))"':
           type: eval
           description: The expression to obtain the version of the tool
   versions_tidyr:
@@ -160,7 +182,7 @@ output:
       - tidyr:
           type: string
           description: The name of the tool
-      - "Rscript -e \"cat(as.character(packageVersion('tidyr')))\"":
+      - 'Rscript -e "cat(as.character(packageVersion(''tidyr'')))"':
           type: eval
           description: The expression to obtain the version of the tool
   versions_scatterpie:
@@ -170,7 +192,7 @@ output:
       - scatterpie:
           type: string
           description: The name of the tool
-      - "Rscript -e \"cat(as.character(packageVersion('scatterpie')))\"":
+      - 'Rscript -e "cat(as.character(packageVersion(''scatterpie'')))"':
           type: eval
           description: The expression to obtain the version of the tool
   versions_scales:
@@ -180,7 +202,7 @@ output:
       - scales:
           type: string
           description: The name of the tool
-      - "Rscript -e \"cat(as.character(packageVersion('scales')))\"":
+      - 'Rscript -e "cat(as.character(packageVersion(''scales'')))"':
           type: eval
           description: The expression to obtain the version of the tool
 topics:
@@ -209,7 +231,7 @@ topics:
       - ggtree:
           type: string
           description: The name of the tool
-      - "Rscript -e \"cat(as.character(packageVersion('ggtree')))\"":
+      - 'Rscript -e "cat(as.character(packageVersion(''ggtree'')))"':
           type: eval
           description: The expression to obtain the version of the tool
     - - ${task.process}:
@@ -218,7 +240,7 @@ topics:
       - ggplot2:
           type: string
           description: The name of the tool
-      - "Rscript -e \"cat(as.character(packageVersion('ggplot2')))\"":
+      - 'Rscript -e "cat(as.character(packageVersion(''ggplot2'')))"':
           type: eval
           description: The expression to obtain the version of the tool
     - - ${task.process}:
@@ -227,7 +249,7 @@ topics:
       - patchwork:
           type: string
           description: The name of the tool
-      - "Rscript -e \"cat(as.character(packageVersion('patchwork')))\"":
+      - 'Rscript -e "cat(as.character(packageVersion(''patchwork'')))"':
           type: eval
           description: The expression to obtain the version of the tool
     - - ${task.process}:
@@ -236,7 +258,7 @@ topics:
       - argparse:
           type: string
           description: The name of the tool
-      - "Rscript -e \"cat(as.character(packageVersion('argparse')))\"":
+      - 'Rscript -e "cat(as.character(packageVersion(''argparse'')))"':
           type: eval
           description: The expression to obtain the version of the tool
     - - ${task.process}:
@@ -245,7 +267,7 @@ topics:
       - dplyr:
           type: string
           description: The name of the tool
-      - "Rscript -e \"cat(as.character(packageVersion('dplyr')))\"":
+      - 'Rscript -e "cat(as.character(packageVersion(''dplyr'')))"':
           type: eval
           description: The expression to obtain the version of the tool
     - - ${task.process}:
@@ -254,7 +276,7 @@ topics:
       - tidyr:
           type: string
           description: The name of the tool
-      - "Rscript -e \"cat(as.character(packageVersion('tidyr')))\"":
+      - 'Rscript -e "cat(as.character(packageVersion(''tidyr'')))"':
           type: eval
           description: The expression to obtain the version of the tool
     - - ${task.process}:
@@ -263,7 +285,7 @@ topics:
       - scatterpie:
           type: string
           description: The name of the tool
-      - "Rscript -e \"cat(as.character(packageVersion('scatterpie')))\"":
+      - 'Rscript -e "cat(as.character(packageVersion(''scatterpie'')))"':
           type: eval
           description: The expression to obtain the version of the tool
     - - ${task.process}:
@@ -272,7 +294,7 @@ topics:
       - scales:
           type: string
           description: The name of the tool
-      - "Rscript -e \"cat(as.character(packageVersion('scales')))\"":
+      - 'Rscript -e "cat(as.character(packageVersion(''scales'')))"':
           type: eval
           description: The expression to obtain the version of the tool
 authors:

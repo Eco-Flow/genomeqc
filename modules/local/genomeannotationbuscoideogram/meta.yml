@@ -1,5 +1,6 @@
 name: "genomeannotationbuscoideogram"
-description: Plots a chromosome ideogram of annotated BUSCO (protein-mode) gene locations, matched against the genome annotation GFF
+description: Plots a chromosome ideogram of annotated BUSCO (protein-mode) gene
+  locations, matched against the genome annotation GFF
 keywords:
   - busco
   - ideogram
@@ -7,10 +8,14 @@ keywords:
   - rideogram
 tools:
   - "genomeannotationbuscoideogram":
-      description: "In-house step that builds a chromosome karyotype from the genome FASTA, matches protein-mode BUSCO hits back onto genomic coordinates via the annotation GFF, and renders an RIdeogram plot of their locations."
+      description: "In-house step that builds a chromosome karyotype from the genome
+        FASTA, matches protein-mode BUSCO hits back onto genomic coordinates via the
+        annotation GFF, and renders an RIdeogram plot of their locations."
       homepage: "https://github.com/nf-core/genomeqc"
       documentation: "https://github.com/nf-core/genomeqc"
-      licence: ["MIT"]
+      licence:
+        - "MIT"
+      identifier: ""
 input:
   - - genusspeci:
         type: string
@@ -20,16 +25,22 @@ input:
         description: BUSCO lineage dataset name used to tag outputs
     - busco_full_table:
         type: file
-        description: Protein-mode BUSCO full_table.tsv (no genomic coordinate columns; gene IDs are matched via the GFF)
+        description: Protein-mode BUSCO full_table.tsv (no genomic coordinate
+          columns; gene IDs are matched via the GFF)
         pattern: "full_table.tsv"
+        ontologies:
+          - edam: http://edamontology.org/format_3475
     - genome:
         type: file
         description: Genome FASTA, used to build the chromosome karyotype
         pattern: "*.{fa,fasta,fna}"
+        ontologies: []
     - gff:
         type: file
-        description: Genome annotation GFF, used to map BUSCO protein hits back onto genomic coordinates
+        description: Genome annotation GFF, used to map BUSCO protein hits back
+          onto genomic coordinates
         pattern: "*.{gff,gff3}"
+        ontologies: []
 output:
   svg:
     - - genusspeci:
@@ -42,6 +53,7 @@ output:
           type: file
           description: SVG chromosome ideogram of annotated BUSCO gene locations
           pattern: "*.svg"
+          ontologies: []
   png:
     - - genusspeci:
           type: string
@@ -53,6 +65,7 @@ output:
           type: file
           description: PNG chromosome ideogram of annotated BUSCO gene locations
           pattern: "*.png"
+          ontologies: []
   busco_mappings:
     - - genusspeci:
           type: string
@@ -61,6 +74,8 @@ output:
           type: file
           description: Per-chromosome count of Complete BUSCOs
           pattern: "*.csv"
+          ontologies:
+            - edam: http://edamontology.org/format_3752
   versions_r_base:
     - - ${task.process}:
           type: string
@@ -78,7 +93,7 @@ output:
       - r_rideogram:
           type: string
           description: The name of the tool
-      - "Rscript -e \"cat(as.character(packageVersion('RIdeogram')))\"":
+      - 'Rscript -e "cat(as.character(packageVersion(''RIdeogram'')))"':
           type: eval
           description: The expression to obtain the version of the tool
 topics:
@@ -98,7 +113,7 @@ topics:
       - r_rideogram:
           type: string
           description: The name of the tool
-      - "Rscript -e \"cat(as.character(packageVersion('RIdeogram')))\"":
+      - 'Rscript -e "cat(as.character(packageVersion(''RIdeogram'')))"':
           type: eval
           description: The expression to obtain the version of the tool
 authors:
