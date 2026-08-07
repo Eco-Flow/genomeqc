@@ -1,0 +1,62 @@
+nextflow_process {
+
+    name "Test Process BUSCO_TSV_TO_GFF"
+    script "../main.nf"
+    process "BUSCO_TSV_TO_GFF"
+
+    tag "modules"
+    tag "modules_local"
+    tag "busco_tsv_to_gff"
+
+    test("busco_tsv_to_gff - full_table") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'test' ], // meta map
+                    file("\${baseDir}/modules/local/busco_tsv_to_gff/tests/busco_output", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            // The script embeds datetime.now() in both the GFF "##date" header
+            // and the JSON "timestamp" field, so those are stripped before
+            // snapshotting to keep the test deterministic across runs.
+            assertAll(
+                { assert process.success },
+                { assert snapshot(
+                    process.out.gff[0][0],
+                    path(process.out.gff[0][1]).readLines().findAll { !it.startsWith('##date') },
+                    process.out.stats[0][0],
+                    path(process.out.stats[0][1]).json.findAll { k, v -> k != 'timestamp' }
+                    ).match() }
+            )
+        }
+    }
+
+    test("busco_tsv_to_gff - full_table - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    [ id:'test' ], // meta map
+                    file("\${baseDir}/modules/local/busco_tsv_to_gff/tests/busco_output", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+    }
+}

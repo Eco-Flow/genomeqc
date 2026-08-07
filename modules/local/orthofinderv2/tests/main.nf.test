@@ -1,0 +1,102 @@
+import groovy.io.FileType
+
+nextflow_process {
+
+    name "Test Process ORTHOFINDERV2"
+    script "../main.nf"
+    process "ORTHOFINDERV2"
+    config "./nextflow.config"
+
+    tag "modules"
+    tag "modules_local"
+    tag "orthofinderv2"
+
+    test("orthofinderv2 - sarscov2 - candidatus_portiera_aleyrodidarum - proteome") {
+
+        when {
+            process {
+                """
+                // Both fixtures are named 'proteome.fasta' upstream, which would
+                // collide once staged into input/, so they're copied under
+                // distinct names first (same approach as the nf-core/orthofinder
+                // module test).
+                file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/proteome.fasta', checkIfExists: true)
+                    .copyTo("\${workDir}/sarscov2.fasta")
+                file(params.modules_testdata_base_path + 'genomics/prokaryotes/candidatus_portiera_aleyrodidarum/genome/proteome.fasta', checkIfExists: true)
+                    .copyTo("\${workDir}/candidatus_portiera_aleyrodidarum.fasta")
+
+                input[0] = [
+                    [ id:'test' ], // meta map
+                    [
+                        file("\${workDir}/sarscov2.fasta", checkIfExists: true),
+                        file("\${workDir}/candidatus_portiera_aleyrodidarum.fasta", checkIfExists: true)
+                    ]
+                ]
+                """
+            }
+        }
+
+        then {
+            assert process.success
+
+            // OrthoFinder's own working-directory files (alignments, trees, logs)
+            // embed run timestamps/thread-dependent ordering, so only a handful
+            // of known-stable summary files are snapshotted, mirroring the
+            // approach used by the upstream nf-core/orthofinder module test.
+            def all_files = []
+            file(process.out.orthofinder[0][1]).eachFileRecurse(FileType.FILES) { f -> all_files << f }
+
+            def stable_file_names = [
+                'Statistics_PerSpecies.tsv',
+                'Statistics_Overall.tsv',
+                'SpeciesTree_rooted.txt'
+            ]
+            def stable_files = all_files.findAll { it.name in stable_file_names }
+
+            assertAll(
+                { assert stable_files.size() == stable_file_names.size() },
+                { assert path(process.out.orthologues[0]).exists() },
+                { assert path(process.out.speciestree[0]).exists() },
+                { assert snapshot(
+                    stable_files.toSorted { it.name },
+                    process.out.findAll { key, val -> key.startsWith('versions') }
+                    ).match() }
+            )
+        }
+    }
+
+    test("orthofinderv2 - sarscov2 - candidatus_portiera_aleyrodidarum - proteome - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                // Both fixtures are named 'proteome.fasta' upstream, which would
+                // collide once staged into input/, so they're copied under
+                // distinct names first (same approach as the nf-core/orthofinder
+                // module test).
+                file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/proteome.fasta', checkIfExists: true)
+                    .copyTo("\${workDir}/sarscov2.fasta")
+                file(params.modules_testdata_base_path + 'genomics/prokaryotes/candidatus_portiera_aleyrodidarum/genome/proteome.fasta', checkIfExists: true)
+                    .copyTo("\${workDir}/candidatus_portiera_aleyrodidarum.fasta")
+
+                input[0] = [
+                    [ id:'test' ], // meta map
+                    [
+                        file("\${workDir}/sarscov2.fasta", checkIfExists: true),
+                        file("\${workDir}/candidatus_portiera_aleyrodidarum.fasta", checkIfExists: true)
+                    ]
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+    }
+}

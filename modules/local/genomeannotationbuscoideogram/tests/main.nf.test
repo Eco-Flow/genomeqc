@@ -1,0 +1,68 @@
+nextflow_process {
+
+    name "Test Process GENOMEANNOTATIONBUSCOIDEOGRAM"
+    script "../main.nf"
+    process "GENOMEANNOTATIONBUSCOIDEOGRAM"
+
+    tag "modules"
+    tag "modules_local"
+    tag "genomeannotationbuscoideogram"
+
+    test("genomeannotationbuscoideogram - protein-mode busco table") {
+
+        when {
+            process {
+                """
+                input[0] = [
+                    'test',
+                    'bacteria_odb10',
+                    file("\${baseDir}/modules/local/genomeannotationbuscoideogram/tests/full_table.tsv", checkIfExists: true),
+                    file("\${baseDir}/modules/local/genomeannotationbuscoideogram/tests/genome.fasta", checkIfExists: true),
+                    file("\${baseDir}/modules/local/genomeannotationbuscoideogram/tests/test.gff", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            // svg/png are rendered by RIdeogram/Cairo and aren't byte-stable
+            // across environments, so only the CSV summary (and existence of
+            // the plot files) is snapshotted.
+            assertAll(
+                { assert process.success },
+                { assert path(process.out.svg[0][2]).exists() },
+                { assert path(process.out.png[0][2]).exists() },
+                { assert snapshot(
+                    process.out.busco_mappings,
+                    process.out.findAll { key, val -> key.startsWith('versions') }
+                    ).match() }
+            )
+        }
+    }
+
+    test("genomeannotationbuscoideogram - protein-mode busco table - stub") {
+
+        options "-stub"
+
+        when {
+            process {
+                """
+                input[0] = [
+                    'test',
+                    'bacteria_odb10',
+                    file("\${baseDir}/modules/local/genomeannotationbuscoideogram/tests/full_table.tsv", checkIfExists: true),
+                    file("\${baseDir}/modules/local/genomeannotationbuscoideogram/tests/genome.fasta", checkIfExists: true),
+                    file("\${baseDir}/modules/local/genomeannotationbuscoideogram/tests/test.gff", checkIfExists: true)
+                ]
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert process.success },
+                { assert snapshot(process.out).match() }
+            )
+        }
+    }
+}

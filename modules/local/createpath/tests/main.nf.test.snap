@@ -1,0 +1,60 @@
+{
+    "createpath - accession - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test",
+                            "ncbi": "refseq"
+                        },
+                        "test.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "accession": [
+                    [
+                        {
+                            "id": "test",
+                            "ncbi": "refseq"
+                        },
+                        "test.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-08-07T08:51:57.042843",
+        "meta": {
+            "nf-test": "0.9.4",
+            "nextflow": "25.10.4"
+        }
+    },
+    "createpath - accession": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test",
+                            "ncbi": "refseq"
+                        },
+                        "test.txt:md5,04428b4fe5944113421ab52e5373e278"
+                    ]
+                ],
+                "accession": [
+                    [
+                        {
+                            "id": "test",
+                            "ncbi": "refseq"
+                        },
+                        "test.txt:md5,04428b4fe5944113421ab52e5373e278"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-08-07T08:51:40.252105",
+        "meta": {
+            "nf-test": "0.9.4",
+            "nextflow": "25.10.4"
+        }
+    }
+}

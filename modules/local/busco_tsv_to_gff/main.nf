@@ -181,4 +181,10 @@ process BUSCO_TSV_TO_GFF {
     # Run the conversion
     convert_busco_tsv_to_gff("${busco_dir}", "${meta.id}")
     """
+
+    stub:
+    """
+    touch ${meta.id}_busco.gff
+    touch ${meta.id}_busco_stats.json
+    """
 }

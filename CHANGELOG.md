@@ -17,6 +17,7 @@ This is the first release of the pipeline, which compares the quality of multipl
 - Added `--te_cluster_identity` parameter (default `0.8`) to set the sequence identity threshold for repeat library clustering, applied across all three tools.
 - Added `--te_cluster_coverage` parameter (default `0.8`) to set the alignment coverage threshold for repeat library clustering, applied across all three tools.
 - Added `--repeatmasker_speed` parameter to control RepeatMasker sensitivity: `qq` (rush, default), `q` (quick), or `default` (most sensitive).
+- Added `meta.yml` for all local modules (`modules/local/*`), and nf-test coverage (`tests/main.nf.test`) for a first batch of them, following nf-core module conventions.
 
 ### `Fixed`
 

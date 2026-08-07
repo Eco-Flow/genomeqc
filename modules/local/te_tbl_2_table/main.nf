@@ -23,4 +23,11 @@ process TE_TBL_2_TABLE {
         $tables \\
         -o ${prefix}.tsv
     """
+
+    stub:
+    def prefix = task.ext.prefix ?: "${meta.id}"
+
+    """
+    touch ${prefix}.tsv
+    """
 }

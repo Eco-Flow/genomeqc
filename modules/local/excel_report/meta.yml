@@ -1,0 +1,85 @@
+name: "excel_report"
+description: Compiles whichever per-tool QC tables are available into a single multi-sheet Excel workbook
+keywords:
+  - report
+  - excel
+  - qc
+  - summary
+tools:
+  - "excel_report":
+      description: "In-house report generator that assembles a multi-sheet Excel workbook from whichever per-tool tables were produced by the pipeline. All inputs are optional; sheets are omitted for tools that were skipped."
+      homepage: "https://github.com/nf-core/genomeqc"
+      documentation: "https://github.com/nf-core/genomeqc"
+      licence: ["MIT"]
+input:
+  - busco_tables:
+      type: file
+      description: Genome BUSCO batch_summary_modified.txt files (optional)
+      pattern: "*.txt"
+  - busco_prot_tables:
+      type: file
+      description: Protein BUSCO batch_summary_modified.txt files (optional)
+      pattern: "*.txt"
+  - quast_tsvs:
+      type: file
+      description: Per-species QUAST TSV files (optional)
+      pattern: "*.tsv"
+  - agat_stats:
+      type: file
+      description: AGAT spstatistics *.txt files (optional)
+      pattern: "*.txt"
+  - tidk_tsvs:
+      type: file
+      description: tidk aposteriori search TSV files (optional)
+      pattern: "*.tsv"
+  - fcs_gx_reports:
+      type: file
+      description: FCS-GX *.fcs_gx_report.txt files (optional)
+      pattern: "*.fcs_gx_report.txt"
+  - fcs_adaptor_reports:
+      type: file
+      description: FCS-Adaptor *.fcs_adaptor_report.txt files (optional)
+      pattern: "*.fcs_adaptor_report.txt"
+  - tiara_reports:
+      type: file
+      description: Tiara classification *.txt files (optional)
+      pattern: "*.txt"
+  - busco_seqs_table:
+      type: file
+      description: ortho_seqs.py output table of sequences above the BUSCO threshold (optional)
+      pattern: "*.tsv"
+  - repeatmasker_tbls:
+      type: file
+      description: RepeatMasker *.tbl repeat-composition summary files (optional)
+      pattern: "*.tbl"
+output:
+  excel:
+    - "genomeqc_tables.xlsx":
+        type: file
+        description: Multi-sheet Excel workbook of the available QC tables
+        pattern: "genomeqc_tables.xlsx"
+  versions_python:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - python:
+          type: string
+          description: The name of the tool
+      - python3 --version | sed "s/Python //g":
+          type: eval
+          description: The expression to obtain the version of the tool
+topics:
+  versions:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - python:
+          type: string
+          description: The name of the tool
+      - python3 --version | sed "s/Python //g":
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@chriswyatt1"
+maintainers:
+  - "@chriswyatt1"

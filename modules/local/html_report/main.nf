@@ -48,4 +48,9 @@ process HTML_REPORT {
         ${repeatmasker_arg} \\
         --output genomeqc_report.html
     """
+
+    stub:
+    """
+    touch genomeqc_report.html
+    """
 }

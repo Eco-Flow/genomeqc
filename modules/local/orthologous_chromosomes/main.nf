@@ -299,4 +299,11 @@ print(species_chr_count)
 EOF
 
     """
+
+    stub:
+    """
+    touch species_orthologous_chromosomes.tsv
+    touch pairwise_chromosome_orthology.tsv
+    touch debug_gene_mapping.txt
+    """
 }
