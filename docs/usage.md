@@ -348,6 +348,18 @@ RepeatMasker sensitivity can be controlled with `--repeatmasker_speed`:
 
 For TE quantification in a comparative genomics context, `qq` is usually sufficient. Use `default` if you need a publication-quality masked assembly.
 
+### Circular tree quality scoring
+
+With `--tree_style circular`, sequence count, N50 and BUSCO completeness/duplication are scored Good/Warn/Poor against `--quality_preset` (default `generic`; also `vertebrate`, `insect`, `plant`, `fungi`, `bacteria`). Pick the preset matching your taxa: e.g. `bacteria` expects a scaffold N50 ≥ 500 kb and ≤ 100 sequences for "Good", while `vertebrate` expects ≥ 10 Mb and ≤ 1000 sequences. These cut-offs are starting points and should be tuned per project.
+
+To override individual cut-offs without picking a whole new preset, use `--quality_thresholds` with comma-separated `metric=good:warn` pairs, e.g.:
+
+```bash
+--quality_preset bacteria --quality_thresholds 'n50=2e6:5e5,seq_number=50:500'
+```
+
+Metrics: `busco_complete`, `busco_duplicated`, `n50`, `seq_number`. Direction (higher/lower is better) is fixed per metric, so only the cut-off values are given; any metric not mentioned keeps the selected preset's cut-offs. The same overrides are available interactively via the "Custom..." option in the Shiny app's quality-preset selector.
+
 ### The Shiny App
 
 The pipeline outputs an executable that will open a shiny app in your web browser once executed. The app allows the user to change the tree plot parameters in real time, as well as append and remove summary plot statistics. The modified plot can be saved as a png/svg file.

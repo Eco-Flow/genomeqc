@@ -10,6 +10,8 @@
 
 library(shiny)
 library(ggtree)
+library(ggtreeExtra)
+library(ggnewscale)
 library(ggplot2)
 library(patchwork)
 library(dplyr)
@@ -67,41 +69,89 @@ ui <- fluidPage(
              # Controls
              fluidRow(
                column(4,
-                      wellPanel(
-                        h4("Margin Controls"),
-                        sliderInput("tree_space_ratio", "Branch length:", value = 1.3, min = -100, max = 100, step = 0.1),
-                        sliderInput("top_margin", "Top margin:", min = 0, max = 100, value = 5.5, step = 0.5),
-                        sliderInput("right_margin", "Right margin:", min = 0, max = 100, value = 5.5, step = 0.5),
-                        sliderInput("bottom_margin", "Bottom Margin:", min = 0, max = 100, value = 5.5, step = 0.5),
-                        sliderInput("left_margin", "Left Margin:", min = 0, max = 100, value = 5.5, step = 0.5),
-                        sliderInput("tree_margin", "Tree Margin:", min = 0, max = 100, value = 15, step = 1)
+                      # Margins / branch spacing apply to the non-circular layouts only
+                      conditionalPanel(
+                        condition = "input.tree_style != 'circular'",
+                        wellPanel(
+                          h4("Margin Controls"),
+                          helpText("Applies to roundrect / ellipse / rectangular layouts."),
+                          sliderInput("tree_space_ratio", "Branch length:", value = 1.3, min = -100, max = 100, step = 0.1),
+                          sliderInput("top_margin", "Top margin:", min = 0, max = 100, value = 5.5, step = 0.5),
+                          sliderInput("right_margin", "Right margin:", min = 0, max = 100, value = 5.5, step = 0.5),
+                          sliderInput("bottom_margin", "Bottom Margin:", min = 0, max = 100, value = 5.5, step = 0.5),
+                          sliderInput("left_margin", "Left Margin:", min = 0, max = 100, value = 5.5, step = 0.5),
+                          sliderInput("tree_margin", "Tree Margin:", min = 0, max = 100, value = 15, step = 1)
+                        )
+                      ),
+                      # Ring options apply to the circular layout only
+                      conditionalPanel(
+                        condition = "input.tree_style == 'circular'",
+                        wellPanel(
+                          h4("Circular Ring Options"),
+                          helpText("Rings show every statistic that is not skipped (right-hand panel)."),
+                          sliderInput("ring_width", "Ring thickness:", value = 0.13, min = 0.05, max = 0.4, step = 0.01),
+                          selectInput("quality_preset", "Quality thresholds (phylo group):",
+                                      choices = c("Generic (lenient)" = "generic",
+                                                  "Vertebrate" = "vertebrate",
+                                                  "Insect" = "insect",
+                                                  "Plant" = "plant",
+                                                  "Fungi" = "fungi",
+                                                  "Bacteria" = "bacteria",
+                                                  "Custom..." = "custom"),
+                                      selected = "generic"),
+                          helpText("Quality rings are scored Good/Warn/Poor against these thresholds. N50 and sequence-count cut-offs are clade-dependent - pick the group matching your taxa, or set them yourself with 'Custom'."),
+                          conditionalPanel(
+                            condition = "input.quality_preset == 'custom'",
+                            helpText("Direction is fixed per metric: BUSCO complete and N50 are higher-is-better; BUSCO duplicated and sequence count are lower-is-better."),
+                            numericInput("thr_busco_good", "BUSCO complete % - Good at or above:", value = 95, min = 0, max = 100, step = 1),
+                            numericInput("thr_busco_warn", "BUSCO complete % - Warn at or above:", value = 90, min = 0, max = 100, step = 1),
+                            numericInput("thr_dup_good",   "BUSCO duplicated % - Good at or below:", value = 5, min = 0, max = 100, step = 1),
+                            numericInput("thr_dup_warn",   "BUSCO duplicated % - Warn at or below:", value = 10, min = 0, max = 100, step = 1),
+                            numericInput("thr_n50_good",   "N50 (bp) - Good at or above:", value = 1e6, min = 0, step = 1e5),
+                            numericInput("thr_n50_warn",   "N50 (bp) - Warn at or above:", value = 1e5, min = 0, step = 1e4),
+                            numericInput("thr_seq_good",   "Sequence count - Good at or below:", value = 1000, min = 0, step = 10),
+                            numericInput("thr_seq_warn",   "Sequence count - Warn at or below:", value = 10000, min = 0, step = 100)
+                          ),
+                          checkboxInput("show_values", "Print values on rings", value = FALSE)
+                        )
                       )
                ),
 
                column(4,
                       wellPanel(
                         h4("Plot Parameters"),
+                        selectInput("tree_style", "Tree Style:",
+                                    choices = c("Rounded (roundrect)" = "roundrect",
+                                                "Curved (ellipse)" = "ellipse",
+                                                "Rectangular (legacy)" = "rectangular",
+                                                "Circular (rings)" = "circular"),
+                                    selected = "roundrect"),
+                        # Text size applies to all layouts (tip labels / circular tip numbers)
                         numericInput("text_size", "Tip Text Size:", value = 3, min = 1, max = 10, step = 0.1),
-                        numericInput("tree_scale", "Tree Scale:", value = 0.0005, min = 0.0001, max = 0.01, step = 0.0001),
-                        #numericInput("tree_space_ratio", "Tree space ratio:", value = 1.3, min = -100, max = 100, step = 0.1),
-                        numericInput("bar_width", "Bar Width:", value = 0.7, min = 0.1, max = 2, step = 0.1),
-                        numericInput("rad_width", "Pie Radius:", value = 0.4, min = 0.1, max = 1, step = 0.05)
+                        # These only affect the non-circular layouts
+                        conditionalPanel(
+                          condition = "input.tree_style != 'circular'",
+                          numericInput("tree_scale", "Tree Scale:", value = 0.0005, min = 0.0001, max = 0.01, step = 0.0001),
+                          numericInput("bar_width", "Bar Width:", value = 0.7, min = 0.1, max = 2, step = 0.1),
+                          numericInput("rad_width", "Pie Radius:", value = 0.4, min = 0.1, max = 1, step = 0.05)
+                        )
                       )
                ),
 
                column(4,
                       wellPanel(
                         h4("Display Options"),
+                        helpText("Skip a statistic to drop its panel (non-circular) or ring (circular). Applies to all layouts."),
                         checkboxGroupInput("skip_stats", "Skip Statistics:",
                                            choices = list(
                                              "Sequence Count" = "ch_plot",
-                                             "NSeqs Plot" = "nseqs_plot",
-                                             "Ortho Plot" = "ortho_plot",
-                                             "Genome Length" = "len_plot",
-                                             "Gene Statistics" = "gene_plot",
-                                             "N50 Statistics" = "n50_plot",
-                                             "BUSCO Genome Pies" = "busco_gen_plot",
-                                             "BUSCO Protein Pies" = "busco_prot_plot",
+                                             "NSeqs" = "nseqs_plot",
+                                             "Ortho Seqs" = "ortho_plot",
+                                             "Genome Size" = "len_plot",
+                                             "Gene Number" = "gene_plot",
+                                             "N50" = "n50_plot",
+                                             "BUSCO Genome" = "busco_gen_plot",
+                                             "BUSCO Protein" = "busco_prot_plot",
                                              "TE Composition" = "te_plot"
                                            )),
                         #selectInput("plot_type", "Plot Type:",
@@ -162,13 +212,26 @@ server <- function(input, output, session) {
 
   # Generate plot when parameters change or refresh button is clicked
   observeEvent(c(input$refresh_plot, input$text_size, input$tree_scale,
-                 input$bar_width, input$rad_width, input$skip_stats,
+                 input$bar_width, input$rad_width, input$skip_stats, input$tree_style,
+                 input$ring_width, input$quality_preset, input$show_values,
+                 input$thr_busco_good, input$thr_busco_warn, input$thr_dup_good, input$thr_dup_warn,
+                 input$thr_n50_good, input$thr_n50_warn, input$thr_seq_good, input$thr_seq_warn,
                  input$tree_space_ratio, input$top_margin, input$right_margin,
                  input$bottom_margin, input$left_margin, input$tree_margin, input$skip_stats,
                  input$export_width, input$export_height, input$export_dpi), {
 
                    # Show loading notification
                    showNotification("Generating plot...", type = "message", duration = 2)
+
+                   # "Custom" thresholds override the phylo-group preset. Directions are
+                   # fixed per metric and must match those in QUALITY_PRESETS.
+                   is_custom <- identical(input$quality_preset, "custom")
+                   custom_thresholds <- if (is_custom) list(
+                     busco_complete   = list(direction = "higher", good = input$thr_busco_good, warn = input$thr_busco_warn),
+                     busco_duplicated = list(direction = "lower",  good = input$thr_dup_good,   warn = input$thr_dup_warn),
+                     n50              = list(direction = "higher", good = input$thr_n50_good,   warn = input$thr_n50_warn),
+                     seq_number       = list(direction = "lower",  good = input$thr_seq_good,   warn = input$thr_seq_warn)
+                   ) else NULL
 
                    # Generate the plot
                    plot_result <- generate_complete_plot(
@@ -183,7 +246,12 @@ server <- function(input, output, session) {
                      left_margin = input$left_margin,
                      tree_margin = input$tree_margin,
                      skip_stats = input$skip_stats,
-                     tree_space_ratio = input$tree_space_ratio
+                     tree_space_ratio = input$tree_space_ratio,
+                     tree_style = input$tree_style,
+                     ring_width = if (is.null(input$ring_width)) 0.13 else input$ring_width,
+                     quality_preset = if (is_custom || is.null(input$quality_preset)) "generic" else input$quality_preset,
+                     thresholds = custom_thresholds,
+                     show_values = isTRUE(input$show_values)
 
                    )
 
