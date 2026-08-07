@@ -18,6 +18,7 @@ process RM_CONCAT_DB {
     script:
     def sorted_files = h5_files.sort().join(' ')
     """
+    # Merge per-lineage Dfam HDF5 databases into one combined database file
     h5copy -i ${sorted_files} -o dfam_full.h5 -s ./ -d ./
     """
 }

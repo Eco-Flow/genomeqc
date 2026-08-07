@@ -46,6 +46,7 @@ process TREESUMMARY {
 
 
     """
+    # Combine per-species QC tables and render the phylogenetic tree summary plot
     #Remove unwanted extensions in the tree file
     sed \'s/\\.prot\\.fa\\.largestIsoform//g\' ${tree}/Species_Tree/SpeciesTree_rooted_node_labels.txt > tree.nw
 

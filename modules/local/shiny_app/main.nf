@@ -25,6 +25,7 @@ process SHINY_APP {
     def docker_url       = 'ecoflowucl/genomeqc_tree:v1.4'
     def results_path     = file(params.outdir).toAbsolutePath()
     """
+    # Package the QC tables and tree into a launchable Shiny app container script
     mkdir app
 
     # Mount directory is executable directory (\$0)

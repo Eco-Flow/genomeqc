@@ -36,6 +36,7 @@ process HTML_REPORT {
     def busco_seqs_arg   = busco_seqs_table  ? "--busco_seqs_table busco_seqs/*"    : ""
     def repeatmasker_arg = repeatmasker_tbls ? "--repeatmasker_tbls repeatmasker/*" : ""
     """
+    # Build a self-contained HTML QC report from the available per-tool tables
     generate_report.py \\
         ${busco_arg} \\
         ${busco_prot_arg} \\

@@ -19,6 +19,7 @@ process TE_TBL_2_TABLE {
     def prefix = task.ext.prefix ?: "${meta.id}"
 
     """
+    # Parse RepeatMasker .tbl files into a combined TE-composition summary TSV
     te_tbl_2_table.py \\
         $tables \\
         -o ${prefix}.tsv

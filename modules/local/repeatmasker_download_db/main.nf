@@ -21,6 +21,7 @@ process RM_DOWNLOAD_DB {
     def md5_url      = db_url + ".md5"
 
     """
+    # Download a RepeatMasker/Dfam database file and verify it against its MD5 checksum
     curl -O "${db_url}"
     curl -O "${md5_url}"
 
