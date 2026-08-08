@@ -42,17 +42,23 @@ nextflow_process {
 
             def stable_file_names = [
                 'Statistics_PerSpecies.tsv',
-                'Statistics_Overall.tsv',
                 'SpeciesTree_rooted.txt'
             ]
             def stable_files = all_files.findAll { it.name in stable_file_names }
 
+            // Statistics_Overall.tsv embeds a "Date" line that changes daily, so snapshot
+            // its content with that line stripped instead of hashing the raw file.
+            def overall_stats_file = all_files.find { it.name == 'Statistics_Overall.tsv' }
+            def overall_stats_lines = overall_stats_file?.readLines()?.findAll { !it.startsWith('Date\t') }
+
             assertAll(
                 { assert stable_files.size() == stable_file_names.size() },
+                { assert overall_stats_file != null },
                 { assert path(process.out.orthologues[0]).exists() },
                 { assert path(process.out.speciestree[0]).exists() },
                 { assert snapshot(
                     stable_files.toSorted { it.name },
+                    overall_stats_lines,
                     process.out.findAll { key, val -> key.startsWith('versions') }
                     ).match() }
             )
