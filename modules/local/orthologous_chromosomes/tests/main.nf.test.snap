@@ -1,0 +1,80 @@
+{
+    "orthologous_chromosomes - two species - stub": {
+        "content": [
+            {
+                "0": [
+                    "species_orthologous_chromosomes.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ],
+                "1": [
+                    "pairwise_chromosome_orthology.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ],
+                "2": [
+                    "debug_gene_mapping.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ],
+                "3": [
+                    [
+                        "ORTHOLOGOUS_CHROMOSOMES",
+                        "python",
+                        "3.13.5"
+                    ]
+                ],
+                "4": [
+                    [
+                        "ORTHOLOGOUS_CHROMOSOMES",
+                        "pandas",
+                        "2.3.1"
+                    ]
+                ],
+                "debug_info": [
+                    "debug_gene_mapping.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ],
+                "pairwise_summary": [
+                    "pairwise_chromosome_orthology.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ],
+                "species_summary": [
+                    "species_orthologous_chromosomes.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ],
+                "versions_pandas": [
+                    [
+                        "ORTHOLOGOUS_CHROMOSOMES",
+                        "pandas",
+                        "2.3.1"
+                    ]
+                ],
+                "versions_python": [
+                    [
+                        "ORTHOLOGOUS_CHROMOSOMES",
+                        "python",
+                        "3.13.5"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-08-07T09:00:50.281732",
+        "meta": {
+            "nf-test": "0.9.4",
+            "nextflow": "25.10.4"
+        }
+    },
+    "orthologous_chromosomes - two species": {
+        "content": [
+            [
+                "Species\tSyntenic_Chromosomes",
+                "speciesA\t2",
+                "speciesB\t2"
+            ],
+            [
+                "Species1\tChr1\tSpecies2\tChr2\tOrthogroup_Count",
+                "speciesA\tchr1\tspeciesB\tchrX\t2",
+                "speciesA\tchr1\tspeciesB\tchrY\t1",
+                "speciesA\tchr2\tspeciesB\tchrX\t1",
+                "speciesA\tchr2\tspeciesB\tchrY\t1"
+            ]
+        ],
+        "timestamp": "2026-08-07T09:00:30.902191",
+        "meta": {
+            "nf-test": "0.9.4",
+            "nextflow": "25.10.4"
+        }
+    }
+}
