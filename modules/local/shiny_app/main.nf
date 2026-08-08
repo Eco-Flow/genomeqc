@@ -76,4 +76,10 @@ process SHINY_APP {
     mv shiny_app.sh app/
 
     """
+
+    stub:
+    """
+    mkdir app
+    touch app/shiny_app.sh
+    """
 }

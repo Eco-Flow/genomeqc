@@ -1,0 +1,3 @@
+query_gene	subject_gene	query_start	query_end	subject_start	subject_end	query_strand	subject_strand	overlap_type	query_overlap_pct	subject_overlap_pct
+ID=gene1	ID=gene2	100	500	200	400	+	+	sense	50.1246882793017	100
+ID=gene2	ID=gene1	200	400	100	500	+	+	sense	100	50.1246882793017

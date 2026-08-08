@@ -1,0 +1,84 @@
+{
+    "buscos_seqs - single table": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "n_seqs_above_x_buscos.tsv:md5,daabefd77cd6444c192c2d51190bb129"
+                    ]
+                ],
+                "1": [
+                    [
+                        "BUSCO_SEQS",
+                        "python",
+                        "3.13.5"
+                    ]
+                ],
+                "table": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "n_seqs_above_x_buscos.tsv:md5,daabefd77cd6444c192c2d51190bb129"
+                    ]
+                ],
+                "versions_python": [
+                    [
+                        "BUSCO_SEQS",
+                        "python",
+                        "3.13.5"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-08-07T09:48:05.658924",
+        "meta": {
+            "nf-test": "0.9.4",
+            "nextflow": "25.10.4"
+        }
+    },
+    "buscos_seqs - single table - stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "n_seqs_above_x_buscos.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        "BUSCO_SEQS",
+                        "python",
+                        "3.13.5"
+                    ]
+                ],
+                "table": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "n_seqs_above_x_buscos.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions_python": [
+                    [
+                        "BUSCO_SEQS",
+                        "python",
+                        "3.13.5"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-08-07T09:48:19.13407",
+        "meta": {
+            "nf-test": "0.9.4",
+            "nextflow": "25.10.4"
+        }
+    }
+}

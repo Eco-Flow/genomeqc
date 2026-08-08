@@ -18,10 +18,15 @@ process BUSCO_SEQS {
     def args = task.ext.args ?: ''
     def prefix         = task.ext.prefix ?: "${meta.id}"
     """
-    # Count sequences per species with Complete BUSCOs above a threshold
+    # Count sequences with Complete_BUSCOs above the threshold
     ortho_seqs.py \\
     -i $tables \\
     $args
 
+    """
+
+    stub:
+    """
+    touch n_seqs_above_x_buscos.tsv
     """
 }

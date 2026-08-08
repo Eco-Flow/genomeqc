@@ -53,4 +53,9 @@ process EXCEL_REPORT {
         ${repeatmasker_arg} \\
         --output genomeqc_tables.xlsx
     """
+
+    stub:
+    """
+    touch genomeqc_tables.xlsx
+    """
 }

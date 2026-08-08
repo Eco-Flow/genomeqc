@@ -20,4 +20,10 @@ process BUSCO_TSV_TO_GFF {
     # Convert a BUSCO full_table.tsv into a GFF3 of gene locations plus a JSON stats summary
     busco_tsv_to_gff.py ${busco_dir} ${meta.id}
     """
+
+    stub:
+    """
+    touch ${meta.id}_busco.gff
+    touch ${meta.id}_busco_stats.json
+    """
 }
