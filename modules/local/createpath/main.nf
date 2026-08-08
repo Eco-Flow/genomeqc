@@ -19,6 +19,7 @@ process CREATEPATH {
     script:
     def prefix         = task.ext.prefix ?: "${meta.id}"
     """
+    # Write the sample's accession/path to a text file for downstream fetch steps
     echo $accession > ${prefix}.txt
     """
 

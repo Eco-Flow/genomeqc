@@ -4,8 +4,8 @@ process TREESUMMARY {
 
     conda "${moduleDir}/environment.yml"
     container "${workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container
-        ? 'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/22/222cecd2ebec39f4c73b3b8608ffddd0bfae8a9b5aad392ab4da1e75d25a5e9e/data'
-        : 'community.wave.seqera.io/library/python_pandas_r-base_bioconductor-ggtree_pruned:f9ab550d092fa61d'}"
+        ? 'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/77/775cbc98f9e32d9e07c11116df02f3f0f23c94c1001fa8a38825fb0183009e0c/data'
+        : 'community.wave.seqera.io/library/python_pandas_r-base_bioconductor-ggtreeextra_pruned:5327fed29a6ac09f'}"
 
     input:
     tuple val(meta), path(tree)
@@ -46,6 +46,7 @@ process TREESUMMARY {
 
 
     """
+    # Combine per-species QC tables and render the phylogenetic tree summary plot
     #Remove unwanted extensions in the tree file
     sed \'s/\\.prot\\.fa\\.largestIsoform//g\' ${tree}/Species_Tree/SpeciesTree_rooted_node_labels.txt > tree.nw
 

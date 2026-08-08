@@ -18,7 +18,7 @@ process BUSCO_SEQS {
     def args = task.ext.args ?: ''
     def prefix         = task.ext.prefix ?: "${meta.id}"
     """
-    # Get chromosome lengths:
+    # Count sequences per species with Complete BUSCOs above a threshold
     ortho_seqs.py \\
     -i $tables \\
     $args
