@@ -21,6 +21,9 @@ This is the first release of the pipeline, which compares the quality of multipl
 
 ### `Fixed`
 
+- Fixed `ORTHOFINDER` silently succeeding when OrthoFinder itself failed to produce `Orthogroups/Orthogroups.tsv`, which surfaced downstream as a confusing "missing output file" error in `ORTHOLOGOUS_CHROMOSOMES` instead of the real failure.
+- Fixed `ORTHOLOGOUS_CHROMOSOMES` silently mapping zero genes for GFFs that use a `transcript` feature instead of `mRNA` (common in AUGUSTUS output, especially when combined with evidence from other predictors) ([#174](https://github.com/nf-core/genomeqc/issues/174)).
+
 ### `Dependencies`
 
 ### `Deprecated`

@@ -99,8 +99,13 @@ def parse_gff(gff_file, final_species_name, debug_info):
                 if len(parts) < 9:
                     continue
 
+                # "transcript" is treated as a synonym for "mRNA": AUGUSTUS (and
+                # AGAT-normalised multi-source annotations combining it with other
+                # evidence, e.g. GeneMark) commonly emits "transcript" instead of
+                # "mRNA" for the same SO term, and that's the feature gffread keys
+                # protein/CDS sequence names on.
                 feature_type = parts[2]
-                if feature_type not in ['gene', 'mRNA', 'CDS']:
+                if feature_type not in ['gene', 'mRNA', 'transcript', 'CDS']:
                     continue
 
                 chromosome = parts[0]
