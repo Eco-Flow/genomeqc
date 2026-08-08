@@ -17,6 +17,7 @@ process HITE {
     def args   = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
+    # Run HiTE to detect and classify transposable elements in the genome assembly
     # Unzip the genome and make sure it does not have internal new line characters.
     if [ -f *.gz ]; then
       gunzip -c "$fasta" > myunzip.fa

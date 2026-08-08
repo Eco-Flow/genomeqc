@@ -21,6 +21,7 @@ process GENOMEANNOTATIONBUSCOIDEOGRAM {
     def args = task.ext.args ?: ''
     def prefix = "${genusspeci}_${lineage}"
     """
+    # Plot a chromosome ideogram of annotated BUSCO gene locations from the GFF
     # Get chromosome lengths:
     seqkit fx2tab -i -n -l ${genome} > ${prefix}_for_karyotype.txt
 

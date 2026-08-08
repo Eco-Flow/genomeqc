@@ -21,6 +21,7 @@ process GENOMEBUSCOIDEOGRAM {
     def args   = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
+    # Plot a chromosome ideogram of genome-mode BUSCO gene locations
     grep -v "#" ${busco_full_table} | cut -f 2,3,4,5  | grep -v "Missing" > ${prefix}_busco_coordinates.txt
 
     # Get chromosome lengths:
