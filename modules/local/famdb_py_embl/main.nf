@@ -25,6 +25,7 @@ process FAMDB_PY_EMBL {
         "\$CONDA_PREFIX/share/RepeatMasker/famdb.py"
 
     """
+    # Export the Dfam repeat family library for a lineage and convert it to FASTA
     python ${famdb_script} \\
         -i ./ \\
         families --descendants $term -f embl \\

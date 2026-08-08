@@ -39,6 +39,7 @@ process EXCEL_REPORT {
     def busco_seqs_arg = busco_seqs_table    ? "--busco_seqs_table busco_seqs/*"     : ""
     def repeatmasker_arg = repeatmasker_tbls ? "--repeatmasker_tbls repeatmasker/*"  : ""
     """
+    # Compile all per-tool QC tables into a single multi-sheet Excel workbook
     generate_excel.py \\
         ${busco_arg} \\
         ${busco_prot_arg} \\
