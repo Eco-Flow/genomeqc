@@ -1,0 +1,54 @@
+nextflow_process {
+
+    name "Test Process ORTHOLOGOUS_CHROMOSOMES"
+    script "../main.nf"
+    process "ORTHOLOGOUS_CHROMOSOMES"
+
+    tag "modules"
+    tag "modules_local"
+    tag "orthologous_chromosomes"
+
+    test("custom AUGUSTUS-style annotation - transcript feature type is recognised") {
+        // Regression test for https://github.com/nf-core/genomeqc/issues/174
+        //
+        // AUGUSTUS output (after AGAT normalisation, and/or when combined with
+        // evidence from other predictors such as GeneMark) commonly uses a
+        // "transcript" feature instead of "mRNA" for the gene model's second
+        // level. gffread keys the protein/CDS sequence name - and therefore the
+        // gene name OrthoFinder reports in Orthogroups.tsv - on that feature's
+        // ID. If the module doesn't also recognise "transcript" as a valid
+        // feature type, it never learns that ID's chromosome, so it can never
+        // match it back against Orthogroups.tsv: every gene silently fails to
+        // map and the outputs come back empty instead of erroring.
+
+        when {
+            process {
+                """
+                input[0] = file("\$baseDir/modules/local/orthologous_chromosomes/tests/Orthogroups.tsv")
+                input[1] = [
+                    file("\$baseDir/modules/local/orthologous_chromosomes/tests/species_a.longest.gff"),
+                    file("\$baseDir/modules/local/orthologous_chromosomes/tests/species_b.longest.gff")
+                ]
+                """
+            }
+        }
+
+        then {
+            assert process.success
+
+            def species_summary = path(process.out.species_summary[0]).readLines()
+            def pairwise_summary = path(process.out.pairwise_summary[0]).readLines()
+
+            // The single shared orthogroup (g1.t1 <-> g2.t1) must have been
+            // matched back to its chromosome in both species - not silently
+            // dropped.
+            assert species_summary.size() == 3 // header + one row per species
+            assert species_summary.any { it == "species_a\t1" }
+            assert species_summary.any { it == "species_b\t1" }
+
+            assert pairwise_summary.size() == 2 // header + one pair
+            assert pairwise_summary[1] == "species_a\tHiC_scaffold_1\tspecies_b\tHiC_scaffold_7\t1"
+        }
+    }
+
+}
