@@ -1,0 +1,59 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/environment-schema.json
+# Adapted from HiTE's own environment.yml (https://github.com/CSU-KangHu/HiTE/blob/master/environment.yml),
+# which HiTE's authors maintain and test against - not independently re-derived,
+# since HiTE bundles many interdependent tools (RepeatMasker, RepeatModeler,
+# a bundled PyTorch model, R/Bioconductor scripts) with no simpler equivalent.
+#
+# r-base is pinned to 4.1.3, not upstream's 4.2.3: with tensorflow=2.12.1 in the
+# same environment, no bioconductor-rsubread build has a compatible icu range
+# against r-base 4.2.x (a gap in its build matrix between r-base <4.2 and >=4.4).
+# 4.1.3 is the closest r-base upstream's own pin that still resolves cleanly.
+channels:
+  - conda-forge
+  - bioconda
+  - r
+  - pytorch
+dependencies:
+  - conda-forge::python=3.9.19
+  - bioconda::java-jdk=8.0.112
+  - conda-forge::pytorch=2.0.0
+  - pytorch::cpuonly=2.0
+  - conda-forge::gxx=16.1.0
+  - conda-forge::tensorflow=2.12.1
+  - conda-forge::numpy=1.24.4
+  - conda-forge::pandas=2.2.2
+  - bioconda::pysam=0.22.1
+  - conda-forge::biopython=1.85
+  - conda-forge::scikit-learn=1.6.1
+  - conda-forge::seaborn=0.13.2
+  - conda-forge::matplotlib=3.9.4
+  - conda-forge::openpyxl=3.1.5
+  - bioconda::rmblast=2.14.0
+  - bioconda::repeatmasker=4.1.1
+  - bioconda::repeatmodeler=2.0.1=pl526_0
+  - bioconda::bedtools=2.31.1
+  - bioconda::cd-hit=4.8.1
+  - bioconda::samtools=1.21
+  - conda-forge::fuzzysearch=0.8.0
+  - conda-forge::mafft=7.526
+  - bioconda::ninja-nj=1.00
+  - bioconda::emboss=6.6.0
+  - conda-forge::r-base=4.1.3
+  - bioconda::hisat2=2.2.3
+  - bioconda::trimmomatic=0.40
+  - bioconda::gffread=0.12.7
+  - bioconda::pygtftk=1.6.2
+  - bioconda::bioconductor-rsubread=2.8.1
+  - conda-forge::r-mass=7.3_58.3
+  - conda-forge::tqdm=4.67.1
+  - conda-forge::pip=25.2
+  - bioconda::minimap2=2.28
+  - pip:
+      - python-Levenshtein
+      - PyPDF2
+      - PyMuPDF
+      - statannot
+      - psutil
+      - intervaltree
+      - tabulate>=0.9.0
