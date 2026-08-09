@@ -4,4 +4,4 @@ channels:
   - conda-forge
   - bioconda
 dependencies:
-  - coreutils=8.31
+  - coreutils=8.32
