@@ -184,7 +184,7 @@ Work required:
    (`quality` | `descriptive`) and a `direction`.
 
 **Gating:** Merqury only runs when reads (FASTQ) are supplied; FCS only when
-`--gxdb`/`--gxdb_manifiest` is set. Both rings must therefore be optional — the
+`--gxdb`/`--gxdb_manifest` is set. Both rings must therefore be optional — the
 registry's "no data → no ring" behaviour already covers this.
 
 ## 7. Implementation phases
