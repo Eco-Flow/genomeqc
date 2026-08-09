@@ -1,0 +1,49 @@
+{
+    "html_report - no optional inputs": {
+        "content": [
+            [
+                [
+                    "HTML_REPORT",
+                    "python",
+                    "3.9.5"
+                ]
+            ]
+        ],
+        "timestamp": "2026-08-07T09:03:29.487084",
+        "meta": {
+            "nf-test": "0.9.4",
+            "nextflow": "25.10.4"
+        }
+    },
+    "html_report - no optional inputs - stub": {
+        "content": [
+            {
+                "0": [
+                    "genomeqc_report.html:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ],
+                "1": [
+                    [
+                        "HTML_REPORT",
+                        "python",
+                        "3.9.5"
+                    ]
+                ],
+                "report": [
+                    "genomeqc_report.html:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ],
+                "versions_python": [
+                    [
+                        "HTML_REPORT",
+                        "python",
+                        "3.9.5"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-08-07T09:03:46.712665",
+        "meta": {
+            "nf-test": "0.9.4",
+            "nextflow": "25.10.4"
+        }
+    }
+}

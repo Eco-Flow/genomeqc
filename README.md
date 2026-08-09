@@ -49,7 +49,7 @@ The pipeline takes a list of genomes and annotations (from local files or ncbi a
    2. **Gene Overlaps**: Finds the number of overlapping genes.
 4. Extracts longest protein isoform: [GffRead](https://github.com/gpertea/gffread).
 5. Finds orthologous genes: [Orthofinder](https://github.com/davidemms/OrthoFinder).
-6. Plots an orthology-based - if annotation is given - or BUSCO marker-based - if no annotation is given - phylogenetic tree with summary statistics: **Tree Summary**
+6. Plots an orthology-based - if annotation is given - or BUSCO marker-based - if no annotation is given - phylogenetic tree with summary statistics: **Tree Summary**. Selectable `--tree_style`: a conventional left-to-right tree, or a **circular** layout with the summary statistics drawn as concentric rings and quality metrics scored as a colour-blind-safe Good/Warn/Poor traffic light.
 7. Summary with **HTML and excel** custom reports.
 8. Summary with [MultiQC](http://multiqc.info).
 

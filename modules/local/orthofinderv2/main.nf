@@ -24,6 +24,7 @@ process ORTHOFINDERV2 {
     prefix   = task.ext.prefix ?: "${meta.id}"
 
     """
+    # Infer orthogroups and a species tree across the input proteomes with OrthoFinder2
     mkdir temp_pickle
 
     orthofinder \\
