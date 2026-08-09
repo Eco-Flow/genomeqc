@@ -4,4 +4,4 @@ channels:
   - conda-forge
   - bioconda
 dependencies:
-  - bioconda::curl=7.80.0
+  - conda-forge::curl=7.80.0
