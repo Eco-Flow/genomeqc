@@ -249,7 +249,7 @@ workflow GENOME_AND_ANNOTATION {
 
     emit:
     orthofinder                = ch_orthofinder         // channel: [ val(meta), [folder] ]
-    tree_data                  = ch_tree_data.flatten().collect()
+    tree_data                  = ch_tree_data.flatten().collect().map { files -> files.toSorted { a, b -> a.name <=> b.name } } // sort for deterministic behaviour
     quast_results              = QUAST.out.results                   // channel: [ val(meta), [tsv] ]
     busco_short_summaries_geno = !params.skip_busco ? GAWK_GENO.out.output : channel.empty()
     busco_short_summaries_prot = !params.skip_busco ? GAWK_PROT.out.output : channel.empty()

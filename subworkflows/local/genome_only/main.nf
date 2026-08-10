@@ -123,7 +123,7 @@ workflow GENOME_ONLY {
 
     emit:
     orthofinder             = !params.skip_busco ? ch_orthofinder : channel.empty()        // channel: [ val(meta), [folder] ]
-    tree_data               = !params.skip_busco ? ch_tree_data.flatten().collect() : channel.empty()
+    tree_data               = !params.skip_busco ? ch_tree_data.flatten().collect().map { files -> files.toSorted { a, b -> a.name <=> b.name } } : channel.empty() // sort for deterministic behaviour
     quast_results           = QUAST.out.results                   // channel: [ val(meta), [tsv] ]
     busco_short_summaries   = !params.skip_busco ? BUSCO_BUSCO.out.short_summaries_txt : channel.empty() // channel: [ val(meta), [txt] ]
     buscos_per_seqs         = !params.skip_busco ? GENOMEBUSCOIDEOGRAM.out.busco_mappings.collect { meta, table -> table}.map { tables -> tables.toSorted { a, b -> a.name <=> b.name } } : channel.empty() // channel: [ csv ]
