@@ -170,11 +170,15 @@ nextflow run nf-core/genomeqc \
 
 Users can skip tidk using the `--skip_tidk` flag.
 
+Refer to the [GitHub page](https://github.com/tolkit/telomeric-identifier) for more information about tidk.
+
 ### Running Merqury
 
-Users can also run the pipeline using Merqury by supplying the path to sequencing reads under the `fastq` field. Merqury needs both `fasta` and the corresponding `fastq` to run (one single `fastq` per assembly). For paired-end reads, merge/concatenate R1 and R2 into a single file before providing it. Refer the [GitHub page](https://github.com/marbl/merqury) for more information on Merqury.
+Users can also run the pipeline using Merqury by supplying the path to sequencing reads under the `fastq` field. Merqury needs both `fasta` and the corresponding `fastq` to run (one single `fastq` per assembly). For paired-end reads, merge/concatenate R1 and R2 into a single file before providing it.
 
 The k-mer size used to build the Meryl database can be tuned with `--kvalue` (default: `21`). For highly heterozygous or large genomes, a larger k (e.g. `31`) may give better completeness estimates.
+
+Refer the [GitHub page](https://github.com/marbl/merqury) for more information on Merqury.
 
 ### Running Decontamination
 
