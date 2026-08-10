@@ -47,7 +47,7 @@ output:
       - python:
           type: string
           description: The name of the tool
-      - "python3 --version | sed \"s/Python //g\"":
+      - 'python3 --version | sed "s/Python //g"':
           type: eval
           description: The expression to obtain the version of the tool
 authors:
@@ -62,6 +62,6 @@ topics:
       - python:
           type: string
           description: The name of the tool
-      - "python3 --version | sed \"s/Python //g\"":
+      - 'python3 --version | sed "s/Python //g"':
           type: eval
           description: The expression to obtain the version of the tool

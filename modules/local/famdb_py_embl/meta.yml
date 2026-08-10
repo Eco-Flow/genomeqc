@@ -49,7 +49,7 @@ output:
       - repeatmasker:
           type: string
           description: The name of the tool
-      - "RepeatMasker | grep version | cut -f 3 -d \" \"":
+      - 'RepeatMasker | grep version | cut -f 3 -d " "':
           type: eval
           description: The expression to obtain the version of the tool
 authors:
@@ -64,6 +64,6 @@ topics:
       - repeatmasker:
           type: string
           description: The name of the tool
-      - "RepeatMasker | grep version | cut -f 3 -d \" \"":
+      - 'RepeatMasker | grep version | cut -f 3 -d " "':
           type: eval
           description: The expression to obtain the version of the tool
