@@ -142,7 +142,7 @@ You can also generate such `YAML`/`JSON` files via [nf-core/launch](https://nf-c
 This is the minimal run. The pipeline will run on genome only mode if these inputs are provided in the samplesheet:
 
 1. Path to `fasta` OR
-2. `ncbi` GenaBank accession.
+2. `ncbi` GenBank accession.
 
 The pipeline will produce a tree plot summary that can be modified in real time using a packaged shiny app, as well as a MultiQC report with quality statistics.
 
