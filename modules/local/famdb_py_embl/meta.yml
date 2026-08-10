@@ -43,6 +43,7 @@ output:
           pattern: "*.fasta"
           ontologies: []
 authors:
+  - "@FernandoDuarteF"
   - "@chriswyatt1"
 maintainers:
   - "@chriswyatt1"
