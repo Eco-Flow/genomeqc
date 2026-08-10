@@ -41,6 +41,6 @@ output:
           ontologies:
             - edam: http://edamontology.org/format_3475
 authors:
-  - "@chriswyatt1"
+  - "@FernandoDuarteF"
 maintainers:
   - "@chriswyatt1"
