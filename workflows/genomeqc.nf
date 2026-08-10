@@ -86,12 +86,12 @@ workflow GENOMEQC {
     // If statement in case people give taxids but no database.
     // This way subworkflow won't try to run (otherwise it'll just fail)
     // Add warning in parameter/input validation plugin
-    if ( params.gxdb || params.gxdb_manifiest ) {
+    if ( params.gxdb || params.gxdb_manifest ) {
         DECONTAMINATION (
             ch_input_decon,
             params.ramdisk ?: [],
             params.gxdb ?: [],
-            params.gxdb_manifiest ? file(params.gxdb_manifiest) : []
+            params.gxdb_manifest ? file(params.gxdb_manifest) : []
         )
     }
 
@@ -245,9 +245,9 @@ workflow GENOMEQC {
     ch_tidk                = params.skip_tidk ? channel.value([]) : FASTA_EXPLORE_SEARCH_PLOT_TIDK.out.aposteriori_tsv.map { _meta, f -> f }.collect().first()
     ch_report_tidk_apriori = (params.skip_tidk || !params.repeat) ? channel.value([]) : FASTA_EXPLORE_SEARCH_PLOT_TIDK.out.apriori_tsv.map { _meta, f -> f }.collect()
 
-    ch_fcsgx  = (params.gxdb || params.gxdb_manifiest) ? DECONTAMINATION.out.fcs_gx_report.map { _meta, f -> f }.collect().first()  : channel.value([])
-    ch_fcsadp = (params.gxdb || params.gxdb_manifiest) ? DECONTAMINATION.out.adaptor_report.map { _meta, f -> f }.collect().first()  : channel.value([])
-    ch_tiara  = (params.gxdb || params.gxdb_manifiest) ? DECONTAMINATION.out.tiara_cleaned.map  { _meta, f -> f }.collect().first()  : channel.value([])
+    ch_fcsgx  = (params.gxdb || params.gxdb_manifest) ? DECONTAMINATION.out.fcs_gx_report.map { _meta, f -> f }.collect().first()  : channel.value([])
+    ch_fcsadp = (params.gxdb || params.gxdb_manifest) ? DECONTAMINATION.out.adaptor_report.map { _meta, f -> f }.collect().first()  : channel.value([])
+    ch_tiara  = (params.gxdb || params.gxdb_manifest) ? DECONTAMINATION.out.tiara_cleaned.map  { _meta, f -> f }.collect().first()  : channel.value([])
 
     HTML_REPORT (
         ch_report_busco,

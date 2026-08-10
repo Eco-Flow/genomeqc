@@ -2,6 +2,11 @@ process HITE {
     tag "$meta.id"
     label 'process_medium'
 
+    // NB: environment.yml replicates HiTE's dependencies (matching its own
+    // upstream env spec) but not HiTE itself, which isn't a conda-installable
+    // package. The script below also hardcodes `cd /HiTE`, a path that only
+    // exists inside the docker/singularity image. -profile conda will not
+    // actually run this module until both are addressed.
     conda "${moduleDir}/environment.yml"
     container "docker.io/kanghu/hite:3.3.3"
 
@@ -17,13 +22,14 @@ process HITE {
     def args   = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
+    # Run HiTE to detect and classify transposable elements in the genome assembly
     # Unzip the genome and make sure it does not have internal new line characters.
     if [ -f *.gz ]; then
       gunzip -c "$fasta" > myunzip.fa
       #myunzip.fa=\$(gunzip -c "$fasta")
-      awk '/^>/ { print (NR==1 ? "" : RS) \$0; next } { printf "%s", \$0 } END { printf RS }' myunzip.fa > ${prefix}.fasta
+      awk '/^>/ { print (NR==1 ? "" : RS) \$0; next } { printf "%s", \$0 } END { printf RS }' myunzip.fa > ${prefix}.unwrapped.fasta
     else
-      awk '/^>/ { print (NR==1 ? "" : RS) \$0; next } { printf "%s", \$0 } END { printf RS }' $fasta > ${prefix}.fasta
+      awk '/^>/ { print (NR==1 ? "" : RS) \$0; next } { printf "%s", \$0 } END { printf RS }' $fasta > ${prefix}.unwrapped.fasta
     fi
 
     # Capture the current working directory
@@ -32,7 +38,7 @@ process HITE {
     # Create the output directory
     mkdir -p \${mydir}/${prefix}_hite_results
 
-    newpath=`realpath ${prefix}.fasta`
+    newpath=`realpath ${prefix}.unwrapped.fasta`
 
     cd /HiTE
 
@@ -62,5 +68,13 @@ process HITE {
        Repeat Modeler version: \$(RepeatModeler | grep /opt/conda/envs/HiTE/share/RepeatModeler/RepeatModeler | cut -f 3 -d " ")
         LTRPipeline version: \$(LTRPipeline -version)
     END_VERSIONS
+    """
+
+    stub:
+    def prefix = task.ext.prefix ?: "${meta.id}"
+    """
+    mkdir -p ${prefix}_hite_results
+    touch ${prefix}_hite_results/${prefix}.tbl
+    touch versions.yml
     """
 }

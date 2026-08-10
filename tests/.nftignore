@@ -10,7 +10,8 @@ multiqc/multiqc_plots/{svg,pdf,png}/*.{svg,pdf,png}
 multiqc/multiqc_report.html
 fastqc/*_fastqc.{html,zip}
 pipeline_info/*.{html,json,txt,yml}
-orthofinder/**
+orthofinder_v3/**
+orthofinder_v2/**
 busco/*/stats/short_summary.specific.*.txt
 busco/busco_downloads/lineages/*/refseq_db.faa.gz
 quast/**/quast.log

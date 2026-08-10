@@ -4,8 +4,8 @@ process GENOMEANNOTATIONBUSCOIDEOGRAM {
 
     conda "${moduleDir}/environment.yml"
     container "${workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container
-        ? 'oras://community.wave.seqera.io/library/r-base_seqkit_r-rideogram_r-optparse_pruned:db707efb147636c0'
-        : 'community.wave.seqera.io/library/r-base_seqkit_r-rideogram_r-optparse_pruned:07dcf079214428f3' }"
+        ? 'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/d4/d4e58ef54f830d8efd697670b69953ef30b5165b812c1e0e80943e075af4b106/data'
+        : 'community.wave.seqera.io/library/r-base_seqkit_r-rideogram_r-optparse_pruned:381d161bd6bee823' }"
 
     input:
     tuple val(genusspeci), val(lineage), path(busco_full_table), path(genome), path(gff)
@@ -21,6 +21,7 @@ process GENOMEANNOTATIONBUSCOIDEOGRAM {
     def args = task.ext.args ?: ''
     def prefix = "${genusspeci}_${lineage}"
     """
+    # Plot a chromosome ideogram of annotated BUSCO gene locations from the GFF
     # Get chromosome lengths:
     seqkit fx2tab -i -n -l ${genome} > ${prefix}_for_karyotype.txt
 

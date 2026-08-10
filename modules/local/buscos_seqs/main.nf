@@ -4,7 +4,7 @@ process BUSCO_SEQS {
 
     conda "${moduleDir}/environment.yml"
     container "${workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container
-        ? 'oras://community.wave.seqera.io/library/pandas_python:cb09ca6c506f826e'
+        ? 'oras://community.wave.seqera.io/library/pandas_python:2c576cde050ae1c2'
         : 'community.wave.seqera.io/library/python_pip_pandas:2fd05a70c67560f2'}"
 
     input:
@@ -18,10 +18,15 @@ process BUSCO_SEQS {
     def args = task.ext.args ?: ''
     def prefix         = task.ext.prefix ?: "${meta.id}"
     """
-    # Get chromosome lengths:
+    # Count sequences with Complete_BUSCOs above the threshold
     ortho_seqs.py \\
     -i $tables \\
     $args
 
+    """
+
+    stub:
+    """
+    touch n_seqs_above_x_buscos.tsv
     """
 }

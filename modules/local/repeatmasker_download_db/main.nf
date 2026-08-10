@@ -21,6 +21,7 @@ process RM_DOWNLOAD_DB {
     def md5_url      = db_url + ".md5"
 
     """
+    # Download a RepeatMasker/Dfam database file and verify it against its MD5 checksum
     curl -O "${db_url}"
     curl -O "${md5_url}"
 
@@ -33,5 +34,12 @@ process RM_DOWNLOAD_DB {
         echo "ERROR: MD5 mismatch for ${filename}"
         exit 1
     fi
+    """
+
+    stub:
+    def filename   = db_url.tokenize('/')[-1]
+    def out_gunzip = filename.replaceAll(/\.gz$/, '')
+    """
+    touch ${out_gunzip}
     """
 }

@@ -4,8 +4,8 @@ process GENOMEBUSCOIDEOGRAM {
 
     conda "${moduleDir}/environment.yml"
     container "${workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container
-        ? 'oras://community.wave.seqera.io/library/seqkit_r-ggplot2_r-optparse_r-rideogram:dd27bf2f09a9ac59'
-        : 'community.wave.seqera.io/library/seqkit_r-ggplot2_r-optparse_r-rideogram:38eaba661baaec00' }"
+        ? 'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/d4/d4e58ef54f830d8efd697670b69953ef30b5165b812c1e0e80943e075af4b106/data'
+        : 'community.wave.seqera.io/library/r-base_seqkit_r-rideogram_r-optparse_pruned:381d161bd6bee823' }"
 
     input:
     tuple val(meta), path(genome), path(busco_full_table)
@@ -21,6 +21,7 @@ process GENOMEBUSCOIDEOGRAM {
     def args   = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
+    # Plot a chromosome ideogram of genome-mode BUSCO gene locations
     grep -v "#" ${busco_full_table} | cut -f 2,3,4,5  | grep -v "Missing" > ${prefix}_busco_coordinates.txt
 
     # Get chromosome lengths:
