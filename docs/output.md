@@ -336,6 +336,8 @@ This directory will only be present if `--save_orthofinder_results` flag is set.
 
 The idea of the tree summary is to give some phylogenetic context to the quality stats, which might help users when evaluating the integrity of the assemblies.
 
+The layout is set with `--tree_style`: a conventional left-to-right tree (`roundrect`, `ellipse` or `rectangular`), or `circular`, which draws the tree as a fan with each summary statistic as a concentric ring and a numbered species key. In the circular layout, quality metrics (sequence count, N50, BUSCO completeness/duplication) are scored against `--quality_preset` thresholds (overridable per-metric with `--quality_thresholds`) and drawn as a colour-blind-safe Good/Warn/Poor traffic light on the outer rings, while descriptive metrics (e.g. genome size, gene number) use a neutral grey ramp on the inner rings; a key showing the swatches and their thresholds is drawn alongside the plot. `--show_ring_values` additionally prints each value on its ring.
+
 <details markdown="1">
 <summary>Output files</summary>
 
@@ -350,6 +352,8 @@ The idea of the tree summary is to give some phylogenetic context to the quality
 ### Shiny App
 
 **The shiny app** module uses [Shiny](https://shiny.posit.co/), a package to build interactive web apps from R, to create a dynamic plot adjuster to modify the tree plot in real time. It allows to change plot parameters such as margins, branch length, text size, etc., as well as adding and removing summary statistics next to the tree tips. The modified plot can be saved as a png/svg.
+
+The tree style (conventional or circular) is also selectable in the app. For the circular layout, this includes a ring-thickness control, a quality-preset selector (with a custom option for per-metric Good/Warn thresholds), and a toggle to print values on the rings.
 
 The app has two tabs, the **Plot Controls** tab to adjust the plot and remove/add features, and an **Export Settings** tab, that allows to preview the plot to export, change export settings, and save the plot as plot as png/svg.
 

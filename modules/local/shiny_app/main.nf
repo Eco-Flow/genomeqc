@@ -22,9 +22,13 @@ process SHINY_APP {
     //def args   = task.ext.args ?: ''
     def prefix           = task.ext.prefix ?: "${meta.id}"
     def container_engine = params.container_engine ? "${params.container_engine}" : 'docker'
-    def docker_url       = 'ecoflowucl/genomeqc_tree:v1.4'
+    // Fully qualify the registry: this is a plain `docker run`, so (unlike the
+    // Nextflow-managed processes) it does not get the docker.registry='quay.io'
+    // prefix and would otherwise resolve to Docker Hub, where the image is not published.
+    def docker_url       = 'community.wave.seqera.io/library/python_pandas_r-base_bioconductor-ggtreeextra_pruned:60dbbdd8c84de8ef'
     def results_path     = file(params.outdir).toAbsolutePath()
     """
+    # Package the QC tables and tree into a launchable Shiny app container script
     mkdir app
 
     # Mount directory is executable directory (\$0)
@@ -32,7 +36,7 @@ process SHINY_APP {
 
     # Using port 8000 as is the one usually available
 
-    echo 'CONTAINER_ID=\$($container_engine run -d -v \$(pwd):/app -p 8000:8000 $docker_url)' >> shiny_app.sh
+    echo 'CONTAINER_ID=\$($container_engine run -d -v \$(pwd):/app -w /app -p 8000:8000 $docker_url Rscript shiny_app.R)' >> shiny_app.sh
     echo 'sleep 2' >> shiny_app.sh
 
     # Ensure the container is stopped and port is available again once script exits
@@ -71,5 +75,11 @@ process SHINY_APP {
     mv *.R app/
     mv shiny_app.sh app/
 
+    """
+
+    stub:
+    """
+    mkdir app
+    touch app/shiny_app.sh
     """
 }

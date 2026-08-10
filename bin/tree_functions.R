@@ -297,7 +297,8 @@ plot_te_pies <- function(data_te, rad_width = NULL, len_pos_x = 0) {
 
 # Now for the plot generator
 generate_plots <- function(processed_data, text_size = 3, tree_scale = 0.0005,
-                           bar_width = 0.7, rad_width = 0.4, skip_stats = NULL, busco_len_pos_x = 0.4) {
+                           bar_width = 0.7, rad_width = 0.4, skip_stats = NULL, busco_len_pos_x = 0.5,
+                           tree_style = "roundrect") {
 
   tree <- processed_data$tree
   data_busco_geno <- processed_data$data_busco_geno
@@ -387,7 +388,8 @@ generate_plots <- function(processed_data, text_size = 3, tree_scale = 0.0005,
   # BUSCO plots
   # -- if both genome and proteome busco datasets are present,
   # change legend x position so that it's not skewed --
-  len_pos_x <- busco_len_pos_x * (!is.null(data_busco_geno) && !is.null(data_busco_prot)) # very smart chatgpt
+  # len_pos_x <- busco_len_pos_x * (!is.null(data_busco_geno) && !is.null(data_busco_prot)) # very smart chatgpt
+  len_pos_x <- busco_len_pos_x
   # Plot both genome and proteome BUSCO pies
   busco_gen_plot  <- plot_busco_pies(data_busco_geno,
                                       rad_width = rad_width,
@@ -397,7 +399,7 @@ generate_plots <- function(processed_data, text_size = 3, tree_scale = 0.0005,
                                       rad_width = rad_width,
                                       title = "BUSCO\nprotein",
                                       len_pos_x = len_pos_x)
-  te_result <- plot_te_pies(data_te, rad_width = rad_width)
+  te_result <- plot_te_pies(data_te, rad_width = rad_width, len_pos_x = len_pos_x)
 
 
   gene_plot <- NULL
@@ -425,9 +427,22 @@ generate_plots <- function(processed_data, text_size = 3, tree_scale = 0.0005,
     gene_plot <- gene_plot + guides(fill = "none")
   }
 
-  # Build the tree base, as in gff_valid
-  tree_plot <- ggtree(tree) +
-    geom_tiplab(size = text_size, fontface = "italic", align = TRUE, hjust = -0.05) +
+  # Build the tree base according to the selected style
+  if (tree_style == "rectangular") {
+    # Legacy look: thin black branches with dotted alignment leader lines
+    tree_plot <- ggtree(tree) +
+      geom_tiplab(size = text_size, fontface = "italic", align = TRUE, hjust = -0.05)
+  } else {
+    # Modern look: thicker grey branches, aligned labels without dotted leaders
+    tree_plot <- ggtree(tree, layout = tree_style, size = 0.7, colour = "grey30") +
+      geom_tiplab(size = text_size, fontface = "italic", align = TRUE,
+                  linetype = NA, hjust = -0.05)
+    if (tree_style == "ellipse") {
+      # Subtle node markers to accentuate the curved layout
+      tree_plot <- tree_plot + geom_nodepoint(colour = "steelblue", size = 1.2, alpha = 0.75)
+    }
+  }
+  tree_plot <- tree_plot +
     theme(plot.margin = margin(10, 30, 10, 10)) +
     coord_cartesian(clip = "off")
 
@@ -555,12 +570,377 @@ build_tree_plot <- function(tree, plots, legends, xlimit, top_margin = 5.5,
 }
 
 # ---------------------------
+# Quality scoring for the circular layout
+# ---------------------------
+# Quality metrics are drawn as a discrete "traffic light" instead of a sequential
+# ramp, because a light->dark ramp implies "dark = good", which is wrong for
+# lower-is-better stats (e.g. sequence count) and meaningless for descriptive
+# ones (genome size, gene number). Colour-vision-safe Okabe-Ito triple.
+QUALITY_COLOURS <- c(Good = "#009E73", Warn = "#E69F00", Poor = "#D55E00")
+
+# Threshold presets by phylogenetic group.
+# NOTE: the BUSCO cut-offs follow community practice; the N50 and sequence-count
+# cut-offs are clade-dependent STARTING POINTS and should be tuned per project.
+# 'generic' is deliberately lenient.
+QUALITY_PRESETS <- list(
+  generic = list(
+    busco_complete   = list(direction = "higher", good = 95,     warn = 90),
+    busco_duplicated = list(direction = "lower",  good = 5,      warn = 10),
+    n50              = list(direction = "higher", good = 1e6,    warn = 1e5),
+    seq_number       = list(direction = "lower",  good = 1000,   warn = 10000)
+  ),
+  vertebrate = list(
+    busco_complete   = list(direction = "higher", good = 95,     warn = 90),
+    busco_duplicated = list(direction = "lower",  good = 5,      warn = 10),
+    n50              = list(direction = "higher", good = 1e7,    warn = 1e6),
+    seq_number       = list(direction = "lower",  good = 1000,   warn = 10000)
+  ),
+  insect = list(
+    busco_complete   = list(direction = "higher", good = 95,     warn = 90),
+    busco_duplicated = list(direction = "lower",  good = 5,      warn = 10),
+    n50              = list(direction = "higher", good = 1e6,    warn = 1e5),
+    seq_number       = list(direction = "lower",  good = 1000,   warn = 10000)
+  ),
+  plant = list(
+    busco_complete   = list(direction = "higher", good = 95,     warn = 90),
+    busco_duplicated = list(direction = "lower",  good = 10,     warn = 20),
+    n50              = list(direction = "higher", good = 1e6,    warn = 1e5),
+    seq_number       = list(direction = "lower",  good = 5000,   warn = 50000)
+  ),
+  fungi = list(
+    busco_complete   = list(direction = "higher", good = 95,     warn = 90),
+    busco_duplicated = list(direction = "lower",  good = 5,      warn = 10),
+    n50              = list(direction = "higher", good = 1e6,    warn = 1e5),
+    seq_number       = list(direction = "lower",  good = 100,    warn = 1000)
+  ),
+  bacteria = list(
+    busco_complete   = list(direction = "higher", good = 95,     warn = 90),
+    busco_duplicated = list(direction = "lower",  good = 5,      warn = 10),
+    n50              = list(direction = "higher", good = 5e5,    warn = 1e5),
+    seq_number       = list(direction = "lower",  good = 10,     warn = 100)
+  )
+)
+
+# Bin values into Good / Warn / Poor given a threshold spec
+classify_quality <- function(values, thr) {
+  if (is.null(thr) || is.null(values)) return(NULL)
+  v <- as.numeric(values)
+  out <- rep(NA_character_, length(v))
+  if (identical(thr$direction, "higher")) {
+    out[v >= thr$good]                  <- "Good"
+    out[v <  thr$good & v >= thr$warn]  <- "Warn"
+    out[v <  thr$warn]                  <- "Poor"
+  } else {
+    out[v <= thr$good]                  <- "Good"
+    out[v >  thr$good & v <= thr$warn]  <- "Warn"
+    out[v >  thr$warn]                  <- "Poor"
+  }
+  factor(out, levels = names(QUALITY_COLOURS))
+}
+
+# ---------------------------
+# Circular ("fan") layout: stats as concentric rings instead of side panels
+# ---------------------------
+build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes = NULL,
+                                data_busco_geno = NULL, data_busco_prot = NULL,
+                                data_nseqs = NULL, data_ortho = NULL,
+                                text_size = 3, skip = NULL, rings = NULL,
+                                quality_preset = "generic", thresholds = NULL, show_values = FALSE,
+                                open_angle = 14, ring_width = 0.13) {
+
+  if (is.null(skip)) skip <- character(0)
+
+  thr_set <- QUALITY_PRESETS[[quality_preset]]
+  if (is.null(thr_set)) {
+    warning("Unknown quality_preset '", quality_preset, "', falling back to 'generic'")
+    thr_set <- QUALITY_PRESETS[["generic"]]
+  }
+  # Explicit per-metric thresholds (e.g. from the Shiny app) override the preset
+  if (!is.null(thresholds)) {
+    for (m in names(thresholds)) {
+      if (!is.null(thresholds[[m]])) thr_set[[m]] <- thresholds[[m]]
+    }
+  }
+
+  # Single source of truth for key typography: headers one step larger than body
+  # text. Used by the hand-drawn keys (geom text, mm) and - via .pt - the ggplot
+  # legends (theme text, points), so the two cannot drift apart.
+  key_title_size <- text_size * 1.15
+  key_text_size  <- text_size * 0.95
+
+  n_tips <- length(tips_order)
+  labs <- gsub("_", " ", tips_order)              # tree tip labels in node order
+  num_df  <- data.frame(label = labs, num = seq_len(n_tips), stringsAsFactors = FALSE)
+  ring_df <- data.frame(label = labs, stringsAsFactors = FALSE)
+
+  ring_specs <- list()
+  add_ring <- function(spec, values) {
+    if (is.null(values) || all(is.na(values))) return(invisible())
+    name <- spec$name
+    if (identical(spec$scale, "quality")) {
+      grade <- classify_quality(values, thr_set[[spec$metric]])
+      if (is.null(grade)) return(invisible())
+      ring_df[[name]] <<- grade
+    } else {
+      ring_df[[name]] <<- values
+    }
+    spec$values <- values             # keep raw values for the printed labels
+    ring_specs[[length(ring_specs) + 1]] <<- spec
+  }
+  col_by_node <- function(df, col) {
+    d <- df[order(df$node), ]
+    as.numeric(d[[col]])
+  }
+
+  # Registry of every stat that can be a ring. Each key matches its
+  # rectangular-layout panel (and the Shiny "Skip Statistics" checkboxes).
+  # `scale` is "quality" (discrete traffic light, needs `metric` for thresholds)
+  # or "descriptive" (sequential ramp, no good/bad implied).
+  ring_registry <- list(
+    ch_plot         = list(name = "Seq number",     scale = "quality", metric = "seq_number",
+                           get = function() if (!is.null(data_quast)) col_by_node(data_quast$full, "Sequences")),
+    len_plot        = list(name = "Genome size",    scale = "descriptive", low = "#f0f0f0", high = "#4d4d4d",
+                           get = function() if (!is.null(data_quast)) col_by_node(data_quast$full, "Length")),
+    n50_plot        = list(name = "N50",            scale = "quality", metric = "n50",
+                           get = function() if (!is.null(data_quast)) col_by_node(data_quast$full, "N50")),
+    gene_plot       = list(name = "Gene number",    scale = "descriptive", low = "#f0f0f0", high = "#4d4d4d",
+                           get = function() {
+                             if (is.null(data_genes)) return(NULL)
+                             tot <- data_genes[data_genes$stat == "Total", ]
+                             as.numeric(tot[order(tot$node), ]$value)
+                           }),
+    busco_gen_plot  = list(name = "BUSCO genome",   scale = "quality", metric = "busco_complete",
+                           get = function() if (!is.null(data_busco_geno)) data_busco_geno$Single + data_busco_geno$Duplicated),
+    busco_prot_plot = list(name = "BUSCO protein",  scale = "quality", metric = "busco_complete",
+                           get = function() if (!is.null(data_busco_prot)) data_busco_prot$Single + data_busco_prot$Duplicated),
+    busco_dup_plot  = list(name = "BUSCO duplicated", scale = "quality", metric = "busco_duplicated",
+                           get = function() if (!is.null(data_busco_geno)) data_busco_geno$Duplicated),
+    nseqs_plot      = list(name = "Seqs ≥5 BUSCOs", scale = "descriptive", low = "#f0f0f0", high = "#4d4d4d",
+                           get = function() if (!is.null(data_nseqs)) col_by_node(data_nseqs, names(data_nseqs)[2])),
+    ortho_plot      = list(name = "Ortho seqs",     scale = "descriptive", low = "#f0f0f0", high = "#4d4d4d",
+                           get = function() if (!is.null(data_ortho)) col_by_node(data_ortho, names(data_ortho)[2]))
+  )
+
+  # `rings` fixes which stats to show and their inner->outer order (the curated
+  # static default). When NULL (e.g. the Shiny app) every available stat is
+  # shown. Either way `skip` is still honoured.
+  order_keys <- if (!is.null(rings)) rings else names(ring_registry)
+  for (key in order_keys) {
+    entry <- ring_registry[[key]]
+    if (is.null(entry) || key %in% skip) next
+    add_ring(entry, entry$get())
+  }
+
+  # Keep the traffic-light (quality) rings visually separate from the neutral
+  # descriptive rings: descriptive inner (nearest the tree), quality outer (on the
+  # rim, where they read most clearly), preserving the requested order within each
+  # group.
+  is_quality <- vapply(ring_specs, function(s) identical(s$scale, "quality"), logical(1))
+  ring_specs <- c(ring_specs[!is_quality], ring_specs[is_quality])
+
+  p <- ggtree(tree, layout = "fan", open.angle = open_angle, size = 0.5, colour = "grey30")
+
+  # Quality rings share one discrete Good/Warn/Poor scale (legend shown once -
+  # the ring key on the left says which ring is which); descriptive rings keep a
+  # sequential ramp, each with its own legend ordered outer-ring-first.
+  n_rings <- length(ring_specs)
+  shown_quality_legend <- FALSE
+  for (i in seq_along(ring_specs)) {
+    spec <- ring_specs[[i]]
+    p <- p +
+      ggtreeExtra::geom_fruit(
+        data = ring_df, geom = geom_tile,
+        mapping = aes(y = label, x = 1, fill = .data[[spec$name]]),
+        width = ring_width, offset = if (i == 1) 0.10 else 0.055,
+        color = "white", linewidth = 0.2
+      )
+    if (identical(spec$scale, "quality")) {
+      # The Good/Warn/Poor key is drawn manually in the side panel: ggplot only
+      # renders legend keys for levels present in the layer that owns the legend,
+      # so Warn/Poor vanish whenever the first quality ring happens to be all-Good.
+      p <- p + scale_fill_manual(
+        values = QUALITY_COLOURS, limits = names(QUALITY_COLOURS),
+        drop = FALSE, na.value = "grey90", name = "Quality", guide = "none"
+      )
+      shown_quality_legend <- TRUE
+    } else {
+      p <- p + scale_fill_gradient(
+        low = spec$low, high = spec$high, name = spec$name,
+        guide = guide_colourbar(order = n_rings - i + 1)
+      )
+    }
+    p <- p + ggnewscale::new_scale_fill()
+  }
+
+  # Outermost labels: tip numbers, kept upright. geom_fruit/geom_tiplab rotate
+  # text tangentially in a fan layout, so instead we place a plain geom_text
+  # (angle = 0 keeps the glyphs horizontal) just beyond the outer ring radius.
+  ring_max_x <- suppressWarnings(max(vapply(
+    ggplot_build(p)$data,
+    function(dd) if ("x" %in% names(dd)) max(dd$x, na.rm = TRUE) else NA_real_,
+    numeric(1)), na.rm = TRUE))
+  tip_pos <- p$data[p$data$isTip, ]
+  num_pos <- data.frame(y = tip_pos$y, num = match(tip_pos$label, labs))
+
+  # All circular text (tip numbers, legends, species key) scales with text_size.
+  p <- p +
+    geom_text(data = num_pos, aes(x = ring_max_x * 1.06, y = y, label = num),
+              angle = 0, size = text_size * 0.9, inherit.aes = FALSE) +
+    theme(legend.position = "right",
+          legend.title = element_text(size = key_title_size * .pt, face = "bold"),
+          legend.text = element_text(size = key_text_size * .pt),
+          legend.key.width = unit(0.3, "cm"),
+          legend.key.height = unit(0.35, "cm"))
+
+  # Optional redundant encoding: print each value on its ring, so the figure is
+  # not colour-only (important for the traffic-light rings). Kept upright.
+  if (isTRUE(show_values) && n_rings > 0) {
+    fmt_val <- function(v) {
+      v <- as.numeric(v)
+      m <- suppressWarnings(max(abs(v), na.rm = TRUE))
+      if (!is.finite(m))                                    rep("", length(v))
+      else if (m >= 1e6)                                    sprintf("%.1fM", v / 1e6)
+      else if (m >= 1000)                                   format(round(v), big.mark = ",", trim = TRUE)
+      else if (all(abs(v - round(v)) < 1e-8, na.rm = TRUE)) as.character(round(v))
+      else                                                  sprintf("%.1f", v)
+    }
+    tile_layers <- Filter(function(dd) all(c("xmin", "xmax") %in% names(dd)),
+                          ggplot_build(p)$data)
+    if (length(tile_layers) >= n_rings) {
+      for (i in seq_len(n_rings)) {
+        dd <- tile_layers[[i]]
+        # NB: the radius must live in the data, not the aes expression - aes() is
+        # evaluated lazily, so aes(x = rad) would resolve every layer to the last
+        # value of the loop variable.
+        val_pos <- data.frame(
+          x   = mean(c(dd$xmin, dd$xmax), na.rm = TRUE),
+          y   = tip_pos$y,
+          lab = fmt_val(ring_specs[[i]]$values)[match(tip_pos$label, labs)]
+        )
+        p <- p + geom_text(data = val_pos, aes(x = x, y = y, label = lab),
+                           angle = 0, size = text_size * 0.6, colour = "grey15",
+                           inherit.aes = FALSE)
+      }
+    }
+  }
+
+  # Species key (number -> italic name): a compact, top-aligned list on the left
+  sp_txt <- paste0(num_df$num, "  ", num_df$label)
+  sp_block <- paste(sp_txt, collapse = "\n")
+
+  # Ring key (inner -> outer). Needed because all quality rings share the same
+  # Good/Warn/Poor colours, so colour alone cannot identify a ring.
+  ring_names <- vapply(ring_specs, function(s) s$name, character(1))
+  ring_block <- paste0(seq_along(ring_names), ". ", ring_names, collapse = "\n")
+
+  has_quality <- any(vapply(ring_specs, function(s) identical(s$scale, "quality"), logical(1)))
+  lh <- 0.035                                   # one text line, in panel units
+  y  <- 1.00
+  sp_leg <- ggplot() + xlim(0, 1) + ylim(0, 1) + theme_void() +
+    annotate("text", x = 0, y = y, label = "Species",
+             hjust = 0, vjust = 1, fontface = "bold", size = key_title_size)
+  y <- y - lh * 1.6
+  sp_leg <- sp_leg +
+    annotate("text", x = 0, y = y, label = sp_block,
+             hjust = 0, vjust = 1, size = key_text_size, fontface = "italic", lineheight = 1.2)
+  y <- y - lh * n_tips - lh * 0.8
+  sp_leg <- sp_leg +
+    annotate("text", x = 0, y = y, label = "Rings (inner -> outer)",
+             hjust = 0, vjust = 1, fontface = "bold", size = key_title_size)
+  y <- y - lh * 1.6
+  sp_leg <- sp_leg +
+    annotate("text", x = 0, y = y, label = ring_block,
+             hjust = 0, vjust = 1, size = key_text_size, lineheight = 1.2)
+  y <- y - lh * length(ring_names) - lh * 0.8
+
+  # Manual Good / Warn / Poor key - always shows all three swatches
+  if (has_quality) {
+    sp_leg <- sp_leg +
+      annotate("text", x = 0, y = y, label = "Quality",
+               hjust = 0, vjust = 1, fontface = "bold", size = key_title_size)
+    y <- y - lh * 1.4
+    for (k in seq_along(QUALITY_COLOURS)) {
+      yy <- y - (k - 1) * lh
+      sp_leg <- sp_leg +
+        annotate("rect", xmin = 0, xmax = 0.05,
+                 ymin = yy - lh * 0.62, ymax = yy - lh * 0.08,
+                 fill = QUALITY_COLOURS[[k]], colour = NA) +
+        annotate("text", x = 0.075, y = yy - lh * 0.35,
+                 label = names(QUALITY_COLOURS)[k],
+                 hjust = 0, vjust = 0.5, size = key_text_size)
+    }
+    y <- y - lh * length(QUALITY_COLOURS) - lh * 0.8
+
+    # Spell out what earns each grade, per quality ring, so the figure is
+    # self-documenting rather than relying on the reader knowing the preset.
+    fmt_thr <- function(v) {
+      if (!is.finite(v)) return("?")
+      if (abs(v) >= 1e6)       sprintf("%.1fM", v / 1e6)
+      else if (abs(v) >= 1000) format(round(v), big.mark = ",", trim = TRUE)
+      else                     as.character(round(v, 1))
+    }
+    rules <- character(0)
+    for (i in seq_along(ring_specs)) {
+      sp  <- ring_specs[[i]]
+      if (!identical(sp$scale, "quality")) next
+      thr <- thr_set[[sp$metric]]
+      if (is.null(thr)) next
+      rule <- if (identical(thr$direction, "higher")) {
+        sprintf("%s+ / %s+ / <%s", fmt_thr(thr$good), fmt_thr(thr$warn), fmt_thr(thr$warn))
+      } else {
+        sprintf("<=%s / <=%s / >%s", fmt_thr(thr$good), fmt_thr(thr$warn), fmt_thr(thr$warn))
+      }
+      rules <- c(rules, paste0(i, ". ", sp$name, ": ", rule))
+    }
+    if (length(rules) > 0) {
+      sp_leg <- sp_leg +
+        annotate("text", x = 0, y = y, label = "Thresholds (Good / Warn / Poor)",
+                 hjust = 0, vjust = 1, fontface = "bold", size = key_title_size)
+      y <- y - lh * 1.4
+      sp_leg <- sp_leg +
+        annotate("text", x = 0, y = y, label = paste(rules, collapse = "\n"),
+                 hjust = 0, vjust = 1, size = key_text_size, lineheight = 1.25)
+    }
+  }
+
+  sp_leg + p + plot_layout(widths = c(0.35, 1))
+}
+
+# ---------------------------
 # Final wrapper (same name)
 # ---------------------------
 generate_complete_plot <- function(processed_data, text_size = 3, tree_scale = 0.0005,
                                    bar_width = 0.7, rad_width = 0.4, skip_stats = NULL,
                                    top_margin = 5.5, right_margin = 5.5, bottom_margin = 5.5,
-                                   left_margin = 5.5, tree_margin = 15, tree_space_ratio = 1.3) {
+                                   left_margin = 5.5, tree_margin = 15, tree_space_ratio = 1.3,
+                                   tree_style = "roundrect", circular_rings = NULL,
+                                   ring_width = 0.13, quality_preset = "generic",
+                                   thresholds = NULL, show_values = FALSE) {
+
+  # Circular layout is a separate plotting path (rings instead of side panels).
+  # circular_rings = NULL shows every available stat (the interactive Shiny
+  # default); pass an ordered vector of keys to curate/fix the rings.
+  # Note: only text_size, skip_stats, circular_rings and ring_width affect this
+  # layout; the bar/pie/margin/tree-scale controls apply to the other styles.
+  if (tree_style == "circular") {
+    return(build_circular_plot(
+      tree            = processed_data$tree,
+      tips_order      = processed_data$tips_order,
+      data_quast      = processed_data$data_quast,
+      data_genes      = processed_data$data_genes,
+      data_busco_geno = processed_data$data_busco_geno,
+      data_busco_prot = processed_data$data_busco_prot,
+      data_nseqs      = processed_data$data_nseqs,
+      data_ortho      = processed_data$data_ortho,
+      text_size       = text_size,
+      skip            = skip_stats,
+      rings           = circular_rings,
+      ring_width      = ring_width,
+      quality_preset  = quality_preset,
+      thresholds      = thresholds,
+      show_values     = show_values
+    ))
+  }
 
   plot_results <- generate_plots(
     processed_data = processed_data,
@@ -568,7 +948,8 @@ generate_complete_plot <- function(processed_data, text_size = 3, tree_scale = 0
     tree_scale = tree_scale,
     bar_width = bar_width,
     rad_width = rad_width,
-    skip_stats = skip_stats
+    skip_stats = skip_stats,
+    tree_style = tree_style
   )
 
   if (length(plot_results$plots) > 0) {
