@@ -7,7 +7,11 @@
                         "id": "test",
                         "taxid": "2697049"
                     },
-                    "test.fcs_gx_report.txt:md5,c443e7f8104bfde632297cb5a8eb591e"
+                    [
+                        "#seq_id\tstart_pos\tend_pos\tseq_len\taction\tdiv\tagg_cont_cov\ttop_tax_name",
+                        "seq_00238\t1\t1000\t1000\tEXCLUDE\tprok:CFB group bacteria\t87\tBacteroides cutis",
+                        "seq_00289\t1\t1000\t1000\tEXCLUDE\tprok:CFB group bacteria\t88\tBacteroides gallinaceum"
+                    ]
                 ]
             ],
             [
@@ -38,7 +42,7 @@
                 ]
             ]
         ],
-        "timestamp": "2026-08-10T19:41:17.213162",
+        "timestamp": "2026-08-10T20:48:42.839023",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "25.10.4"
@@ -121,7 +125,7 @@
                 ]
             }
         ],
-        "timestamp": "2026-08-10T19:41:40.137359",
+        "timestamp": "2026-08-10T20:49:01.342436",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "25.10.4"
