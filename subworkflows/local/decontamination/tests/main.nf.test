@@ -36,8 +36,11 @@ nextflow_workflow {
         then {
             assertAll(
                 { assert workflow.success },
+                // fcs_gx_report's first line embeds a "run-date" timestamp (see the fcsgx/rungx
+                // module's own test, which skips the same line for the same reason), so only
+                // the deterministic column header + classification rows are snapshotted.
                 { assert snapshot(
-                    workflow.out.fcs_gx_report,
+                    workflow.out.fcs_gx_report.collect { meta, report -> [ meta, path(report).readLines()[1..-1] ] },
                     workflow.out.adaptor_report,
                     workflow.out.tiara_raw,
                     workflow.out.tiara_cleaned
