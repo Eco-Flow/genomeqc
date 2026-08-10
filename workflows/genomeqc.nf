@@ -204,6 +204,8 @@ workflow GENOMEQC {
         ch_busco_seqs_ga_file = BUSCO_SEQS_GENOME_ANNO.out.table
                               | mix (BUSCO_SEQS_GENOME.out.table)
                               | map { _meta, f -> f }
+                              | collect
+                              | first
                               | ifEmpty([]) // If no busco seqs are found, return an empty channel instead of failing
 
     } else { // If BUSCO is not run
