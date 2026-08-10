@@ -1,0 +1,192 @@
+{
+    "sarscov2-single_genome_and_annotation": {
+        "content": [
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.quast.tsv:md5,40e321250db460120563bd0449d76fe3"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.stats.txt:md5,fbfc515d8a6374df46cee401c2adbf0c"
+                ]
+            ]
+        ],
+        "timestamp": "2026-08-10T19:16:55.862478",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "25.10.4"
+        }
+    },
+    "sarscov2-single_genome_and_annotation-stub": {
+        "content": [
+            {
+                "0": [
+                    
+                ],
+                "1": [
+                    [
+                        "test.quast.tsv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                        "test.counts.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "2": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        [
+                            [
+                                "GC_content_plot.pdf:md5,d41d8cd98f00b204e9800998ecf8427e",
+                                "Nx_plot.pdf:md5,d41d8cd98f00b204e9800998ecf8427e",
+                                "cumulative_plot.pdf:md5,d41d8cd98f00b204e9800998ecf8427e",
+                                "genome_GC_content_plot.pdf:md5,d41d8cd98f00b204e9800998ecf8427e"
+                            ],
+                            "icarus.html:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            [
+                                "contig_size_viewer.html:md5,d41d8cd98f00b204e9800998ecf8427e"
+                            ],
+                            "quast.log:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "report.html:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "report.pdf:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "report.tex:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "report.tsv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "report.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "transposed_report.tex:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "transposed_report.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        ]
+                    ]
+                ],
+                "3": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test-bacteria_odb10-genome-busco.batch_summary_modified.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "4": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test-bacteria_odb10-proteins-busco.batch_summary_modified.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "5": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.quast.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "6": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.stats.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "7": [
+                    
+                ],
+                "8": [
+                    
+                ],
+                "9": [
+                    
+                ],
+                "agat_stats": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.stats.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "busco_short_summaries_geno": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test-bacteria_odb10-genome-busco.batch_summary_modified.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "busco_short_summaries_prot": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test-bacteria_odb10-proteins-busco.batch_summary_modified.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "buscos_per_seqs": [
+                    
+                ],
+                "orthofinder": [
+                    
+                ],
+                "orthologous_chromosomes": [
+                    
+                ],
+                "quast_results": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        [
+                            [
+                                "GC_content_plot.pdf:md5,d41d8cd98f00b204e9800998ecf8427e",
+                                "Nx_plot.pdf:md5,d41d8cd98f00b204e9800998ecf8427e",
+                                "cumulative_plot.pdf:md5,d41d8cd98f00b204e9800998ecf8427e",
+                                "genome_GC_content_plot.pdf:md5,d41d8cd98f00b204e9800998ecf8427e"
+                            ],
+                            "icarus.html:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            [
+                                "contig_size_viewer.html:md5,d41d8cd98f00b204e9800998ecf8427e"
+                            ],
+                            "quast.log:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "report.html:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "report.pdf:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "report.tex:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "report.tsv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "report.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "transposed_report.tex:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "transposed_report.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        ]
+                    ]
+                ],
+                "quast_tsv": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.quast.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "tree_data": [
+                    [
+                        "test.quast.tsv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                        "test.counts.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "versions": [
+                    
+                ]
+            }
+        ],
+        "timestamp": "2026-08-10T19:17:09.738999",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "25.10.4"
+        }
+    }
+}

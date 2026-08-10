@@ -1,10 +1,10 @@
-include { FCS_FCSADAPTOR                          } from '../../modules/nf-core/fcs/fcsadaptor/main'
-include { FCSGX_CLEANGENOME as FCSGX_CLEANADAPTOR } from '../../modules/nf-core/fcsgx/cleangenome/main'
-include { FCSGX_FETCHDB                           } from '../../modules/nf-core/fcsgx/fetchdb/main'
-include { FCSGX_RUNGX                             } from '../../modules/nf-core/fcsgx/rungx/main'
-include { FCSGX_CLEANGENOME                       } from '../../modules/nf-core/fcsgx/cleangenome/main'
-include { TIARA_TIARA as TIARA_RAW                } from '../../modules/nf-core/tiara/tiara/main'
-include { TIARA_TIARA as TIARA_CLEANED            } from '../../modules/nf-core/tiara/tiara/main'
+include { FCS_FCSADAPTOR                          } from '../../../modules/nf-core/fcs/fcsadaptor/main'
+include { FCSGX_CLEANGENOME as FCSGX_CLEANADAPTOR } from '../../../modules/nf-core/fcsgx/cleangenome/main'
+include { FCSGX_FETCHDB                           } from '../../../modules/nf-core/fcsgx/fetchdb/main'
+include { FCSGX_RUNGX                             } from '../../../modules/nf-core/fcsgx/rungx/main'
+include { FCSGX_CLEANGENOME                       } from '../../../modules/nf-core/fcsgx/cleangenome/main'
+include { TIARA_TIARA as TIARA_RAW                } from '../../../modules/nf-core/tiara/tiara/main'
+include { TIARA_TIARA as TIARA_CLEANED            } from '../../../modules/nf-core/tiara/tiara/main'
 
 
 
