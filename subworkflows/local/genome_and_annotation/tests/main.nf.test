@@ -93,7 +93,21 @@ nextflow_workflow {
         then {
             assertAll(
                 { assert workflow.success },
-                { assert snapshot(workflow.out).match() }
+                // tree_data is built by mix()-ing GENEOVERLAPS' and QUAST's outputs, which
+                // does not guarantee element order, so it's sorted before snapshotting
+                // instead of relying on raw workflow.out order.
+                { assert snapshot(
+                    workflow.out.orthofinder,
+                    workflow.out.tree_data.collect { files -> files.collect { file(it).name }.sort() },
+                    workflow.out.quast_results,
+                    workflow.out.busco_short_summaries_geno,
+                    workflow.out.busco_short_summaries_prot,
+                    workflow.out.quast_tsv,
+                    workflow.out.agat_stats,
+                    workflow.out.orthologous_chromosomes,
+                    workflow.out.buscos_per_seqs,
+                    workflow.out.versions
+                ).match() }
             )
         }
     }
