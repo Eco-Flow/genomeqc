@@ -216,7 +216,7 @@ The decontamination subsworkflow consists of three modules:
 
 ### Running TE annotation
 
-The pipeline supports two optional methods for transposable element (TE) annotation, selected with the `--te` parameter. TE annotation is skipped by default.
+The pipeline supports two optional methods for transposable element (TE) annotation, selected with the `--te` parameter. TE annotation is skipped by default. Enabling either method adds a TE composition bar to the [tree summary plot](output.md#tree-summary) for each genome.
 
 #### `--te hite`
 
