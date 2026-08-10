@@ -10,7 +10,7 @@
 
 ## Samplesheet input
 
-Before running the pipeline, you will need to create a samplesheet with information about the assemblies you want to process. It has to be a comma-separated file with 5 columns, and a header row as shown in the examples below. Use this parameter to specify its location:
+Before running the pipeline, you will need to create a samplesheet with information about the assemblies you want to process. It has to be a comma-separated file with up to 6 columns, and a header row as shown in the examples below. Use this parameter to specify its location:
 
 ```bash
 --input '[path to samplesheet file]'
