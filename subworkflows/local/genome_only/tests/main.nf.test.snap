@@ -1,126 +1,66 @@
 {
     "bacteroides_fragilis-single_genome-stub": {
         "content": [
-            {
-                "0": [
-                    
-                ],
-                "1": [
+            [
+                
+            ],
+            [
+                [
+                    "test-bacteria_odb10-genome-busco.batch_summary_modified.txt",
+                    "test.quast.tsv"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
                     [
-                        "test.quast.tsv:md5,d41d8cd98f00b204e9800998ecf8427e",
-                        "test-bacteria_odb10-genome-busco.batch_summary_modified.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
-                    ]
-                ],
-                "2": [
-                    [
-                        {
-                            "id": "test"
-                        },
                         [
-                            [
-                                "GC_content_plot.pdf:md5,d41d8cd98f00b204e9800998ecf8427e",
-                                "Nx_plot.pdf:md5,d41d8cd98f00b204e9800998ecf8427e",
-                                "cumulative_plot.pdf:md5,d41d8cd98f00b204e9800998ecf8427e",
-                                "genome_GC_content_plot.pdf:md5,d41d8cd98f00b204e9800998ecf8427e"
-                            ],
-                            "icarus.html:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            [
-                                "contig_size_viewer.html:md5,d41d8cd98f00b204e9800998ecf8427e"
-                            ],
-                            "quast.log:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "report.html:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "report.pdf:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "report.tex:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "report.tsv:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "report.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "transposed_report.tex:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "transposed_report.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
-                        ]
-                    ]
-                ],
-                "3": [
-                    
-                ],
-                "4": [
-                    
-                ],
-                "5": [
-                    [
-                        {
-                            "id": "test"
-                        },
-                        "test-bacteria_odb10-genome-busco.batch_summary_modified.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
-                    ]
-                ],
-                "6": [
-                    [
-                        {
-                            "id": "test"
-                        },
-                        "test.quast.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
-                    ]
-                ],
-                "busco_batch_summaries": [
-                    [
-                        {
-                            "id": "test"
-                        },
-                        "test-bacteria_odb10-genome-busco.batch_summary_modified.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
-                    ]
-                ],
-                "busco_short_summaries": [
-                    
-                ],
-                "buscos_per_seqs": [
-                    
-                ],
-                "orthofinder": [
-                    
-                ],
-                "quast_results": [
-                    [
-                        {
-                            "id": "test"
-                        },
+                            "GC_content_plot.pdf:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "Nx_plot.pdf:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "cumulative_plot.pdf:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "genome_GC_content_plot.pdf:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        ],
+                        "icarus.html:md5,d41d8cd98f00b204e9800998ecf8427e",
                         [
-                            [
-                                "GC_content_plot.pdf:md5,d41d8cd98f00b204e9800998ecf8427e",
-                                "Nx_plot.pdf:md5,d41d8cd98f00b204e9800998ecf8427e",
-                                "cumulative_plot.pdf:md5,d41d8cd98f00b204e9800998ecf8427e",
-                                "genome_GC_content_plot.pdf:md5,d41d8cd98f00b204e9800998ecf8427e"
-                            ],
-                            "icarus.html:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            [
-                                "contig_size_viewer.html:md5,d41d8cd98f00b204e9800998ecf8427e"
-                            ],
-                            "quast.log:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "report.html:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "report.pdf:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "report.tex:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "report.tsv:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "report.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "transposed_report.tex:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "transposed_report.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
-                        ]
-                    ]
-                ],
-                "quast_tsv": [
-                    [
-                        {
-                            "id": "test"
-                        },
-                        "test.quast.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
-                    ]
-                ],
-                "tree_data": [
-                    [
-                        "test.quast.tsv:md5,d41d8cd98f00b204e9800998ecf8427e",
-                        "test-bacteria_odb10-genome-busco.batch_summary_modified.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                            "contig_size_viewer.html:md5,d41d8cd98f00b204e9800998ecf8427e"
+                        ],
+                        "quast.log:md5,d41d8cd98f00b204e9800998ecf8427e",
+                        "report.html:md5,d41d8cd98f00b204e9800998ecf8427e",
+                        "report.pdf:md5,d41d8cd98f00b204e9800998ecf8427e",
+                        "report.tex:md5,d41d8cd98f00b204e9800998ecf8427e",
+                        "report.tsv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                        "report.txt:md5,d41d8cd98f00b204e9800998ecf8427e",
+                        "transposed_report.tex:md5,d41d8cd98f00b204e9800998ecf8427e",
+                        "transposed_report.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
                     ]
                 ]
-            }
+            ],
+            [
+                
+            ],
+            [
+                
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test-bacteria_odb10-genome-busco.batch_summary_modified.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ]
+            ],
+            [
+                [
+                    {
+                        "id": "test"
+                    },
+                    "test.quast.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                ]
+            ]
         ],
-        "timestamp": "2026-08-10T19:13:49.8403",
+        "timestamp": "2026-08-10T21:13:03.369419",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "25.10.4"
@@ -156,7 +96,7 @@
                 ]
             ]
         ],
-        "timestamp": "2026-08-10T19:13:40.719035",
+        "timestamp": "2026-08-10T21:12:52.933902",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "25.10.4"
