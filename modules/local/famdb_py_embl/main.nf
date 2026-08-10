@@ -13,6 +13,7 @@ process FAMDB_PY_EMBL {
 
     output:
     tuple val(meta), path("*.fasta"), emit: famdb_lib
+    tuple val("${task.process}"), val('repeatmasker'), eval('RepeatMasker | grep version | cut -f 3 -d " "'), emit: versions_repeatmasker, topic: versions
 
     when:
     task.ext.when == null || task.ext.when
