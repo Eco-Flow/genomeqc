@@ -178,7 +178,7 @@ The k-mer size used to build the Meryl database can be tuned with `--kvalue` (de
 
 ### Running Decontamination
 
-If an NCBI taxid is provided for an assembly in the samplesheet through the **taxid** field, and the path to the FCS-GX database or a manifest to download and build it is given via `--gxdb` or `--gxdb_manifiest` respectively, the pipeline will run the decontamination subworkflow. E.g.:
+If an NCBI taxid is provided for an assembly in the samplesheet through the **taxid** field, and the path to the FCS-GX database or a manifest to download and build it is given via `--gxdb` or `--gxdb_manifest` respectively, the pipeline will run the decontamination subworkflow. E.g.:
 
 ```bash
 nextflow run nf-core/genomeqc \
