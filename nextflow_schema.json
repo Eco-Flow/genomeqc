@@ -347,7 +347,7 @@
                 },
                 "te_clusterer": {
                     "type": "string",
-                    "description": "Clustering tool used to dereplicate the repeat library before RepeatMasker. 'mmseqs' (default) uses MMseqs2 easy-cluster; 'linclust' uses MMseqs2 easy-linclust (linear time, less sensitive); 'cdhit' uses CD-HIT-EST.",
+                    "description": "Clustering tool used to dereplicate the repeat library before RepeatMasker. 'mmseqs' uses MMseqs2 easy-cluster; 'linclust' (default) uses MMseqs2 easy-linclust (linear time, less sensitive); 'cdhit' uses CD-HIT-EST.",
                     "default": "linclust",
                     "enum": ["mmseqs", "linclust", "cdhit"],
                     "fa_icon": "fas fa-object-group"

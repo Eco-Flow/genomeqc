@@ -168,8 +168,6 @@ It will use a known telomeric repeat as input string, and will find occurrences 
 
 </details>
 
-To run nf-core/genomeqc with tidk, the flag `--run_tidk` must be provided.
-
 ![output_example_tidk](images/output_example/meles_meles_tidk.png)
 
 ### Merqury
@@ -193,7 +191,7 @@ It generates a histogram relating k-mer counts in the read set to their associat
 
 </details>
 
-To run nf-core/genomeqc with merqury, the flag `--run_merqury` must be provided.
+To run nf-core/genomeqc with merqury, the assemblie's **fastq** must be provided.
 
 ### AGAT sp_statistics
 
