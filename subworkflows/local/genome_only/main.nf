@@ -1,11 +1,11 @@
-include { QUAST                               } from '../../modules/nf-core/quast/main'
-include { BUSCO_BUSCO                         } from '../../modules/nf-core/busco/busco/main'
-include { GENOMEBUSCOIDEOGRAM                 } from '../../modules/local/genomebuscoideogram/main'
-include { ORTHOFINDER as ORTHOFINDER_V3       } from '../../modules/nf-core/orthofinder/main'
-include { ORTHOFINDERV2                       } from '../../modules/local/orthofinderv2/main'
-include { BUSCO_TSV_TO_GFF                    } from '../../modules/local/busco_tsv_to_gff/main'
-include { ORTHOLOGOUS_CHROMOSOMES             } from '../../modules/local/orthologous_chromosomes'
-include { GAWK                                } from '../../modules/nf-core/gawk/main'
+include { QUAST                               } from '../../../modules/nf-core/quast/main'
+include { BUSCO_BUSCO                         } from '../../../modules/nf-core/busco/busco/main'
+include { GENOMEBUSCOIDEOGRAM                 } from '../../../modules/local/genomebuscoideogram/main'
+include { ORTHOFINDER as ORTHOFINDER_V3       } from '../../../modules/nf-core/orthofinder/main'
+include { ORTHOFINDERV2                       } from '../../../modules/local/orthofinderv2/main'
+include { BUSCO_TSV_TO_GFF                    } from '../../../modules/local/busco_tsv_to_gff/main'
+include { ORTHOLOGOUS_CHROMOSOMES             } from '../../../modules/local/orthologous_chromosomes'
+include { GAWK                                } from '../../../modules/nf-core/gawk/main'
 
 workflow GENOME_ONLY {
 
