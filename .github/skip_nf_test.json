@@ -1,7 +1,5 @@
 {
-    "conda": [
-        "subworkflows/local/decontamination/tests/*"
-    ],
+    "conda": ["subworkflows/local/decontamination/tests/*"],
     "docker": [],
     "singularity": []
 }
