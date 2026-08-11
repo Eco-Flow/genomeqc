@@ -19,6 +19,7 @@ This is the first release of the pipeline, which compares the quality of multipl
 - Added `--repeatmasker_speed` parameter to control RepeatMasker sensitivity: `qq` (rush, default), `q` (quick), or `default` (most sensitive).
 - Added `meta.yml` for all local modules (`modules/local/*`), and nf-test coverage (`tests/main.nf.test`) for a first batch of them, following nf-core module conventions.
 - Changed the tree plot's TE composition panel from a pie chart to a 100%-stacked horizontal bar (colours left-to-right in the same order as the legend), matching the style already used for genome size and N50. Applies to both the static PDF/SVG and the interactive Shiny app.
+- Added a `-profile test_gca` test dataset ([#202](https://github.com/nf-core/genomeqc/issues/202)) using GenBank (`GCA_`) accessions instead of RefSeq (`GCF_`), so the pipeline's NCBI-download path is covered for both accession namespaces, not just RefSeq.
 
 ### `Fixed`
 

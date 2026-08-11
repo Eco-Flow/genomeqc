@@ -381,12 +381,13 @@ You will need docker to run the shiny app, as it comes packaged in a docker cont
 The pipeline can be ran using different test profiles:
 
 1. `-profile test` — Runs genome and annotation with Merqury using **RefSeq accessions** and local FASTQ files.
-2. `-profile test_local` — Runs genome and annotation on local files (`fasta` and `gff`).
-3. `-profile test_genomeonly` — Runs genome only on local files (`fasta`).
-4. `-profile test_nofastq` — Runs genome and annotation using **RefSeq accessions** (no `fastq`/Merqury).
-5. `-profile test_decon` — Tests the decontamination subworkflow (FCS-GX, FCS-Adaptor, Tiara) using the NCBI FCS test-only database.
-6. `-profile test_te` — Tests TE annotation with `--te repeatmasker` and `--run_repeatmodeler` on a minimal genome.
-7. `-profile test_full` — Runs the full pipeline on a set of Hymenoptera genomes.
+2. `-profile test_gca` — Runs genome and annotation using **GenBank accessions** (`GCA_`), to confirm the pipeline handles that accession namespace as well as RefSeq (`GCF_`).
+3. `-profile test_local` — Runs genome and annotation on local files (`fasta` and `gff`).
+4. `-profile test_genomeonly` — Runs genome only on local files (`fasta`).
+5. `-profile test_nofastq` — Runs genome and annotation using **RefSeq accessions** (no `fastq`/Merqury).
+6. `-profile test_decon` — Tests the decontamination subworkflow (FCS-GX, FCS-Adaptor, Tiara) using the NCBI FCS test-only database.
+7. `-profile test_te` — Tests TE annotation with `--te repeatmasker` and `--run_repeatmodeler` on a minimal genome.
+8. `-profile test_full` — Runs the full pipeline on a set of Hymenoptera genomes.
 
 Test files are stored in the genomeqc branch of the [test-dataset repository](https://github.com/nf-core/test-datasets/tree/genomeqc).
 
