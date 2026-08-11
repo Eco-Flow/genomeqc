@@ -1,19 +1,19 @@
 
-include { AGAT_CONVERTSPGXF2GXF               } from '../../modules/nf-core/agat/convertspgxf2gxf'
-include { AGAT_SPKEEPLONGESTISOFORM           } from '../../modules/nf-core/agat/spkeeplongestisoform'
-include { BUSCO_BUSCO as BUSCO_GENOME         } from '../../modules/nf-core/busco/busco/main'
-include { BUSCO_BUSCO as BUSCO_PROTEINS       } from '../../modules/nf-core/busco/busco/main'
-include { QUAST                               } from '../../modules/nf-core/quast/main'
-include { AGAT_SPSTATISTICS                   } from '../../modules/nf-core/agat/spstatistics/main'
-include { GENOMEANNOTATIONBUSCOIDEOGRAM    } from '../../modules/local/genomeannotationbuscoideogram/main'
-include { GFFREAD                             } from '../../modules/nf-core/gffread/main'
-include { GFFREAD as GFFREAD_VALIDATE         } from '../../modules/nf-core/gffread/main'
-include { ORTHOFINDER as ORTHOFINDER_V3       } from '../../modules/nf-core/orthofinder/main'
-include { ORTHOFINDERV2                      } from '../../modules/local/orthofinderv2/main'
-include { GENEOVERLAPS                       } from '../../modules/local/geneoverlaps/main'
-include { ORTHOLOGOUS_CHROMOSOMES             } from '../../modules/local/orthologous_chromosomes'
-include { GAWK as GAWK_GENO                   } from '../../modules/nf-core/gawk/main'
-include { GAWK as GAWK_PROT                   } from '../../modules/nf-core/gawk/main'
+include { AGAT_CONVERTSPGXF2GXF               } from '../../../modules/nf-core/agat/convertspgxf2gxf'
+include { AGAT_SPKEEPLONGESTISOFORM           } from '../../../modules/nf-core/agat/spkeeplongestisoform'
+include { BUSCO_BUSCO as BUSCO_GENOME         } from '../../../modules/nf-core/busco/busco/main'
+include { BUSCO_BUSCO as BUSCO_PROTEINS       } from '../../../modules/nf-core/busco/busco/main'
+include { QUAST                               } from '../../../modules/nf-core/quast/main'
+include { AGAT_SPSTATISTICS                   } from '../../../modules/nf-core/agat/spstatistics/main'
+include { GENOMEANNOTATIONBUSCOIDEOGRAM    } from '../../../modules/local/genomeannotationbuscoideogram/main'
+include { GFFREAD                             } from '../../../modules/nf-core/gffread/main'
+include { GFFREAD as GFFREAD_VALIDATE         } from '../../../modules/nf-core/gffread/main'
+include { ORTHOFINDER as ORTHOFINDER_V3       } from '../../../modules/nf-core/orthofinder/main'
+include { ORTHOFINDERV2                      } from '../../../modules/local/orthofinderv2/main'
+include { GENEOVERLAPS                       } from '../../../modules/local/geneoverlaps/main'
+include { ORTHOLOGOUS_CHROMOSOMES             } from '../../../modules/local/orthologous_chromosomes'
+include { GAWK as GAWK_GENO                   } from '../../../modules/nf-core/gawk/main'
+include { GAWK as GAWK_PROT                   } from '../../../modules/nf-core/gawk/main'
 
 workflow GENOME_AND_ANNOTATION {
 
@@ -249,7 +249,7 @@ workflow GENOME_AND_ANNOTATION {
 
     emit:
     orthofinder                = ch_orthofinder         // channel: [ val(meta), [folder] ]
-    tree_data                  = ch_tree_data.flatten().collect()
+    tree_data                  = ch_tree_data.flatten().collect().map { files -> files.toSorted { a, b -> a.name <=> b.name } } // sort for deterministic behaviour
     quast_results              = QUAST.out.results                   // channel: [ val(meta), [tsv] ]
     busco_short_summaries_geno = !params.skip_busco ? GAWK_GENO.out.output : channel.empty()
     busco_short_summaries_prot = !params.skip_busco ? GAWK_PROT.out.output : channel.empty()
