@@ -47,7 +47,7 @@ strandless_genes <- sum(as.character(strand(genes)) == "*")
 
 print("Finding overlaps...")
 # Find overlaps
-overlap_results <- findOverlaps(genes, genes, ignore.strand = FALSE)
+overlap_results <- findOverlaps(genes, genes, ignore.strand = TRUE)
 
 # Initialize counts
 same_strand_count_within <- 0
