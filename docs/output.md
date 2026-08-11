@@ -299,7 +299,7 @@ It outputs a report with completness stats, a summarized table with these stats,
 
 ### TE annotation
 
-TE annotation is optional and is enabled with `--te hite` or `--te repeatmasker`. See [usage documentation](usage.md#running-te-annotation) for full details.
+TE annotation is optional and is enabled with `--te hite` or `--te repeatmasker`. See [usage documentation](usage.md#running-te-annotation) for full details. Enabling either method also adds a TE composition panel to the [tree summary](#tree-summary) plot.
 
 #### HiTE
 
@@ -380,6 +380,8 @@ This directory will only be present if `--save_orthofinder_results` flag is set.
 The idea of the tree summary is to give some phylogenetic context to the quality stats, which might help users when evaluating the integrity of the assemblies.
 
 The layout is set with `--tree_style`: a conventional left-to-right tree (`roundrect`, `ellipse` or `rectangular`), or `circular`, which draws the tree as a fan with each summary statistic as a concentric ring and a numbered species key. In the circular layout, quality metrics (sequence count, N50, BUSCO completeness/duplication) are scored against `--quality_preset` thresholds (overridable per-metric with `--quality_thresholds`) and drawn as a colour-blind-safe Good/Warn/Poor traffic light on the outer rings, while descriptive metrics (e.g. genome size, gene number) use a neutral grey ramp on the inner rings; a key showing the swatches and their thresholds is drawn alongside the plot. `--show_ring_values` additionally prints each value on its ring.
+
+If [TE annotation](#te-annotation) was run (`--te hite` or `--te repeatmasker`), each genome also gets a **TE** panel: a 100%-stacked horizontal bar showing the proportion of the genome made up of each repeat category (SINE, LINE, LTR, Penelope, DNA, Rolling Circle, Unclassified, Other, and non-repetitive sequence), coloured left-to-right in the same order as the legend. The panel is omitted entirely when TE annotation wasn't run.
 
 <details markdown="1">
 <summary>Output files</summary>

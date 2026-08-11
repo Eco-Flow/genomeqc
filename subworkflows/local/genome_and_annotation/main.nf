@@ -240,7 +240,7 @@ workflow GENOME_AND_ANNOTATION {
                             | join(ch_gxf_busco)
                             | flatMap { genusspeci, lineages, full_tables, fasta, gxf ->
                                 lineages.withIndex().collect { lineage, index ->
-                                    [genusspeci, lineage, full_tables[index], fasta, gxf]
+                                    [ [id: genusspeci, lineage: lineage], full_tables[index], fasta, gxf ]
                                 }
                             }
 

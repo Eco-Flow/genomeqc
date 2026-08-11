@@ -106,7 +106,7 @@ parser$add_argument('--circular_rings', type = 'character', default = 'ch_plot,n
 parser$add_argument('--quality_preset', type = 'character', choices = c('generic', 'vertebrate', 'insect', 'plant', 'fungi', 'bacteria'), default = 'generic', help = "Circular layout only: phylogenetic-group thresholds used to score the quality rings (traffic light). 'generic' is deliberately lenient; pick the group matching your taxa. The N50/sequence-count cut-offs in particular are starting points and should be tuned per project.")
 parser$add_argument('--quality_thresholds', type = 'character', default = NULL, help = "Circular layout only: override individual --quality_preset cut-offs, as comma-separated 'metric=good:warn' pairs. Metrics: busco_complete, busco_duplicated, n50, seq_number (direction is fixed per metric, so only the cut-offs are given). Example: 'n50=2e6:5e5,seq_number=500:5000'. Unmentioned metrics keep the preset's cut-offs.")
 parser$add_argument('--show_ring_values', action = 'store_true', help = 'Circular layout only: print each value on its ring (redundant encoding, so the figure is not colour-only). Best for small trees.')
-parser$add_argument('--len_pos_x', type = 'double', default = 0.5, help = 'Position (legend.justification x-anchor) of the BUSCO/TE pie legends')
+parser$add_argument('--len_pos_x', type = 'double', default = 0.5, help = 'Position (legend.justification x-anchor) of the BUSCO pie and TE bar legends')
 
 args <- parser$parse_args()
 
@@ -468,26 +468,33 @@ make_busco_scatterpie <- function(data_busco,
   )
 }
 
-# Helper function to plot TE pies
-make_te_scatterpie <- function(data_te,
-                                  rad_width,
-                                  len_pos_x = 0) {
+# Helper function to plot TE composition as a 100%-stacked horizontal bar
+make_te_barplot <- function(data_te,
+                             bar_width,
+                             len_pos_x = 0) {
 
   if (is.null(data_te)) {
     return(list(
-      pies_plot = NULL,
-      legend_te = NULL
+      plot   = NULL,
+      legend = NULL
     ))
   }
 
-  # Create the scatterpie plot
-  pies_plot <- ggplot() +
-    geom_scatterpie(
-      aes(x = 0, y = node, group = species, r = rad_width),
-      data = data_te,
-      cols = c("SINE", "LINE", "LTR", "Penelope",	"DNA",	"Rolling_Circle",	"Unclassified",	"Other",	"Non_Repeat"),
+  te_cols <- c("SINE", "LINE", "LTR", "Penelope", "DNA", "Rolling_Circle", "Unclassified", "Other", "Non_Repeat")
+
+  # Reshape one column per TE category into long format for a stacked bar
+  data_te_long <- data_te %>%
+    select(node, all_of(te_cols)) %>%
+    pivot_longer(cols = all_of(te_cols), names_to = "metric", values_to = "value") %>%
+    mutate(metric = factor(metric, levels = te_cols))
+
+  bars_plot <- ggplot(data_te_long, aes(x = node, y = value, fill = metric)) +
+    geom_col(
+      position = position_fill(reverse = TRUE), # Rescales each bar to 100% (like a pie), stacked in legend order
+      width = bar_width,
       color = NA
     ) +
+    scale_y_continuous(labels = scales::percent) +
     scale_fill_manual(
       values = c(
         "SINE"     = "deepskyblue",
@@ -501,16 +508,16 @@ make_te_scatterpie <- function(data_te,
         "Non_Repeat" = "darkgray"
       )
     ) +
-    coord_fixed() +
-    theme_void() +
     ggtitle("TE") +
-    theme(
-      plot.title = element_text(size = 9, hjust = 0.5, vjust = 0.05)
-    )
+    barplots_theme +
+    theme(plot.title = element_text(size = 9, hjust = 0.5, vjust = -5)) +
+    coord_flip() +
+    xlab(NULL) +
+    ylab(NULL)
 
   # Extract legend
   legend_te <- cowplot::get_legend(
-    pies_plot +
+    bars_plot +
       theme(
         legend.position = "right",
         legend.justification = c(len_pos_x, 1.08),
@@ -520,11 +527,11 @@ make_te_scatterpie <- function(data_te,
       )
   )
 
-  # Remove legend from pie plot
-  pies_plot <- pies_plot + guides(fill = "none")
+  # Remove legend from bar plot
+  bars_plot <- bars_plot + guides(fill = "none")
 
   list(
-    plot   = pies_plot,
+    plot   = bars_plot,
     legend = legend_te
   )
 }
@@ -551,9 +558,9 @@ busco_prot_plot <- make_busco_scatterpie(
 )
 
 # TE plots
-te_plot <- make_te_scatterpie(
+te_plot <- make_te_barplot(
   data_te = data_te,
-  rad_width  = args$rad_width,
+  bar_width = args$bar_width,
   len_pos_x = len_pos_x
 )
 
@@ -665,7 +672,7 @@ all_ranges <- c(
   get_plot_range(len_plot, "x"),
   get_plot_range(n50_plot, "x"),
   get_plot_range(gene_plot, "x"),
-  get_plot_range(te_plot$plot, "y")
+  get_plot_range(te_plot$plot, "x") # te_plot is now a coord_flip()'d bar (like len_plot/n50_plot), not a pie - node range lives on x, not y
 )
 
 # Set new ylim based on the highest value taking into account both plots
@@ -690,8 +697,8 @@ if (!is.null(n50_plot))  n50_plot  <- n50_plot + new_xlim
 if (!is.null(busco_gen_plot$plot)) busco_gen_plot$plot <- busco_gen_plot$plot + new_ylim
 if (!is.null(busco_prot_plot$plot)) busco_prot_plot$plot <- busco_prot_plot$plot + new_ylim
 
-# Set new ylim for TE pies
-if (!is.null(te_plot$plot)) te_plot$plot <- te_plot$plot + new_ylim
+# Set new xlim for TE bars (equivalent to ylim, since te_plot is coord_flip()'d)
+if (!is.null(te_plot$plot)) te_plot$plot <- te_plot$plot + new_xlim
 
 
 # Set new xlim for gene stats (equivalent to ylim)
