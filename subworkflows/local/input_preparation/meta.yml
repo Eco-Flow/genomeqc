@@ -2,11 +2,11 @@
 name: "input_preparation"
 description: |
   Prepares genome, annotation and read inputs for the rest of the pipeline. RefSeq/GenBank
-  accessions are written to a path file with createpath and fetched with ncbigenomedownload;
-  local files are used as-is. Gzip-compressed fasta/gxf files (whether provided locally or
-  downloaded) are decompressed with pigz. Local and downloaded inputs are combined into a
-  single synced channel, and a channel of samples requiring decontamination (those with a
-  taxid) is derived. Optionally downloads the requested BUSCO lineage dataset.
+  accessions are fetched with ncbigenomedownload; local files are used as-is. Gzip-compressed
+  fasta/gxf files (whether provided locally or downloaded) are decompressed with pigz. Local
+  and downloaded inputs are combined into a single synced channel, and a channel of samples
+  requiring decontamination (those with a taxid) is derived. Optionally downloads the
+  requested BUSCO lineage dataset.
 keywords:
   - genomics
   - input
@@ -14,7 +14,6 @@ keywords:
   - genome download
   - busco
 components:
-  - createpath
   - ncbigenomedownload
   - pigz/uncompress
   - busco/download

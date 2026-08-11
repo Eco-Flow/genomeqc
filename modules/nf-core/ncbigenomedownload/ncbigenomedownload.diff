@@ -1,0 +1,162 @@
+Changes in module 'nf-core/ncbigenomedownload'
+--- modules/nf-core/ncbigenomedownload/meta.yml
++++ modules/nf-core/ncbigenomedownload/meta.yml
+@@ -19,10 +19,9 @@
+       description: |
+         Groovy Map containing sample information
+         e.g. [ id:'test', single_end:false ]
+-  - accessions:
+-      type: file
+-      description: List of accessions (one per line) to download
+-      pattern: "*.txt"
++  - accession:
++      type: string
++      description: Comma-separated list of accessions to download
+       ontologies: []
+   - taxids:
+       type: file
+
+--- modules/nf-core/ncbigenomedownload/main.nf
++++ modules/nf-core/ncbigenomedownload/main.nf
+@@ -4,12 +4,17 @@
+ 
+     conda "${moduleDir}/environment.yml"
+     container "${ workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container ?
+-        'https://depot.galaxyproject.org/singularity/ncbi-genome-download:0.3.3--pyh7cba7a3_0' :
++        'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/8f/8fd8147afeea41585d5942f1a722ed9d567e57d71cae7c334852228ee852699c/data' :
+         'quay.io/biocontainers/ncbi-genome-download:0.3.3--pyh7cba7a3_0' }"
++
++    // Nextflow needs `path`-typed inputs resolved before the task is scheduled, so a
++    // beforeScript (which runs inside the task) can't satisfy one - it can only create
++    // files the script block itself refers to by a fixed name, which is what's done here.
++    beforeScript { accession ? "echo ${accession} > accessions.txt" : '' }
+ 
+     input:
+     val meta
+-    path accessions
++    val accession
+     path taxids
+     val groups
+ 
+@@ -34,7 +39,7 @@
+ 
+     script:
+     def args           = task.ext.args ?: ''
+-    def accessions_opt = accessions ? "-A ${accessions}" : ""
++    def accessions_opt = accession ? "-A accessions.txt" : ""
+     def taxids_opt     = taxids ? "-t ${taxids}" : ""
+     """
+     ncbi-genome-download \\
+
+--- modules/nf-core/ncbigenomedownload/tests/main.nf.test.snap
++++ modules/nf-core/ncbigenomedownload/tests/main.nf.test.snap
+@@ -1,4 +1,47 @@
+ {
++    "test-ncbigenomedownload - accession": {
++        "content": [
++            [
++                "VERSION     NC_000908.2",
++                "DBLINK      BioProject: PRJNA224116",
++                "            BioSample: SAMN02603983",
++                "            Assembly: GCF_000027325.1",
++                "KEYWORDS    RefSeq."
++            ],
++            [
++                "ATATTAGACAAATACTAATTTTATATTGCTTTAATACTTAATAAATACTACTTATGTATTAAGTAAATATTACTGTAATA",
++                "CTAATAACAATATTATTACAATATGCTAGAATAATATTGCTAGTATCAATAATTACTAATATAGTATTAGGAAAATACCA",
++                "TAATAATATTTCTACATAATACTAAGTTAATACTATGTGTAGAATAATAAATAATCAGATTAAAAAAATTTTATTTATCT",
++                "GAAACATATTTAATCAATTGAACTGATTATTTTCAGCAGTAATAATTACATATGTACATAGTACATATGTAAAATATCAT",
++                "TAATTTCTGTTATATATAATAGTATCTATTTTAGAGAGTATTAATTATTACTATAATTAAGCATTTATGCTTAATTATAA"
++            ],
++            [
++                [
++                    [
++                        {
++                            "id": "test",
++                            "single_end": false
++                        }
++                    ],
++                    "GCF_000027325.1_ASM2732v1_assembly_stats.txt:md5,801f8d4b7420e56aca8bf74d249399c6"
++                ]
++            ],
++            {
++                "versions_ncbigenomedownload": [
++                    [
++                        "NCBIGENOMEDOWNLOAD",
++                        "ncbigenomedownload",
++                        "0.3.3"
++                    ]
++                ]
++            }
++        ],
++        "timestamp": "2026-08-11T12:38:00.972478",
++        "meta": {
++            "nf-test": "0.9.5",
++            "nextflow": "26.07.0"
++        }
++    },
+     "test-ncbigenomedownload - stub": {
+         "content": [
+             {
+@@ -188,7 +231,7 @@
+                             "single_end": false
+                         }
+                     ],
+-                    "GCF_000013425.1_ASM1342v1_assembly_stats.txt:md5,23b5b3a7daa354cb5a61819cd2f2b47f"
++                    "GCF_000013425.1_ASM1342v1_assembly_stats.txt:md5,f9f9aec3cc73cbcc19a09707d5e49f07"
+                 ]
+             ],
+             {
+@@ -201,10 +244,10 @@
+                 ]
+             }
+         ],
+-        "timestamp": "2026-03-12T13:17:24.89950318",
++        "timestamp": "2026-08-11T12:37:14.932631",
+         "meta": {
+-            "nf-test": "0.9.4",
+-            "nextflow": "25.10.4"
++            "nf-test": "0.9.5",
++            "nextflow": "26.07.0"
+         }
+     }
+ }
+--- modules/nf-core/ncbigenomedownload/tests/main.nf.test
++++ modules/nf-core/ncbigenomedownload/tests/main.nf.test
+@@ -17,6 +17,34 @@
+                 """
+                 input[0] = [ [ id:'test', single_end:false ] ]
+ 				input[1] = []
++				input[2] = []
++				input[3] = 'bacteria'
++
++                """
++            }
++        }
++
++        then {
++            assertAll(
++                { assert process.success },
++                { assert snapshot(
++					path(process.out.gbk[0][1]).linesGzip[3..7],
++					path(process.out.fna[0][1]).linesGzip[3..7],
++					process.out.stats,
++					process.out.findAll { key, val -> key.startsWith('versions') }
++					).match()
++				}
++            )
++        }
++    }
++
++    test("test-ncbigenomedownload - accession") {
++
++        when {
++            process {
++                """
++                input[0] = [ [ id:'test', single_end:false ] ]
++				input[1] = 'GCF_000027325.1'
+ 				input[2] = []
+ 				input[3] = 'bacteria'
+ 
+
+************************************************************
