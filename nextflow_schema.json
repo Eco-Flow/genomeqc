@@ -79,12 +79,6 @@
                     "help_text": "Only specify the groups if you are having problems downloading the assmeblies. Otherwise, the default value should work for any type of organism.\nAvailable options: all, archaea, bacteria, fungi, invertebrate, metagenomes, plant, protozoa, vertebrate_mammalian, vertebrate_other, viral.",
                     "pattern": "^(all|archaea|bacteria|fungi|invertebrate|metagenomes|plant|protozoa|vertebrate_mammalian|vertebrate_other|viral)(,(all|archaea|bacteria|fungi|invertebrate|metagenomes|plant|protozoa|vertebrate_mammalian|vertebrate_other|viral))*$"
                 },
-                "busco_mode": {
-                    "type": "string",
-                    "default": "proteins",
-                    "description": "A flag to set the busco mode for genome and annotation mode ('genome' is hardcoded in genome only mode).",
-                    "enum": ["proteins", "genome"]
-                },
                 "busco_lineage": {
                     "type": "string",
                     "default": "hymenoptera_odb10",

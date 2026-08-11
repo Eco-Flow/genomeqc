@@ -19,6 +19,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
   - [Quast](#quast) - Genome quality and contiguity metrics.
   - [tidk](#tidk) - Identify telomeric repeats.
   - [Merqury](#merqury) - Genome completeness and accuracy based on raw sequecing k-mer counts.
+- [GffRead validate](#gffread-validate) - Validate and standardise the annotation file (when `--val_tool gffread` is used).
 - Annotation quality metrics:
   - [AGAT sp_statistics](#agat-sp_statistics) - Gene statistics.
   - [AGAT sp_keep_longest_isoform](#agat-sp_keep_longest_isoform) - Filter longest isoform from GXF file.
@@ -30,8 +31,10 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
   - [Tiara](#tiara) - Sequence classification (domain and organelle level).
 - [GffRead](#gffread) - Extract longest isoform from FASTA file.
 - [BUSCO](#busco) - Genome completeness based on single copy markers.
+- [BUSCO seqs above threshold](#busco-seqs-above-threshold) - Count sequences with more than n complete BUSCOs.
 - [TE annotation](#te-annotation) (optional) - Transposable element identification and masking.
 - [Orthofinder](#orthofinder) - Phylogenetic orthology inference.
+- [Orthologous chromosomes](#orthologous-chromosomes) - Map orthologous genes onto sequences across species.
 - [Tree summary](#tree-summary) - Phylogenetic summary plot.
 - [Shiny app](#shiny-app) - Dynamic tree summary plot adjuster.
 - [MultiQC](#multiqc) - Aggregate report describing results and QC from the whole pipeline.
@@ -193,6 +196,20 @@ It generates a histogram relating k-mer counts in the read set to their associat
 
 To run nf-core/genomeqc with merqury, the assemblie's **fastq** must be provided.
 
+### GffRead validate
+
+[GffRead](https://github.com/gpertea/gffread) is used here to validate and standardise the annotation file structure before it is processed downstream.
+
+<details markdown="1">
+<summary>Output files</summary>
+
+- `gff_validate/<species_name>/`
+  - `<species_name>.gff3`: Validated and standardised annotation file.
+
+</details>
+
+This directory will only be present if `--save_validated_annotation` flag is set, and `--val_tool gffread` is used (the alternative is `--val_tool agat`, the validation tool by default).
+
 ### AGAT sp_statistics
 
 [AGAT sp_statistics](https://agat.readthedocs.io/en/latest/tools/agat_sp_statistics.html) computes several annotation metrics such as number of genes, transcripts, exons, etc.
@@ -259,12 +276,26 @@ It outputs a report with completness stats, a summarized table with these stats,
 - `busco/<species_name>/stats/`
   - `short_summary.specific.<busco_db>.<species_name>.txt`: Per-run BUSCO completeness report.
   - `<species_name>-<busco_db>-busco.batch_summary.txt`: Summarised completeness report.
-- `busco/<species_name>/ideogram/`
+- `busco/<species_name>/ideogram/` _(genome only mode)_
   - `<species_name>_<lineage>.png`: Ideogram with the chromosomal location of single-copy markers.
+- `busco/<species_name>_<lineage>/ideogram/` _(genome and annotation mode)_
+  - `<species_name>.png`: Ideogram with the chromosomal location of single-copy markers.
 
 </details>
 
 ![output_example_busco](images/output_example/syngnathus_acus_ideogram.png)
+
+### BUSCO seqs above threshold
+
+**BUSCO seqs above threshold** is a local module that counts, per species, the number of sequences (chromosomes/scaffolds/contigs) containing more than `--min_buscos` complete single-copy BUSCOs. Since single-copy BUSCOs are expected to be spread fairly evenly across the genome, this count should also be close to the species' chromosome number in a well-assembled genome — a much higher count suggests the BUSCO gene content is scattered across more, smaller fragments than the real karyotype, a sign of assembly fragmentation.
+
+<details markdown="1">
+<summary>Output files</summary>
+
+- `busco/<species_name>/min_number_buscos/`
+  - `n_seqs_above_x_buscos.tsv`: Number of sequences with Complete BUSCOs above the threshold.
+
+</details>
 
 ### TE annotation
 
@@ -314,7 +345,7 @@ The pipeline supports both OrthoFinder v2 and v3 (selected via `--ortho_version`
 <details markdown="1">
 <summary>Output files</summary>
 
-- `orthofinder/`
+- `orthofinder_v2/` or `orthofinder_v3/` (depending on `--ortho_version`)
   - `Orthogroups/`
     - Orthogroup assignments from MCL clustering (present in both v2 and v3).
   - `Species_Tree/`
@@ -327,6 +358,20 @@ The pipeline supports both OrthoFinder v2 and v3 (selected via `--ortho_version`
 </details>
 
 This directory will only be present if `--save_orthofinder_results` flag is set.
+
+### Orthologous chromosomes
+
+**Orthologous chromosomes** is a local module that maps Orthofinder's orthogroup genes onto the sequences (chromosomes/scaffolds/contigs) they are located on, then counts how often sequences pair up as orthologous across species. In a well-assembled genome, this count should be close to the true chromosome number — a much higher count points to a fragmented assembly.
+
+<details markdown="1">
+<summary>Output files</summary>
+
+- `orthologous_chromosomes/`
+  - `species_orthologous_chromosomes.tsv`: Per-species summary of orthologous sequence mappings.
+  - `pairwise_chromosome_orthology.tsv`: Pairwise sequence co-occurrence counts across species.
+  - `debug_gene_mapping.txt`: Per-gene mapping used to build the summaries above.
+
+</details>
 
 ### Tree summary
 
@@ -342,6 +387,8 @@ The layout is set with `--tree_style`: a conventional left-to-right tree (`round
 - `tree/genome_anno/` or `tree/genome_only/`
   - `tree_plot.pdf`: Tree summary with quality statistics.
   - `tree_plot.svg`: Same plot in SVG format.
+  - `tree.nw`: Rooted species tree in Newick format.
+  - `*.tsv`: Summary tables used to build the plot.
 
 </details>
 
