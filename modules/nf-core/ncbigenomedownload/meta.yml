@@ -19,10 +19,9 @@ input:
       description: |
         Groovy Map containing sample information
         e.g. [ id:'test', single_end:false ]
-  - accessions:
-      type: file
-      description: List of accessions (one per line) to download
-      pattern: "*.txt"
+  - accession:
+      type: string
+      description: Comma-separated list of accessions to download
       ontologies: []
   - taxids:
       type: file
