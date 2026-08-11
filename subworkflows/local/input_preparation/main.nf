@@ -1,4 +1,3 @@
-include { CREATEPATH                               } from '../../../modules/local/createpath/main'
 include { NCBIGENOMEDOWNLOAD                       } from '../../../modules/nf-core/ncbigenomedownload/main'
 include { PIGZ_UNCOMPRESS as UNCOMPRESS_FASTA      } from '../../../modules/nf-core/pigz/uncompress/main'
 include { PIGZ_UNCOMPRESS as UNCOMPRESS_GXF        } from '../../../modules/nf-core/pigz/uncompress/main'
@@ -12,17 +11,10 @@ workflow INPUT_PREPARATION {
     ch_local             // channel: [ val(meta), val(fasta), val(gxf), val(fastq) ]
 
     main:
-    //
-    // MODULE: Run create_path
-    //
-
     // ch_ncbi is a 3-element tuple, last element is the fastq.
-    // We need to remove it before CREATEPATH
-    ch_ncbi
-        | map { meta, refseq, _fq -> tuple( meta, refseq ) }
-        | CREATEPATH
-
-    ch_ncbi_input = CREATEPATH.out.accession
+    // We need to remove it before passing accessions to NCBIGENOMEDOWNLOAD
+    ch_ncbi_input = ch_ncbi
+                    | map { meta, refseq, _fq -> tuple( meta, refseq ) }
                     | multiMap {
                         meta, accession ->
                             meta      : meta

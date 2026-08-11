@@ -7,9 +7,14 @@ process NCBIGENOMEDOWNLOAD {
         'https://depot.galaxyproject.org/singularity/ncbi-genome-download:0.3.3--pyh7cba7a3_0' :
         'quay.io/biocontainers/ncbi-genome-download:0.3.3--pyh7cba7a3_0' }"
 
+    // Nextflow needs `path`-typed inputs resolved before the task is scheduled, so a
+    // beforeScript (which runs inside the task) can't satisfy one - it can only create
+    // files the script block itself refers to by a fixed name, which is what's done here.
+    beforeScript { accession ? "echo ${accession} > accessions.txt" : '' }
+
     input:
     val meta
-    path accessions
+    val accession
     path taxids
     val groups
 
@@ -34,7 +39,7 @@ process NCBIGENOMEDOWNLOAD {
 
     script:
     def args           = task.ext.args ?: ''
-    def accessions_opt = accessions ? "-A ${accessions}" : ""
+    def accessions_opt = accession ? "-A accessions.txt" : ""
     def taxids_opt     = taxids ? "-t ${taxids}" : ""
     """
     ncbi-genome-download \\

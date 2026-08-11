@@ -1,4 +1,47 @@
 {
+    "test-ncbigenomedownload - accession": {
+        "content": [
+            [
+                "VERSION     NC_000908.2",
+                "DBLINK      BioProject: PRJNA224116",
+                "            BioSample: SAMN02603983",
+                "            Assembly: GCF_000027325.1",
+                "KEYWORDS    RefSeq."
+            ],
+            [
+                "ATATTAGACAAATACTAATTTTATATTGCTTTAATACTTAATAAATACTACTTATGTATTAAGTAAATATTACTGTAATA",
+                "CTAATAACAATATTATTACAATATGCTAGAATAATATTGCTAGTATCAATAATTACTAATATAGTATTAGGAAAATACCA",
+                "TAATAATATTTCTACATAATACTAAGTTAATACTATGTGTAGAATAATAAATAATCAGATTAAAAAAATTTTATTTATCT",
+                "GAAACATATTTAATCAATTGAACTGATTATTTTCAGCAGTAATAATTACATATGTACATAGTACATATGTAAAATATCAT",
+                "TAATTTCTGTTATATATAATAGTATCTATTTTAGAGAGTATTAATTATTACTATAATTAAGCATTTATGCTTAATTATAA"
+            ],
+            [
+                [
+                    [
+                        {
+                            "id": "test",
+                            "single_end": false
+                        }
+                    ],
+                    "GCF_000027325.1_ASM2732v1_assembly_stats.txt:md5,801f8d4b7420e56aca8bf74d249399c6"
+                ]
+            ],
+            {
+                "versions_ncbigenomedownload": [
+                    [
+                        "NCBIGENOMEDOWNLOAD",
+                        "ncbigenomedownload",
+                        "0.3.3"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-08-11T12:38:00.972478",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.07.0"
+        }
+    },
     "test-ncbigenomedownload - stub": {
         "content": [
             {
@@ -188,7 +231,7 @@
                             "single_end": false
                         }
                     ],
-                    "GCF_000013425.1_ASM1342v1_assembly_stats.txt:md5,23b5b3a7daa354cb5a61819cd2f2b47f"
+                    "GCF_000013425.1_ASM1342v1_assembly_stats.txt:md5,f9f9aec3cc73cbcc19a09707d5e49f07"
                 ]
             ],
             {
@@ -201,10 +244,10 @@
                 ]
             }
         ],
-        "timestamp": "2026-03-12T13:17:24.89950318",
+        "timestamp": "2026-08-11T12:37:14.932631",
         "meta": {
-            "nf-test": "0.9.4",
-            "nextflow": "25.10.4"
+            "nf-test": "0.9.5",
+            "nextflow": "26.07.0"
         }
     }
 }
