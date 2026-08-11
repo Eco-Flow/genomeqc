@@ -52,6 +52,7 @@ output:
           ontologies:
             - edam: http://edamontology.org/format_3464
 authors:
+  - "@FernandoDuarteF"
   - "@chriswyatt1"
 maintainers:
   - "@chriswyatt1"

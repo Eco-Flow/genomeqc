@@ -3,7 +3,10 @@
         "content": [
             [
                 [
-                    "test",
+                    {
+                        "id": "test",
+                        "lineage": "bacteria_odb10"
+                    },
                     "test.csv:md5,d149209e0330a0ab9561de87bb2ee9e0"
                 ]
             ],
@@ -24,10 +27,10 @@
                 ]
             }
         ],
-        "timestamp": "2026-08-07T10:18:16.335058",
+        "timestamp": "2026-08-11T00:02:38.918853",
         "meta": {
-            "nf-test": "0.9.4",
-            "nextflow": "25.10.4"
+            "nf-test": "0.9.5",
+            "nextflow": "26.07.0"
         }
     },
     "genomeannotationbuscoideogram - protein-mode busco table - stub": {
@@ -35,21 +38,28 @@
             {
                 "0": [
                     [
-                        "test",
-                        "bacteria_odb10",
+                        {
+                            "id": "test",
+                            "lineage": "bacteria_odb10"
+                        },
                         "test.svg:md5,d41d8cd98f00b204e9800998ecf8427e"
                     ]
                 ],
                 "1": [
                     [
-                        "test",
-                        "bacteria_odb10",
+                        {
+                            "id": "test",
+                            "lineage": "bacteria_odb10"
+                        },
                         "test.png:md5,d41d8cd98f00b204e9800998ecf8427e"
                     ]
                 ],
                 "2": [
                     [
-                        "test",
+                        {
+                            "id": "test",
+                            "lineage": "bacteria_odb10"
+                        },
                         "test.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
                     ]
                 ],
@@ -69,21 +79,28 @@
                 ],
                 "busco_mappings": [
                     [
-                        "test",
+                        {
+                            "id": "test",
+                            "lineage": "bacteria_odb10"
+                        },
                         "test.csv:md5,d41d8cd98f00b204e9800998ecf8427e"
                     ]
                 ],
                 "png": [
                     [
-                        "test",
-                        "bacteria_odb10",
+                        {
+                            "id": "test",
+                            "lineage": "bacteria_odb10"
+                        },
                         "test.png:md5,d41d8cd98f00b204e9800998ecf8427e"
                     ]
                 ],
                 "svg": [
                     [
-                        "test",
-                        "bacteria_odb10",
+                        {
+                            "id": "test",
+                            "lineage": "bacteria_odb10"
+                        },
                         "test.svg:md5,d41d8cd98f00b204e9800998ecf8427e"
                     ]
                 ],
@@ -103,10 +120,10 @@
                 ]
             }
         ],
-        "timestamp": "2026-08-07T10:18:31.709231",
+        "timestamp": "2026-08-11T00:02:58.468471",
         "meta": {
-            "nf-test": "0.9.4",
-            "nextflow": "25.10.4"
+            "nf-test": "0.9.5",
+            "nextflow": "26.07.0"
         }
     }
 }

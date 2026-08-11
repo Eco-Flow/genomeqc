@@ -14,8 +14,7 @@ nextflow_process {
             process {
                 """
                 input[0] = [
-                    'test',
-                    'bacteria_odb10',
+                    [ id:'test', lineage:'bacteria_odb10' ],
                     file("\${baseDir}/modules/local/genomeannotationbuscoideogram/tests/full_table.tsv", checkIfExists: true),
                     file("\${baseDir}/modules/local/genomeannotationbuscoideogram/tests/genome.fasta", checkIfExists: true),
                     file("\${baseDir}/modules/local/genomeannotationbuscoideogram/tests/test.gff", checkIfExists: true)
@@ -28,8 +27,8 @@ nextflow_process {
             // svg/png aren't byte-stable across environments, so only checked for existence.
             assertAll(
                 { assert process.success },
-                { assert path(process.out.svg[0][2]).exists() },
-                { assert path(process.out.png[0][2]).exists() },
+                { assert path(process.out.svg[0][1]).exists() },
+                { assert path(process.out.png[0][1]).exists() },
                 { assert snapshot(
                     process.out.busco_mappings,
                     process.out.findAll { key, val -> key.startsWith('versions') }
@@ -46,8 +45,7 @@ nextflow_process {
             process {
                 """
                 input[0] = [
-                    'test',
-                    'bacteria_odb10',
+                    [ id:'test', lineage:'bacteria_odb10' ],
                     file("\${baseDir}/modules/local/genomeannotationbuscoideogram/tests/full_table.tsv", checkIfExists: true),
                     file("\${baseDir}/modules/local/genomeannotationbuscoideogram/tests/genome.fasta", checkIfExists: true),
                     file("\${baseDir}/modules/local/genomeannotationbuscoideogram/tests/test.gff", checkIfExists: true)

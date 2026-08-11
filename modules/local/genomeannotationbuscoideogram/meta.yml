@@ -17,12 +17,11 @@ tools:
         - "MIT"
       identifier: ""
 input:
-  - - genusspeci:
-        type: string
-        description: Genus/species identifier used to tag and prefix outputs
-    - lineage:
-        type: string
-        description: BUSCO lineage dataset name used to tag outputs
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. [ id:'test', lineage:'bacteria_odb10' ]
     - busco_full_table:
         type: file
         description: Protein-mode BUSCO full_table.tsv (no genomic coordinate
@@ -43,33 +42,33 @@ input:
         ontologies: []
 output:
   svg:
-    - - genusspeci:
-          type: string
-          description: Genus/species identifier used to tag and prefix outputs
-      - lineage:
-          type: string
-          description: BUSCO lineage dataset name used to tag outputs
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', lineage:'bacteria_odb10' ]
       - "*.svg":
           type: file
           description: SVG chromosome ideogram of annotated BUSCO gene locations
           pattern: "*.svg"
           ontologies: []
   png:
-    - - genusspeci:
-          type: string
-          description: Genus/species identifier used to tag and prefix outputs
-      - lineage:
-          type: string
-          description: BUSCO lineage dataset name used to tag outputs
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', lineage:'bacteria_odb10' ]
       - "*.png":
           type: file
           description: PNG chromosome ideogram of annotated BUSCO gene locations
           pattern: "*.png"
           ontologies: []
   busco_mappings:
-    - - genusspeci:
-          type: string
-          description: Genus/species identifier used to tag and prefix outputs
+    - - meta:
+          type: map
+          description: |
+            Groovy Map containing sample information
+            e.g. [ id:'test', lineage:'bacteria_odb10' ]
       - "*.csv":
           type: file
           description: Per-chromosome count of Complete BUSCOs
@@ -117,6 +116,6 @@ topics:
           type: eval
           description: The expression to obtain the version of the tool
 authors:
-  - "@chriswyatt1"
+  - "@FernandoDuarteF"
 maintainers:
   - "@chriswyatt1"

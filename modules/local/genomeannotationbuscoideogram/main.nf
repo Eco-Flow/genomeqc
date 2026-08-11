@@ -1,5 +1,5 @@
 process GENOMEANNOTATIONBUSCOIDEOGRAM {
-    tag "${genusspeci}_${lineage}"
+    tag "${meta.id}_${meta.lineage}"
     label 'process_single'
 
     conda "${moduleDir}/environment.yml"
@@ -8,18 +8,18 @@ process GENOMEANNOTATIONBUSCOIDEOGRAM {
         : 'community.wave.seqera.io/library/r-base_seqkit_r-rideogram_r-optparse_pruned:381d161bd6bee823' }"
 
     input:
-    tuple val(genusspeci), val(lineage), path(busco_full_table), path(genome), path(gff)
+    tuple val(meta), path(busco_full_table), path(genome), path(gff)
 
     output:
-    tuple val(genusspeci), val(lineage), path("*.svg"), emit: svg
-    tuple val(genusspeci), val(lineage), path("*.png"), emit: png
-    tuple val(genusspeci), path("*.csv"), emit: busco_mappings
+    tuple val(meta), path("*.svg"), emit: svg
+    tuple val(meta), path("*.png"), emit: png
+    tuple val(meta), path("*.csv"), emit: busco_mappings
     tuple val("${task.process}"), val('r_base'), eval('Rscript -e "cat(as.character(getRversion()))"'), emit: versions_r_base, topic: versions
     tuple val("${task.process}"), val('r_rideogram'), eval('Rscript -e "cat(as.character(packageVersion(\'RIdeogram\')))"'), emit: versions_rideogram, topic: versions
 
     script:
     def args = task.ext.args ?: ''
-    def prefix = "${genusspeci}_${lineage}"
+    def prefix = "${meta.id}_${meta.lineage}"
     """
     # Plot a chromosome ideogram of annotated BUSCO gene locations from the GFF
     # Get chromosome lengths:
@@ -34,20 +34,20 @@ process GENOMEANNOTATIONBUSCOIDEOGRAM {
     plot_busco_ideogram.R \\
         --busco_output busco_data_to_plot.tsv \\
         --karyotype ${prefix}_karyotype.txt \\
-        --prefix ${genusspeci} \\
+        --prefix ${meta.id} \\
         $args
 
     """
 
     stub:
     def args = task.ext.args ?: ''
-    def prefix = "${genusspeci}_${lineage}"
+    def prefix = "${meta.id}_${meta.lineage}"
 
     """
     echo $args
 
-    touch ${genusspeci}.svg
-    touch ${genusspeci}.png
-    touch ${genusspeci}.csv
+    touch ${meta.id}.svg
+    touch ${meta.id}.png
+    touch ${meta.id}.csv
     """
 }
