@@ -1,5 +1,5 @@
-process ORTHOLOGOUS_CHROMOSOMES {
-    tag "orthologous_chromosomes"
+process ORTHO_SEQ_COUNT {
+    tag "ortho_seq_count"
     label 'process_single'
 
     conda "${moduleDir}/environment.yml"
@@ -12,8 +12,8 @@ process ORTHOLOGOUS_CHROMOSOMES {
     path gff_files
 
     output:
-    path "species_orthologous_chromosomes.tsv", emit: species_summary
-    path "pairwise_chromosome_orthology.tsv", emit: pairwise_summary
+    path "species_ortho_seq_count.tsv", emit: species_summary
+    path "pairwise_ortho_seq_count.tsv", emit: pairwise_summary
     path "debug_gene_mapping.txt", emit: debug_info
     tuple val("${task.process}"), val('python'), eval('python --version | sed "s/Python //g"'), emit: versions_python, topic: versions
     tuple val("${task.process}"), val('pandas'), eval('python -c "import pandas as pd; print(pd.__version__)"'), emit: versions_pandas, topic: versions
@@ -23,20 +23,20 @@ process ORTHOLOGOUS_CHROMOSOMES {
 
     script:
     """
-    # Map orthogroup genes onto their chromosomes via the per-species GFFs,
-    # then tally how often chromosome pairs co-occur across species.
-    orthologous_chromosomes.py \\
+    # Map orthogroup genes onto their sequences (chromosomes/scaffolds/contigs) via the
+    # per-species GFFs, then tally how often sequence pairs co-occur across species.
+    ortho_seq_count.py \\
         --orthogroups ${orthogroups_tsv} \\
         --gff ${gff_files} \\
-        --pairwise-out pairwise_chromosome_orthology.tsv \\
-        --species-out species_orthologous_chromosomes.tsv \\
+        --pairwise-out pairwise_ortho_seq_count.tsv \\
+        --species-out species_ortho_seq_count.tsv \\
         --debug-out debug_gene_mapping.txt
     """
 
     stub:
     """
-    touch species_orthologous_chromosomes.tsv
-    touch pairwise_chromosome_orthology.tsv
+    touch species_ortho_seq_count.tsv
+    touch pairwise_ortho_seq_count.tsv
     touch debug_gene_mapping.txt
     """
 }

@@ -1,22 +1,22 @@
 nextflow_process {
 
-    name "Test Process ORTHOLOGOUS_CHROMOSOMES"
+    name "Test Process ORTHO_SEQ_COUNT"
     script "../main.nf"
-    process "ORTHOLOGOUS_CHROMOSOMES"
+    process "ORTHO_SEQ_COUNT"
 
     tag "modules"
     tag "modules_local"
-    tag "orthologous_chromosomes"
+    tag "ortho_seq_count"
 
-    test("orthologous_chromosomes - two species") {
+    test("ortho_seq_count - two species") {
 
         when {
             process {
                 """
-                input[0] = file("\${baseDir}/modules/local/orthologous_chromosomes/tests/orthogroups.tsv", checkIfExists: true)
+                input[0] = file("\${baseDir}/modules/local/ortho_seq_count/tests/orthogroups.tsv", checkIfExists: true)
                 input[1] = [
-                    file("\${baseDir}/modules/local/orthologous_chromosomes/tests/speciesA.gff", checkIfExists: true),
-                    file("\${baseDir}/modules/local/orthologous_chromosomes/tests/speciesB.gff", checkIfExists: true)
+                    file("\${baseDir}/modules/local/ortho_seq_count/tests/speciesA.gff", checkIfExists: true),
+                    file("\${baseDir}/modules/local/ortho_seq_count/tests/speciesB.gff", checkIfExists: true)
                 ]
                 """
             }
@@ -34,17 +34,17 @@ nextflow_process {
         }
     }
 
-    test("orthologous_chromosomes - two species - stub") {
+    test("ortho_seq_count - two species - stub") {
 
         options "-stub"
 
         when {
             process {
                 """
-                input[0] = file("\${baseDir}/modules/local/orthologous_chromosomes/tests/orthogroups.tsv", checkIfExists: true)
+                input[0] = file("\${baseDir}/modules/local/ortho_seq_count/tests/orthogroups.tsv", checkIfExists: true)
                 input[1] = [
-                    file("\${baseDir}/modules/local/orthologous_chromosomes/tests/speciesA.gff", checkIfExists: true),
-                    file("\${baseDir}/modules/local/orthologous_chromosomes/tests/speciesB.gff", checkIfExists: true)
+                    file("\${baseDir}/modules/local/ortho_seq_count/tests/speciesA.gff", checkIfExists: true),
+                    file("\${baseDir}/modules/local/ortho_seq_count/tests/speciesB.gff", checkIfExists: true)
                 ]
                 """
             }
@@ -74,10 +74,10 @@ nextflow_process {
         when {
             process {
                 """
-                input[0] = file("\$baseDir/modules/local/orthologous_chromosomes/tests/orthogroups_augustus.tsv", checkIfExists: true)
+                input[0] = file("\$baseDir/modules/local/ortho_seq_count/tests/orthogroups_augustus.tsv", checkIfExists: true)
                 input[1] = [
-                    file("\$baseDir/modules/local/orthologous_chromosomes/tests/species_a.longest.gff", checkIfExists: true),
-                    file("\$baseDir/modules/local/orthologous_chromosomes/tests/species_b.longest.gff", checkIfExists: true)
+                    file("\$baseDir/modules/local/ortho_seq_count/tests/species_a.longest.gff", checkIfExists: true),
+                    file("\$baseDir/modules/local/ortho_seq_count/tests/species_b.longest.gff", checkIfExists: true)
                 ]
                 """
             }

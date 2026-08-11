@@ -60,8 +60,8 @@ nextflow_process {
                 { assert table_names.contains('Quast_to_plot.tsv') },
                 { assert table_names.contains('n_seqs_above_x_buscos_output.tsv') },
                 { assert table_names.contains('te_table_output.tsv') },
-                // species_orthologous_chromosomes.tsv never reaches this process (see genome_and_annotation.nf).
-                { assert !table_names.contains('species_orthologous_chromosomes_output.tsv') },
+                // species_ortho_seq_count.tsv never reaches this process (see genome_and_annotation.nf).
+                { assert !table_names.contains('species_ortho_seq_count_output.tsv') },
                 { assert snapshot(
                     path(table_path('gene_stats.tsv')),
                     path(table_path('Busco_combined_geno.tsv')),

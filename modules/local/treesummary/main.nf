@@ -37,7 +37,7 @@ process TREESUMMARY {
     def args = task.ext.args     ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     def counts_command = meta.mode == 'genome_anno' ? "gene_overlaps_table.py *.counts.tsv gene_stats.tsv --include-sense --include-antisense" : "touch gene_stats.tsv" // Genome only option needs a gene_stats file, even if it's empty. Should check for a more elegant solution
-    def ortho_file = file("species_orthologous_chromosomes.tsv") ? "--ortho_file species_orthologous_chromosomes.tsv" : ''
+    def ortho_file = file("species_ortho_seq_count.tsv") ? "--ortho_file species_ortho_seq_count.tsv" : ''
     def geno_busco_combined = geno_busco ? '''{ head -qn 1 *-genome-busco.batch_summary_modified.txt | head -n 1; tail -q -n 1 *-genome-busco.batch_summary_modified.txt | sed -E 's/\t+/\t/g' | sed 's/\t$//g'; } > Busco_combined_geno.tsv''' : ''
     def prot_busco_combined = prot_busco ? '''{ head -qn 1 *-proteins-busco.batch_summary_modified.txt | head -n 1; tail -q -n 1 *-proteins-busco.batch_summary_modified.txt | sed -E 's/\t+/\t/g' | sed 's/\t$//g'; } > Busco_combined_prot.tsv''' : ''
     def geno_busco_file = geno_busco ? '--busco_geno Busco_combined_geno.tsv' : ''
@@ -85,8 +85,8 @@ process TREESUMMARY {
         cp n_seqs_above_x_buscos.tsv n_seqs_above_x_buscos_output.tsv
     fi
 
-    if [ -f "species_orthologous_chromosomes.tsv" ]; then
-        cp species_orthologous_chromosomes.tsv species_orthologous_chromosomes_output.tsv
+    if [ -f "species_ortho_seq_count.tsv" ]; then
+        cp species_ortho_seq_count.tsv species_ortho_seq_count_output.tsv
     fi
 
     if [ -n "${te_table}" ] && [ -f "${te_table}" ]; then
@@ -108,6 +108,6 @@ process TREESUMMARY {
     touch ${prefix}.tsv
     touch te_table_output.tsv
     touch n_seqs_above_x_buscos_output.tsv
-    touch species_orthologous_chromosomes_output.tsv
+    touch species_ortho_seq_count_output.tsv
     """
 }

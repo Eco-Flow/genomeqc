@@ -1,16 +1,17 @@
-name: "orthologous_chromosomes"
-description: Summarises orthologous chromosome pairs across species from an
-  OrthoFinder orthogroups table and per-species GFF files
+name: "ortho_seq_count"
+description: Counts, per species, how many sequences (chromosomes/scaffolds/contigs)
+  carry a gene orthologous to another species, from an OrthoFinder orthogroups table
+  and per-species GFF files
 keywords:
   - orthology
   - synteny
-  - chromosome
+  - contiguity
   - orthofinder
 tools:
-  - "orthologous_chromosomes":
-      description: "In-house script that maps orthogroup genes onto their chromosomes
-        via the per-species GFFs, then tallies how often chromosome pairs co-occur across
-        species."
+  - "ortho_seq_count":
+      description: "In-house script that maps orthogroup genes onto the sequences
+        (chromosomes/scaffolds/contigs) they sit on via the per-species GFFs, then
+        tallies how often sequence pairs co-occur across species."
       homepage: "https://github.com/nf-core/genomeqc"
       documentation: "https://github.com/nf-core/genomeqc"
       licence:
@@ -26,30 +27,30 @@ input:
   - gff_files:
       type: file
       description: Per-species GFF files used to map orthogroup genes to
-        chromosomes
+        sequences
       pattern: "*.gff"
       ontologies: []
 output:
   species_summary:
-    - "species_orthologous_chromosomes.tsv":
+    - "species_ortho_seq_count.tsv":
         type: file
-        description: Per-species count of chromosomes involved in cross-species
+        description: Per-species count of sequences involved in cross-species
           synteny
-        pattern: "species_orthologous_chromosomes.tsv"
+        pattern: "species_ortho_seq_count.tsv"
         ontologies:
           - edam: http://edamontology.org/format_3475
   pairwise_summary:
-    - "pairwise_chromosome_orthology.tsv":
+    - "pairwise_ortho_seq_count.tsv":
         type: file
-        description: Pairwise chromosome-to-chromosome orthology counts between
+        description: Pairwise sequence-to-sequence orthology counts between
           species
-        pattern: "pairwise_chromosome_orthology.tsv"
+        pattern: "pairwise_ortho_seq_count.tsv"
         ontologies:
           - edam: http://edamontology.org/format_3475
   debug_info:
     - "debug_gene_mapping.txt":
         type: file
-        description: Debug log of gene-to-chromosome mapping decisions
+        description: Debug log of gene-to-sequence mapping decisions
         pattern: "debug_gene_mapping.txt"
         ontologies: []
   versions_python:

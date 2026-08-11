@@ -34,7 +34,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 - [BUSCO seqs above threshold](#busco-seqs-above-threshold) - Count sequences with more than n complete BUSCOs.
 - [TE annotation](#te-annotation) (optional) - Transposable element identification and masking.
 - [Orthofinder](#orthofinder) - Phylogenetic orthology inference.
-- [Orthologous chromosomes](#orthologous-chromosomes) - Map orthologous genes onto sequences across species.
+- [Ortho seq count](#ortho-seq-count) - Map orthologous genes onto sequences across species.
 - [Tree summary](#tree-summary) - Phylogenetic summary plot.
 - [Shiny app](#shiny-app) - Dynamic tree summary plot adjuster.
 - [MultiQC](#multiqc) - Aggregate report describing results and QC from the whole pipeline.
@@ -359,16 +359,16 @@ The pipeline supports both OrthoFinder v2 and v3 (selected via `--ortho_version`
 
 This directory will only be present if `--save_orthofinder_results` flag is set.
 
-### Orthologous chromosomes
+### Ortho seq count
 
-**Orthologous chromosomes** is a local module that maps Orthofinder's orthogroup genes onto the sequences (chromosomes/scaffolds/contigs) they are located on, then counts how often sequences pair up as orthologous across species. In a well-assembled genome, this count should be close to the true chromosome number — a much higher count points to a fragmented assembly.
+**Ortho seq count** is a local module that maps Orthofinder's orthogroup genes onto the sequences (chromosomes/scaffolds/contigs) they are located on, then counts how often sequences pair up as orthologous across species. In a well-assembled genome, this count should be close to the true chromosome number — a much higher count points to a fragmented assembly.
 
 <details markdown="1">
 <summary>Output files</summary>
 
-- `orthologous_chromosomes/`
-  - `species_orthologous_chromosomes.tsv`: Per-species summary of orthologous sequence mappings.
-  - `pairwise_chromosome_orthology.tsv`: Pairwise sequence co-occurrence counts across species.
+- `ortho_seq_count/`
+  - `species_ortho_seq_count.tsv`: Per-species summary of orthologous sequence mappings.
+  - `pairwise_ortho_seq_count.tsv`: Pairwise sequence co-occurrence counts across species.
   - `debug_gene_mapping.txt`: Per-gene mapping used to build the summaries above.
 
 </details>
