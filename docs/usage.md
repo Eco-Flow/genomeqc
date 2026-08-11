@@ -10,7 +10,7 @@
 
 ## Samplesheet input
 
-Before running the pipeline, you will need to create a samplesheet with information about the assemblies you want to process. Use this parameter to specify its location. It has to be a comma-separated file with 5 columns, and a header row as shown in the examples below.
+Before running the pipeline, you will need to create a samplesheet with information about the assemblies you want to process. It has to be a comma-separated file with up to 6 columns, and a header row as shown in the examples below. Use this parameter to specify its location:
 
 ```bash
 --input '[path to samplesheet file]'
@@ -18,7 +18,7 @@ Before running the pipeline, you will need to create a samplesheet with informat
 
 The pipeline can be run using NCBI accessions (RefSeq or GenBank) or local files. It needs at least a **genome** (GenBank accession or local file in FASTA format) per species to run. If annotations (RefSeq accession or local file in GTF/GFF format) are added, the pipeline will run on both **genomes and annotations**. If you provide local FASTQ reads for an assembly, the pipeline will run Merqury to evaluate completness (see [Running Merqury](#running-merqury)). If you provide taxids in NCBI format and an FCS-GX database, it will run the decontamination subworkflow (see [Running the Decontamination subworkflow](#running-the-decontamination-subworkflow)).
 
-If running the pipeline using **local** files, point to the location these files using the **fasta** and/or **gff** fields:
+If running the pipeline using **local** files, point to the location these files using the `fasta` and/or `gff` fields:
 
 ```csv title="samplesheet.csv"
 species,fasta,gff
@@ -86,12 +86,12 @@ As for now, the pipeline doesn't support SRA accession for **Merqury**. We will 
 | --------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | `species` | Species name or custom sample name. Spaces in sample names are automatically converted to underscores (`_`).                        |
 | `ncbi`    | ncbi acession. Can be GenBank (starts with `GCA`) or RefSeq (starts with `GCF`).                                                    |
-| `fasta`   | Full path to the genome fasta file. Can be compressed or uncompressed.                                                              |
-| `gff`     | Full path to the genome annotation gff/gtf file. Can be compressed or uncompressed.                                                 |
-| `fastq`   | Full path to FastQ file for long reads (e.g. PacBio or ONT). File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz". |
+| `fasta`   | Full path to the genome FASTA file. Can be compressed or uncompressed.                                                              |
+| `gff`     | Full path to the genome annotation GFF/GTF file. Can be compressed or uncompressed.                                                 |
+| `fastq`   | Full path to FASTQ file for long reads (e.g. PacBio or ONT). File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz". |
 | `taxid`   | Species taxid for decontamination screening, must be a valid NCBI taxid (numeric string without spaces).                            |
 
-An [example samplesheet](../assets/samplesheet.csv) is provided with the pipeline.
+An [example samplesheet](./assets/samplesheet.csv) is provided with the pipeline.
 
 ## Running the pipeline
 
@@ -141,8 +141,8 @@ You can also generate such `YAML`/`JSON` files via [nf-core/launch](https://nf-c
 
 This is the minimal run. The pipeline will run on genome only mode if these inputs are provided in the samplesheet:
 
-1. Path to **fasta** OR
-2. **ncbi** GenaBank accession.
+1. Path to `fasta` OR
+2. `ncbi` GenBank accession.
 
 The pipeline will produce a tree plot summary that can be modified in real time using a packaged shiny app, as well as a MultiQC report with quality statistics.
 
@@ -150,9 +150,9 @@ The pipeline will produce a tree plot summary that can be modified in real time 
 
 The pipeline will run on genome and annotation mode if these inputs are provided in the samplesheet:
 
-1. Path to **fasta** AND
-2. Path to **gff** OR
-3. **ncbi** RefSeq accession.
+1. Path to `fasta` AND
+2. Path to `gff` OR
+3. `ncbi` RefSeq accession.
 
 The pipeline will produce a tree plot summary that can be modified in real time using a packaged shiny app, as well as a MultiQC report with quality statistics.
 
@@ -170,15 +170,19 @@ nextflow run nf-core/genomeqc \
 
 Users can skip tidk using the `--skip_tidk` flag.
 
+Refer to the [GitHub page](https://github.com/tolkit/telomeric-identifier) for more information about tidk.
+
 ### Running Merqury
 
-Users can also run the pipeline using Merqury by supplying the path to sequencing reads under the **fastq** field. Merqury needs both **fasta** and **fastq** to run. Refer the [GitHub page](https://github.com/marbl/merqury) for more information on Merqury.
+Users can also run the pipeline using Merqury by supplying the path to sequencing reads under the `fastq` field. Merqury needs both `fasta` and the corresponding `fastq` to run (one single `fastq` per assembly). For paired-end reads, merge/concatenate R1 and R2 into a single file before providing it.
 
 The k-mer size used to build the Meryl database can be tuned with `--kvalue` (default: `21`). For highly heterozygous or large genomes, a larger k (e.g. `31`) may give better completeness estimates.
 
+Refer the [GitHub page](https://github.com/marbl/merqury) for more information on Merqury.
+
 ### Running Decontamination
 
-If an NCBI taxid is provided for an assembly in the samplesheet through the **taxid** field, and the path to the FCS-GX database or a manifest to download and build it is given via `--gxdb` or `--gxdb_manifest` respectively, the pipeline will run the decontamination subworkflow. E.g.:
+If an NCBI taxid is provided for an assembly in the samplesheet through the `taxid` field, and the path to the FCS-GX database or a manifest to download and build it is given via `--gxdb` or `--gxdb_manifest` respectively, the pipeline will run the decontamination subworkflow. E.g.:
 
 ```bash
 nextflow run nf-core/genomeqc \
@@ -376,10 +380,10 @@ You will need docker to run the shiny app, as it comes packaged in a docker cont
 
 The pipeline can be ran using different test profiles:
 
-1. `-profile test` — Runs genome and annotation with Merqury using **RefSeq accessions** and local **fastqs**.
-2. `-profile test_local` — Runs genome and annotation on local files (**fasta** and **gff**).
-3. `-profile test_genomeonly` — Runs genome only on local files (**fasta**).
-4. `-profile test_nofastq` — Runs genome and annotation using **RefSeq accessions** (no fastq/Merqury).
+1. `-profile test` — Runs genome and annotation with Merqury using **RefSeq accessions** and local FASTQ files.
+2. `-profile test_local` — Runs genome and annotation on local files (`fasta` and `gff`).
+3. `-profile test_genomeonly` — Runs genome only on local files (`fasta`).
+4. `-profile test_nofastq` — Runs genome and annotation using **RefSeq accessions** (no `fastq`/Merqury).
 5. `-profile test_decon` — Tests the decontamination subworkflow (FCS-GX, FCS-Adaptor, Tiara) using the NCBI FCS test-only database.
 6. `-profile test_te` — Tests TE annotation with `--te repeatmasker` and `--run_repeatmodeler` on a minimal genome.
 7. `-profile test_full` — Runs the full pipeline on a set of Hymenoptera genomes.

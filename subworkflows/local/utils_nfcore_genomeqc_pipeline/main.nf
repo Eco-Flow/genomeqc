@@ -187,7 +187,7 @@ def validateInputSamplesheet(input) {
         } else if ( ncbi.startsWith('GCA') ) { // For genbank IDs
             return [ [id:meta.id, ncbi:'genbank',taxid:meta.taxid], ncbi, fastq ]
         } else {
-            error('Incorrect ncbi ID. Please make sure ncbi IDs start with "GCA" for GenBank or "GCG" for RefSeq')
+            error('Incorrect ncbi ID. Please make sure ncbi IDs start with "GCA" for GenBank or "GCF" for RefSeq')
         }
     // If input are local files
     } else if ( meta && fasta ) { // At least fasta file is necessary if local files (genome only mode is the minimum run)

@@ -16,7 +16,7 @@
             "ncbi": {
                 "type": "string",
                 "pattern": "^GC[AF]_[0-9]{9}\\.[0-9]+$",
-                "errorMessage": "NCBI assembly accession number. Should start with GCA_ (RefSeq) or GFC_ (GenBank), followed by 9 digits and the version number, and cannot contain spaces"
+                "errorMessage": "NCBI assembly accession number. Should start with GCF_ (RefSeq) or GCA_ (GenBank), followed by 9 digits and the version number, and cannot contain spaces"
             },
             "fasta": {
                 "type": "string",
