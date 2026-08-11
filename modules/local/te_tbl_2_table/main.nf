@@ -12,6 +12,7 @@ process TE_TBL_2_TABLE {
 
     output:
     tuple val(meta), path("*.tsv"), emit: table
+    tuple val("${task.process}"), val('python'), eval('python3 --version | sed "s/Python //g"'), emit: versions_python, topic: versions
 
 
     script:

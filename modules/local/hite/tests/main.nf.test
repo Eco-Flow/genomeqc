@@ -28,7 +28,11 @@ nextflow_process {
                 { assert process.success },
                 { assert path(process.out.hite_results[0][1]).exists() },
                 { assert path(process.out.tbl[0][1]).exists() },
-                { assert path(process.out.versions[0]).exists() }
+                { assert process.out.versions_python[0][2] },
+                { assert process.out.versions_hite[0][2] == '3.3.3' },
+                { assert process.out.versions_repeatmasker[0][2] },
+                { assert process.out.versions_repeatmodeler[0][2] },
+                { assert process.out.versions_ltrpipeline[0][2] }
             )
         }
     }

@@ -22,12 +22,12 @@
                     },
                     "busco/busco": {
                         "branch": "master",
-                        "git_sha": "6d46786420b4d7bc88eba026eb389c0c5535d120",
+                        "git_sha": "3927a974459b80b8e24d73e00da029e8c7335c4d",
                         "installed_by": ["modules"]
                     },
                     "busco/download": {
                         "branch": "master",
-                        "git_sha": "c65517224900fbc03611170224ee63fa16287d83",
+                        "git_sha": "3927a974459b80b8e24d73e00da029e8c7335c4d",
                         "installed_by": ["modules"]
                     },
                     "cat/cat": {
@@ -47,7 +47,7 @@
                     },
                     "fcs/fcsadaptor": {
                         "branch": "master",
-                        "git_sha": "6d46786420b4d7bc88eba026eb389c0c5535d120",
+                        "git_sha": "d0a30b674dc035e978bdd8215e4ac2ae2ea0064b",
                         "installed_by": ["modules"]
                     },
                     "fcsgx/cleangenome": {
@@ -77,7 +77,7 @@
                     },
                     "mdust": {
                         "branch": "master",
-                        "git_sha": "6d46786420b4d7bc88eba026eb389c0c5535d120",
+                        "git_sha": "fe5475af3f8298535094d6555718c01f0a7383c0",
                         "installed_by": ["modules"]
                     },
                     "merqury/merqury": {
@@ -102,12 +102,12 @@
                     },
                     "multiqc": {
                         "branch": "master",
-                        "git_sha": "008f9d3e61209bf995edac3ba531f54e269e1215",
+                        "git_sha": "98403d15b0e50edae1f3fec5eae5e24982f1fade",
                         "installed_by": ["modules"]
                     },
                     "ncbigenomedownload": {
                         "branch": "master",
-                        "git_sha": "6d46786420b4d7bc88eba026eb389c0c5535d120",
+                        "git_sha": "46cee3233c7c56524e3c32a52cec089316e09ee5",
                         "installed_by": ["modules"]
                     },
                     "orthofinder": {
@@ -145,12 +145,12 @@
                     },
                     "seqkit/seq": {
                         "branch": "master",
-                        "git_sha": "6d46786420b4d7bc88eba026eb389c0c5535d120",
+                        "git_sha": "d07a945f421a4a91ce4e5a22db63e0e7f8741607",
                         "installed_by": ["fasta_explore_search_plot_tidk"]
                     },
                     "seqkit/sort": {
                         "branch": "master",
-                        "git_sha": "6d46786420b4d7bc88eba026eb389c0c5535d120",
+                        "git_sha": "d07a945f421a4a91ce4e5a22db63e0e7f8741607",
                         "installed_by": ["fasta_explore_search_plot_tidk"]
                     },
                     "tiara/tiara": {

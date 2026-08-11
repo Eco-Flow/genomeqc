@@ -12,13 +12,13 @@
                     "agat": "1.6.1"
                 },
                 "BUSCO_DOWNLOAD": {
-                    "busco": "5.8.3"
+                    "busco": "6.1.0"
                 },
                 "BUSCO_GENOME": {
-                    "busco": "6.0.0"
+                    "busco": "6.1.0"
                 },
                 "BUSCO_PROTEINS": {
-                    "busco": "6.0.0"
+                    "busco": "6.1.0"
                 },
                 "BUSCO_SEQS_GENOME_ANNO": {
                     "python": "3.13.5"
@@ -27,7 +27,7 @@
                     "python": "3.9.5"
                 },
                 "FILTER_BY_LENGTH": {
-                    "seqkit": "2.9.0"
+                    "seqkit": "2.13.0"
                 },
                 "GAWK_GENO": {
                     "gawk": "5.3.1"
@@ -63,7 +63,7 @@
                     "cat": 8.32
                 },
                 "SORT_BY_LENGTH": {
-                    "seqkit": "2.9.0"
+                    "seqkit": "2.13.0"
                 },
                 "TIDK_EXPLORE": {
                     "tidk": "0.2.7"
