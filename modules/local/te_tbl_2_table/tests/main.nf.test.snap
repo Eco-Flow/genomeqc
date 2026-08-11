@@ -10,6 +10,13 @@
                         "test.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
                     ]
                 ],
+                "1": [
+                    [
+                        "TE_TBL_2_TABLE",
+                        "python",
+                        "3.9.5"
+                    ]
+                ],
                 "table": [
                     [
                         {
@@ -17,12 +24,19 @@
                         },
                         "test.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
                     ]
+                ],
+                "versions_python": [
+                    [
+                        "TE_TBL_2_TABLE",
+                        "python",
+                        "3.9.5"
+                    ]
                 ]
             }
         ],
-        "timestamp": "2026-08-07T08:54:40.090203",
+        "timestamp": "2026-08-10T22:36:33.52902",
         "meta": {
-            "nf-test": "0.9.4",
+            "nf-test": "0.9.5",
             "nextflow": "25.10.4"
         }
     },
@@ -37,6 +51,13 @@
                         "test.tsv:md5,d1a2ef89539d08810b84edc490a163fd"
                     ]
                 ],
+                "1": [
+                    [
+                        "TE_TBL_2_TABLE",
+                        "python",
+                        "3.9.5"
+                    ]
+                ],
                 "table": [
                     [
                         {
@@ -44,12 +65,19 @@
                         },
                         "test.tsv:md5,d1a2ef89539d08810b84edc490a163fd"
                     ]
+                ],
+                "versions_python": [
+                    [
+                        "TE_TBL_2_TABLE",
+                        "python",
+                        "3.9.5"
+                    ]
                 ]
             }
         ],
-        "timestamp": "2026-08-07T08:54:23.382924",
+        "timestamp": "2026-08-10T22:36:27.948072",
         "meta": {
-            "nf-test": "0.9.4",
+            "nf-test": "0.9.5",
             "nextflow": "25.10.4"
         }
     }

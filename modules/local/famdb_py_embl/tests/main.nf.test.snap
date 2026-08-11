@@ -10,6 +10,13 @@
                         "3.fasta:md5,388e6896d00a060925c841019cb41d45"
                     ]
                 ],
+                "1": [
+                    [
+                        "FAMDB_PY_EMBL",
+                        "repeatmasker",
+                        "4.2.2"
+                    ]
+                ],
                 "famdb_lib": [
                     [
                         {
@@ -17,12 +24,19 @@
                         },
                         "3.fasta:md5,388e6896d00a060925c841019cb41d45"
                     ]
+                ],
+                "versions_repeatmasker": [
+                    [
+                        "FAMDB_PY_EMBL",
+                        "repeatmasker",
+                        "4.2.2"
+                    ]
                 ]
             }
         ],
-        "timestamp": "2026-08-07T17:57:34.737533",
+        "timestamp": "2026-08-10T22:34:25.796568",
         "meta": {
-            "nf-test": "0.9.4",
+            "nf-test": "0.9.5",
             "nextflow": "25.10.4"
         }
     },
@@ -37,6 +51,13 @@
                         "3.fasta:md5,d41d8cd98f00b204e9800998ecf8427e"
                     ]
                 ],
+                "1": [
+                    [
+                        "FAMDB_PY_EMBL",
+                        "repeatmasker",
+                        "4.2.2"
+                    ]
+                ],
                 "famdb_lib": [
                     [
                         {
@@ -44,12 +65,19 @@
                         },
                         "3.fasta:md5,d41d8cd98f00b204e9800998ecf8427e"
                     ]
+                ],
+                "versions_repeatmasker": [
+                    [
+                        "FAMDB_PY_EMBL",
+                        "repeatmasker",
+                        "4.2.2"
+                    ]
                 ]
             }
         ],
-        "timestamp": "2026-08-07T17:57:48.322119",
+        "timestamp": "2026-08-10T22:34:31.79482",
         "meta": {
-            "nf-test": "0.9.4",
+            "nf-test": "0.9.5",
             "nextflow": "25.10.4"
         }
     }

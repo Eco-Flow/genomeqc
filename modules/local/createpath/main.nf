@@ -12,6 +12,8 @@ process CREATEPATH {
 
     output:
     tuple val (meta), path("*.txt"), emit: accession
+    // No external tool is invoked (just a shell echo), so report the shell itself.
+    tuple val("${task.process}"), val('bash'), eval('bash --version | head -n1'), emit: versions_bash, topic: versions
 
     when:
     task.ext.when == null || task.ext.when

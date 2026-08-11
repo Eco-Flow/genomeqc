@@ -11,6 +11,13 @@
                         "test.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
                     ]
                 ],
+                "1": [
+                    [
+                        "CREATEPATH",
+                        "bash",
+                        "GNU bash, version 5.0.3(1)-release (x86_64-pc-linux-gnu)"
+                    ]
+                ],
                 "accession": [
                     [
                         {
@@ -19,12 +26,19 @@
                         },
                         "test.txt:md5,d41d8cd98f00b204e9800998ecf8427e"
                     ]
+                ],
+                "versions_bash": [
+                    [
+                        "CREATEPATH",
+                        "bash",
+                        "GNU bash, version 5.0.3(1)-release (x86_64-pc-linux-gnu)"
+                    ]
                 ]
             }
         ],
-        "timestamp": "2026-08-07T08:51:57.042843",
+        "timestamp": "2026-08-10T22:34:18.112215",
         "meta": {
-            "nf-test": "0.9.4",
+            "nf-test": "0.9.5",
             "nextflow": "25.10.4"
         }
     },
@@ -40,6 +54,13 @@
                         "test.txt:md5,04428b4fe5944113421ab52e5373e278"
                     ]
                 ],
+                "1": [
+                    [
+                        "CREATEPATH",
+                        "bash",
+                        "GNU bash, version 5.0.3(1)-release (x86_64-pc-linux-gnu)"
+                    ]
+                ],
                 "accession": [
                     [
                         {
@@ -48,12 +69,19 @@
                         },
                         "test.txt:md5,04428b4fe5944113421ab52e5373e278"
                     ]
+                ],
+                "versions_bash": [
+                    [
+                        "CREATEPATH",
+                        "bash",
+                        "GNU bash, version 5.0.3(1)-release (x86_64-pc-linux-gnu)"
+                    ]
                 ]
             }
         ],
-        "timestamp": "2026-08-07T08:51:40.252105",
+        "timestamp": "2026-08-10T22:34:10.360587",
         "meta": {
-            "nf-test": "0.9.4",
+            "nf-test": "0.9.5",
             "nextflow": "25.10.4"
         }
     }

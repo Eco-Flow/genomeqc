@@ -200,11 +200,14 @@ workflow GENOMEQC {
                             | concat(BUSCO_SEQS_GENOME.out.table.map { _meta, table -> table})
                             | collect
 
-        // Optional channel for HTML report: empty list if BUSCO_SEQS_GENOME_ANNO produced no output
+        // Optional channel for HTML report: empty list if no busco seqs tables were produced.
+        // collectFile merges both modes' tables (disjoint species) into one TSV with a single
+        // header, since generate_report.py/generate_excel.py expect exactly one file.
         ch_busco_seqs_ga_file = BUSCO_SEQS_GENOME_ANNO.out.table
                               | mix (BUSCO_SEQS_GENOME.out.table)
                               | map { _meta, f -> f }
-                              | ifEmpty([]) // If no busco seqs are found, return an empty channel instead of failing
+                              | collectFile(name: 'n_seqs_above_x_buscos.tsv', keepHeader: true)
+                              | ifEmpty([])
 
     } else { // If BUSCO is not run
         ch_tree_genome_anno   = GENOME_AND_ANNOTATION.out.tree_data.collect()

@@ -16,7 +16,11 @@ process HITE {
     output:
     tuple val(meta), path("*_hite_results")           , emit: hite_results
     tuple val(meta), path("*_hite_results/*.tbl")  , emit: tbl
-    path "versions.yml"      , emit: versions
+    tuple val("${task.process}"), val('python'), eval('python --version | cut -f 2 -d " "'), emit: versions_python, topic: versions
+    tuple val("${task.process}"), val('hite'), val('3.3.3'), emit: versions_hite, topic: versions
+    tuple val("${task.process}"), val('repeatmasker'), eval('RepeatMasker | grep version | cut -f 3 -d " "'), emit: versions_repeatmasker, topic: versions
+    tuple val("${task.process}"), val('repeatmodeler'), eval('RepeatModeler | grep /opt/conda/envs/HiTE/share/RepeatModeler/RepeatModeler | cut -f 3 -d " "'), emit: versions_repeatmodeler, topic: versions
+    tuple val("${task.process}"), val('ltrpipeline'), eval('LTRPipeline -version'), emit: versions_ltrpipeline, topic: versions
 
     script:
     def args   = task.ext.args ?: ''
@@ -59,15 +63,6 @@ process HITE {
     fi
 
     mv \${mydir}/${prefix}_hite_results/HiTE.tbl \${mydir}/${prefix}_hite_results/${prefix}.tbl
-
-    cat <<-END_VERSIONS > \${mydir}/versions.yml
-    "${task.process}":
-       Python version: \$(python --version | cut -f 2 -d " ")
-        HiTE version: 3.2.0
-       Repeat Masker version: \$(RepeatMasker | grep version | cut -f 3 -d " ")
-       Repeat Modeler version: \$(RepeatModeler | grep /opt/conda/envs/HiTE/share/RepeatModeler/RepeatModeler | cut -f 3 -d " ")
-        LTRPipeline version: \$(LTRPipeline -version)
-    END_VERSIONS
     """
 
     stub:
@@ -75,6 +70,5 @@ process HITE {
     """
     mkdir -p ${prefix}_hite_results
     touch ${prefix}_hite_results/${prefix}.tbl
-    touch versions.yml
     """
 }
