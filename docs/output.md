@@ -268,7 +268,7 @@ This directory will only be present if `--save_extracted_seqs` flag is set.
 
 [BUSCO](https://busco.ezlab.org/) is a tool for assessing the quality of assemblies based on the presence of single copy orthotologues. It computes the compleness based on evolutionarily informed expectations of gene content, whether this single copy markers are present in single copy, duplicated, fragmented or absent.
 
-It outputs a report with completness stats, a summarized table with these stats, and an ideaogram with single copy markers mapped against each chromosome or sequence.
+It outputs a report with completness stats, a summarized table with these stats, and an ideogram with single copy markers mapped against each sequence (chromosome, scaffold or contig).
 
 <details markdown="1">
 <summary>Output files</summary>
@@ -277,9 +277,9 @@ It outputs a report with completness stats, a summarized table with these stats,
   - `short_summary.specific.<busco_db>.<species_name>.txt`: Per-run BUSCO completeness report.
   - `<species_name>-<busco_db>-busco.batch_summary.txt`: Summarised completeness report.
 - `busco/<species_name>/ideogram/` _(genome only mode)_
-  - `<species_name>_<lineage>.png`: Ideogram with the chromosomal location of single-copy markers.
+  - `<species_name>_<lineage>.png`: Ideogram with the location of single-copy markers across sequences.
 - `busco/<species_name>_<lineage>/ideogram/` _(genome and annotation mode)_
-  - `<species_name>.png`: Ideogram with the chromosomal location of single-copy markers.
+  - `<species_name>.png`: Ideogram with the location of single-copy markers across sequences.
 
 </details>
 
