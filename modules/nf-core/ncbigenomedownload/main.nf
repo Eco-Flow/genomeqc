@@ -4,7 +4,7 @@ process NCBIGENOMEDOWNLOAD {
 
     conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/ncbi-genome-download:0.3.3--pyh7cba7a3_0' :
+        'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/8f/8fd8147afeea41585d5942f1a722ed9d567e57d71cae7c334852228ee852699c/data' :
         'quay.io/biocontainers/ncbi-genome-download:0.3.3--pyh7cba7a3_0' }"
 
     // Nextflow needs `path`-typed inputs resolved before the task is scheduled, so a
