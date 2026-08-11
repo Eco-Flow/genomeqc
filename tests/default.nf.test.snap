@@ -1558,6 +1558,7 @@
                 "multiqc_quast.txt:md5,212667a92010b49affdd226db9033cec",
                 "quast_num_contigs.txt:md5,5a39b597c115559d517c55622d3b6ff0",
                 "quast_table.txt:md5,628f4814d32ae3b5c503ecaa24f98caa",
+                "debug_gene_mapping.txt:md5,2cb6fb5d87cd166ca7ec34a1bc21abe4",
                 "pairwise_ortho_seq_count.tsv:md5,dc7d4166964470fb4a81cd0536640acc",
                 "species_ortho_seq_count.tsv:md5,1211a800d1f529cc3babb35a8586eeef",
                 "report.tex:md5,44862716cf8a265554c5331207e7b261",
