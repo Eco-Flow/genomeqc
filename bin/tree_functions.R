@@ -250,7 +250,7 @@ plot_busco_pies <- function(data_busco,
   return(out)
 }
 
-plot_te_pies <- function(data_te, rad_width = NULL, len_pos_x = 0) {
+plot_te_bars <- function(data_te, bar_width = NULL, len_pos_x = 0) {
   out <- list(plot = NULL, legend = NULL)
   if (is.null(data_te)) return(out)
 
@@ -266,18 +266,31 @@ plot_te_pies <- function(data_te, rad_width = NULL, len_pos_x = 0) {
     "Non_Repeat"     = "darkgray"
   )
 
-  te_plot <- ggplot() +
-    geom_scatterpie(
-      aes(x = 0, y = node, group = species, r = rad_width),
-      data = data_te,
-      cols = names(te_colors),
+  data_te_long <- data_te %>%
+    select(node, all_of(names(te_colors))) %>%
+    pivot_longer(cols = all_of(names(te_colors)), names_to = "metric", values_to = "value") %>%
+    mutate(metric = factor(metric, levels = names(te_colors)))
+
+  te_plot <- ggplot(data_te_long, aes(x = node, y = value, fill = metric)) +
+    geom_col(
+      position = position_fill(reverse = TRUE), # Rescales each bar to 100% (like a pie), stacked in legend order
+      width = bar_width,
       color = NA
     ) +
+    scale_y_continuous(labels = scales::percent) +
     scale_fill_manual(values = te_colors) +
-    coord_fixed() +
-    theme_void() +
     ggtitle("TE") +
-    theme(plot.title = element_text(size = 9, hjust = 0.5, vjust = 0.05))
+    theme_classic() +
+    theme(
+      axis.text.y = element_blank(),
+      axis.text.x = element_text(angle = 60, vjust = 1, hjust = 1, size = 6),
+      axis.ticks.y = element_blank(),
+      axis.line.x = element_line(),
+      axis.line.y = element_blank(),
+      plot.title = element_text(size = 9, hjust = 0.5, vjust = -5)
+    ) +
+    coord_flip() +
+    xlab(NULL) + ylab(NULL)
 
   legend_te <- cowplot::get_legend(
     te_plot +
@@ -399,7 +412,7 @@ generate_plots <- function(processed_data, text_size = 3, tree_scale = 0.0005,
                                       rad_width = rad_width,
                                       title = "BUSCO\nprotein",
                                       len_pos_x = len_pos_x)
-  te_result <- plot_te_pies(data_te, rad_width = rad_width, len_pos_x = len_pos_x)
+  te_result <- plot_te_bars(data_te, bar_width = bar_width, len_pos_x = len_pos_x)
 
 
   gene_plot <- NULL
@@ -453,10 +466,10 @@ generate_plots <- function(processed_data, text_size = 3, tree_scale = 0.0005,
     get_plot_range(ortho_plot, "y"),
     get_plot_range(busco_gen_plot$plot, "y"),
     get_plot_range(busco_prot_plot$plot, "y"),
-    get_plot_range(te_result$plot, "y"),
     get_plot_range(len_plot, "x"),
     get_plot_range(n50_plot, "x"),
-    get_plot_range(gene_plot, "x")
+    get_plot_range(gene_plot, "x"),
+    get_plot_range(te_result$plot, "x") # te_result is now a coord_flip()'d bar (like len_plot/n50_plot), not a pie - node range lives on x, not y
   )
 
   if (length(all_ranges) > 0) {
@@ -468,11 +481,11 @@ generate_plots <- function(processed_data, text_size = 3, tree_scale = 0.0005,
     if (!is.null(ch_plot))    ch_plot    <- ch_plot    + new_ylim
     if (!is.null(busco_gen_plot$plot))  busco_gen_plot$plot  <- busco_gen_plot$plot  + new_ylim
     if (!is.null(busco_prot_plot$plot))  busco_prot_plot$plot  <- busco_prot_plot$plot  + new_ylim
-    if (!is.null(te_result$plot))       te_result$plot       <- te_result$plot       + new_ylim
 
     if (!is.null(len_plot))   len_plot   <- len_plot   + new_xlim
     if (!is.null(n50_plot))   n50_plot   <- n50_plot   + new_xlim
     if (!is.null(gene_plot))  gene_plot  <- gene_plot  + new_xlim
+    if (!is.null(te_result$plot)) te_result$plot <- te_result$plot + new_xlim # te_result is coord_flip()'d
 
     tree_plot <- tree_plot + new_ylim
   } else {
