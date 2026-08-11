@@ -4,7 +4,7 @@ process BUSCO_SEQS {
 
     conda "${moduleDir}/environment.yml"
     container "${workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container
-        ? 'oras://community.wave.seqera.io/library/pandas_python:2c576cde050ae1c2'
+        ? 'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/b3/b39f468dbf576d7e8e3e2913cb1deaaf172f194bf7c76ce80a2b8940a7c492a4/data'
         : 'community.wave.seqera.io/library/python_pip_pandas:2fd05a70c67560f2'}"
 
     input:
