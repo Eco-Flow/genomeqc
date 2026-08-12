@@ -12,14 +12,13 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 
 <!-- [pigz uncompress](#pigz-uncompress) - Uncompresses FASTA and GFF files -->
 <!-- [FastaValidator](#fastavalidator) Validate FASTA files -->
-<!-- [AGAT convert sp_GXF2GXF]() - Standataizes gff files -->
 
 - [NCBI genome download](#ncbi-genome-download) - Download genomes and their annotations from RefSeq and GenBank.
 - Genome quality metrics:
   - [Quast](#quast) - Genome quality and contiguity metrics.
   - [tidk](#tidk) - Identify telomeric repeats.
   - [Merqury](#merqury) - Genome completeness and accuracy based on raw sequecing k-mer counts.
-- [GffRead validate](#gffread-validate) - Validate and standardise the annotation file (when `--val_tool gffread` is used).
+- [Annotation validation](#annotation-validation) - Validate and standardise the annotation file, with AGAT (default) or GffRead (`--val_tool gffread`).
 - Annotation quality metrics:
   - [AGAT sp_statistics](#agat-sp_statistics) - Gene statistics.
   - [AGAT sp_keep_longest_isoform](#agat-sp_keep_longest_isoform) - Filter longest isoform from GXF file.
@@ -196,19 +195,24 @@ It generates a histogram relating k-mer counts in the read set to their associat
 
 To run nf-core/genomeqc with merqury, the assemblie's **fastq** must be provided.
 
-### GffRead validate
+### Annotation validation
 
-[GffRead](https://github.com/gpertea/gffread) is used here to validate and standardise the annotation file structure before it is processed downstream.
+The annotation file is validated and standardised before being processed downstream, using either [AGAT](https://agat.readthedocs.io/en/latest/tools/agat_convert_sp_gxf2gxf.html) `sp_gxf2gxf` (default) or [GffRead](https://github.com/gpertea/gffread) (`--val_tool gffread`).
 
 <details markdown="1">
 <summary>Output files</summary>
 
-- `gff_validate/<species_name>/`
-  - `<species_name>.gff3`: Validated and standardised annotation file.
+- `validated_gff/<species_name>/`
+  - `<species_name>.agat.gff`: Validated and standardised annotation file (AGAT, default).
+  - `<species_name>.gff3`: Validated and standardised annotation file (GffRead, only if `--val_tool gffread` is used).
 
 </details>
 
-This directory will only be present if `--save_validated_annotation` flag is set, and `--val_tool gffread` is used (the alternative is `--val_tool agat`, the validation tool by default).
+This directory is only saved if `--save_validated_annotation` is set.
+
+:::warning
+`gffread -E` strips most annotation details and can drop non-coding genes (e.g. tRNAs) entirely, undercounting genes in [AGAT sp_statistics](#agat-sp_statistics), [Gene overlaps](#gene-overlaps), and [Ortho seq count](#ortho-seq-count). This is less likely to happen with the default `--val_tool agat`.
+:::
 
 ### AGAT sp_statistics
 

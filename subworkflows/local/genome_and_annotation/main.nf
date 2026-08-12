@@ -1,19 +1,19 @@
 
-include { AGAT_CONVERTSPGXF2GXF               } from '../../../modules/nf-core/agat/convertspgxf2gxf'
-include { AGAT_SPKEEPLONGESTISOFORM           } from '../../../modules/nf-core/agat/spkeeplongestisoform'
-include { BUSCO_BUSCO as BUSCO_GENOME         } from '../../../modules/nf-core/busco/busco/main'
-include { BUSCO_BUSCO as BUSCO_PROTEINS       } from '../../../modules/nf-core/busco/busco/main'
-include { QUAST                               } from '../../../modules/nf-core/quast/main'
-include { AGAT_SPSTATISTICS                   } from '../../../modules/nf-core/agat/spstatistics/main'
-include { GENOMEANNOTATIONBUSCOIDEOGRAM    } from '../../../modules/local/genomeannotationbuscoideogram/main'
-include { GFFREAD                             } from '../../../modules/nf-core/gffread/main'
-include { GFFREAD as GFFREAD_VALIDATE         } from '../../../modules/nf-core/gffread/main'
-include { ORTHOFINDER as ORTHOFINDER_V3       } from '../../../modules/nf-core/orthofinder/main'
-include { ORTHOFINDERV2                      } from '../../../modules/local/orthofinderv2/main'
-include { GENEOVERLAPS                       } from '../../../modules/local/geneoverlaps/main'
-include { ORTHO_SEQ_COUNT                     } from '../../../modules/local/ortho_seq_count'
-include { GAWK as GAWK_GENO                   } from '../../../modules/nf-core/gawk/main'
-include { GAWK as GAWK_PROT                   } from '../../../modules/nf-core/gawk/main'
+include { AGAT_CONVERTSPGXF2GXF as AGAT_VALIDATE } from '../../../modules/nf-core/agat/convertspgxf2gxf'
+include { AGAT_SPKEEPLONGESTISOFORM              } from '../../../modules/nf-core/agat/spkeeplongestisoform'
+include { BUSCO_BUSCO as BUSCO_GENOME            } from '../../../modules/nf-core/busco/busco/main'
+include { BUSCO_BUSCO as BUSCO_PROTEINS          } from '../../../modules/nf-core/busco/busco/main'
+include { QUAST                                  } from '../../../modules/nf-core/quast/main'
+include { AGAT_SPSTATISTICS                      } from '../../../modules/nf-core/agat/spstatistics/main'
+include { GENOMEANNOTATIONBUSCOIDEOGRAM          } from '../../../modules/local/genomeannotationbuscoideogram/main'
+include { GFFREAD                                } from '../../../modules/nf-core/gffread/main'
+include { GFFREAD as GFFREAD_VALIDATE            } from '../../../modules/nf-core/gffread/main'
+include { ORTHOFINDER as ORTHOFINDER_V3          } from '../../../modules/nf-core/orthofinder/main'
+include { ORTHOFINDERV2                          } from '../../../modules/local/orthofinderv2/main'
+include { GENEOVERLAPS                           } from '../../../modules/local/geneoverlaps/main'
+include { ORTHO_SEQ_COUNT                        } from '../../../modules/local/ortho_seq_count'
+include { GAWK as GAWK_GENO                      } from '../../../modules/nf-core/gawk/main'
+include { GAWK as GAWK_PROT                      } from '../../../modules/nf-core/gawk/main'
 
 workflow GENOME_AND_ANNOTATION {
 
@@ -36,10 +36,10 @@ workflow GENOME_AND_ANNOTATION {
 
     // Fix and standarize GXF
     if ( params.val_tool == "agat" ) {
-        AGAT_CONVERTSPGXF2GXF (
+        AGAT_VALIDATE (
             ch_gxf
         )
-        ch_gxf_agat  = AGAT_CONVERTSPGXF2GXF.out.output_gff
+        ch_gxf_agat  = AGAT_VALIDATE.out.output_gff
     } else if ( params.val_tool == "gffread" ) {
         GFFREAD_VALIDATE (
             ch_gxf,
