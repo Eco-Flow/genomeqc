@@ -44,7 +44,7 @@
                         },
                         [
                             "n_seqs_above_x_buscos_output.tsv:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "species_orthologous_chromosomes_output.tsv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "species_ortho_seq_count_output.tsv:md5,d41d8cd98f00b204e9800998ecf8427e",
                             "te_table_output.tsv:md5,d41d8cd98f00b204e9800998ecf8427e",
                             "test.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
                         ]
@@ -115,7 +115,7 @@
                         },
                         [
                             "n_seqs_above_x_buscos_output.tsv:md5,d41d8cd98f00b204e9800998ecf8427e",
-                            "species_orthologous_chromosomes_output.tsv:md5,d41d8cd98f00b204e9800998ecf8427e",
+                            "species_ortho_seq_count_output.tsv:md5,d41d8cd98f00b204e9800998ecf8427e",
                             "te_table_output.tsv:md5,d41d8cd98f00b204e9800998ecf8427e",
                             "test.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
                         ]

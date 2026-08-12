@@ -11,7 +11,7 @@ include { GFFREAD as GFFREAD_VALIDATE         } from '../../../modules/nf-core/g
 include { ORTHOFINDER as ORTHOFINDER_V3       } from '../../../modules/nf-core/orthofinder/main'
 include { ORTHOFINDERV2                      } from '../../../modules/local/orthofinderv2/main'
 include { GENEOVERLAPS                       } from '../../../modules/local/geneoverlaps/main'
-include { ORTHOLOGOUS_CHROMOSOMES             } from '../../../modules/local/orthologous_chromosomes'
+include { ORTHO_SEQ_COUNT                     } from '../../../modules/local/ortho_seq_count'
 include { GAWK as GAWK_GENO                   } from '../../../modules/nf-core/gawk/main'
 include { GAWK as GAWK_PROT                   } from '../../../modules/nf-core/gawk/main'
 
@@ -151,16 +151,16 @@ workflow GENOME_AND_ANNOTATION {
     }
 
     //
-    // MODULE: Run ORTHOLOGOUS_CHROMOSOMES
+    // MODULE: Run ORTHO_SEQ_COUNT
     //
 
-    ORTHOLOGOUS_CHROMOSOMES (
+    ORTHO_SEQ_COUNT (
         ch_orthofinder.map { _meta, folder ->
             file("${folder}/Orthogroups/Orthogroups.tsv")
         },
         AGAT_SPKEEPLONGESTISOFORM.out.gff.map { _meta, gff -> gff }.collect()
     )
-    //ch_tree_data = ch_tree_data.mix(ORTHOLOGOUS_CHROMOSOMES.out.species_summary)
+    //ch_tree_data = ch_tree_data.mix(ORTHO_SEQ_COUNT.out.species_summary)
 
     //
     // MODULE: Run BUSCO for genome annotation
@@ -255,7 +255,7 @@ workflow GENOME_AND_ANNOTATION {
     busco_short_summaries_prot = !params.skip_busco ? GAWK_PROT.out.output : channel.empty()
     quast_tsv                  = QUAST.out.tsv                       // channel: [ val(meta), path(tsv) ]
     agat_stats                 = AGAT_SPSTATISTICS.out.stats_txt     // channel: [ val(meta), path(txt) ]
-    orthologous_chromosomes    = ORTHOLOGOUS_CHROMOSOMES.out.species_summary // channel: [ path(tsv) ]
+    ortho_seq_count            = ORTHO_SEQ_COUNT.out.species_summary // channel: [ path(tsv) ]
     buscos_per_seqs            = !params.skip_busco ? GENOMEANNOTATIONBUSCOIDEOGRAM.out.busco_mappings.collect { meta, table -> table}.map { tables -> tables.toSorted { a, b -> a.name <=> b.name } } : channel.empty() // channel: [ val(meta), [csv] ]
     versions                   = ch_versions                   // channel: [ versions.yml ]
 }

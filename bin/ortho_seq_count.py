@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
 # Written by Chris Wyatt, released under the MIT license.
-# Summarises orthologous chromosome pairs across species from an OrthoFinder
-# orthogroups table and per-species GFF files.
+# Counts, per species, how many sequences (chromosomes/scaffolds/contigs) carry a
+# gene orthologous to another species, from an OrthoFinder orthogroups table and
+# per-species GFF files.
 
 import argparse
 import os
@@ -241,15 +242,15 @@ def build_output_frames(orthologous_chr_pairs, species_chr_syntenic):
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Summarise orthologous chromosome pairs across species.")
+    ap = argparse.ArgumentParser(description="Count, per species, sequences carrying an orthologous gene.")
     ap.add_argument("--orthogroups", required=True, help="OrthoFinder orthogroups TSV (e.g. N0.tsv)")
     ap.add_argument("--gff", nargs='+', required=True, help="Per-species GFF files")
-    ap.add_argument("--pairwise-out", default="pairwise_chromosome_orthology.tsv")
-    ap.add_argument("--species-out", default="species_orthologous_chromosomes.tsv")
+    ap.add_argument("--pairwise-out", default="pairwise_ortho_seq_count.tsv")
+    ap.add_argument("--species-out", default="species_ortho_seq_count.tsv")
     ap.add_argument("--debug-out", default="debug_gene_mapping.txt")
     args = ap.parse_args()
 
-    print("[INFO] Starting chromosome orthology summary script...")
+    print("[INFO] Starting sequence orthology summary script...")
 
     gff_files = load_gff_files(args.gff)
     if not gff_files:
@@ -283,10 +284,10 @@ def main():
     print(f"- {args.species_out}")
     print(f"- {args.debug_out}")
 
-    print("\n[INFO] Pairwise chromosome orthology summary:")
+    print("\n[INFO] Pairwise sequence orthology summary:")
     print(pairwise_output.head())
 
-    print("\n[INFO] Species orthologous chromosome counts:")
+    print("\n[INFO] Species orthologous sequence counts:")
     print(species_chr_count)
 
 

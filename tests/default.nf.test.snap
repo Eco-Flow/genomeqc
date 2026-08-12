@@ -52,7 +52,7 @@
                 "ORTHOFINDER_V3": {
                     "orthofinder": "3.1.3"
                 },
-                "ORTHOLOGOUS_CHROMOSOMES": {
+                "ORTHO_SEQ_COUNT": {
                     "pandas": "2.3.1",
                     "python": "3.13.5"
                 },
@@ -368,6 +368,10 @@
                 "multiqc/multiqc_plots/svg/quast_num_contigs-pct.svg",
                 "multiqc/multiqc_plots/svg/quast_table.svg",
                 "multiqc/multiqc_report.html",
+                "ortho_seq_count",
+                "ortho_seq_count/debug_gene_mapping.txt",
+                "ortho_seq_count/pairwise_ortho_seq_count.tsv",
+                "ortho_seq_count/species_ortho_seq_count.tsv",
                 "orthofinder_v3",
                 "orthofinder_v3/orthofinder",
                 "orthofinder_v3/orthofinder/Citation.txt",
@@ -1229,10 +1233,6 @@
                 "orthofinder_v3/orthofinder/WorkingDirectory/diamondDBSpecies1.dmnd",
                 "orthofinder_v3/orthofinder/WorkingDirectory/diamondDBSpecies2.dmnd",
                 "orthofinder_v3/orthofinder/WorkingDirectory/pickle",
-                "orthologous_chromosomes",
-                "orthologous_chromosomes/debug_gene_mapping.txt",
-                "orthologous_chromosomes/pairwise_chromosome_orthology.tsv",
-                "orthologous_chromosomes/species_orthologous_chromosomes.tsv",
                 "pipeline_info",
                 "pipeline_info/nf_core_genomeqc_software_mqc_versions.yml",
                 "quast",
@@ -1558,8 +1558,8 @@
                 "multiqc_quast.txt:md5,212667a92010b49affdd226db9033cec",
                 "quast_num_contigs.txt:md5,5a39b597c115559d517c55622d3b6ff0",
                 "quast_table.txt:md5,628f4814d32ae3b5c503ecaa24f98caa",
-                "pairwise_chromosome_orthology.tsv:md5,dc7d4166964470fb4a81cd0536640acc",
-                "species_orthologous_chromosomes.tsv:md5,1211a800d1f529cc3babb35a8586eeef",
+                "pairwise_ortho_seq_count.tsv:md5,dc7d4166964470fb4a81cd0536640acc",
+                "species_ortho_seq_count.tsv:md5,1211a800d1f529cc3babb35a8586eeef",
                 "report.tex:md5,44862716cf8a265554c5331207e7b261",
                 "report.tsv:md5,d76cacdda1dd2eadf05720cd6d6dce63",
                 "report.txt:md5,70ffbec384056283ea55110b509b8dce",

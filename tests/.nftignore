@@ -17,7 +17,8 @@ busco/busco_downloads/lineages/*/refseq_db.faa.gz
 quast/**/quast.log
 quast/**/report.html
 quast/**/report.pdf
-orthologous_chromosomes/debug_gene_mapping.txt
+# debug_gene_mapping.txt's content isn't repeatable (order-dependent on GFF processing), so it's excluded rather than snapshotted.
+ortho_seq_count/debug_gene_mapping.txt
 **/*.pdf
 agat/Mycoplasmoides_gallisepticum/stats/Mycoplasmoides_gallisepticum.stats.txt
 **/tree.nw

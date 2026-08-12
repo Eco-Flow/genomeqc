@@ -4,7 +4,7 @@ include { GENOMEBUSCOIDEOGRAM                 } from '../../../modules/local/gen
 include { ORTHOFINDER as ORTHOFINDER_V3       } from '../../../modules/nf-core/orthofinder/main'
 include { ORTHOFINDERV2                       } from '../../../modules/local/orthofinderv2/main'
 include { BUSCO_TSV_TO_GFF                    } from '../../../modules/local/busco_tsv_to_gff/main'
-include { ORTHOLOGOUS_CHROMOSOMES             } from '../../../modules/local/orthologous_chromosomes'
+include { ORTHO_SEQ_COUNT                     } from '../../../modules/local/ortho_seq_count'
 include { GAWK                                } from '../../../modules/nf-core/gawk/main'
 
 workflow GENOME_ONLY {
@@ -103,22 +103,22 @@ workflow GENOME_ONLY {
             )
             ch_orthofinder = ORTHOFINDERV2.out.orthofinder
         }
-        // Transform tsv to gff for orthologous chromosomes module
+        // Transform tsv to gff for ortho_seq_count module
         BUSCO_TSV_TO_GFF (
             BUSCO_BUSCO.out.busco_dir
         )
 
         //
-        // MODULE: Run ORTHOLOGOUS_CHROMOSOMES
+        // MODULE: Run ORTHO_SEQ_COUNT
         //
 
-        ORTHOLOGOUS_CHROMOSOMES (
+        ORTHO_SEQ_COUNT (
             ch_orthofinder.map { _meta, folder ->
                 file("${folder}/Orthogroups/Orthogroups.tsv")
             },
             BUSCO_TSV_TO_GFF.out.gff.map { _meta, gff -> gff }.collect()
         )
-        //ch_tree_data = ch_tree_data.mix(ORTHOLOGOUS_CHROMOSOMES.out.species_summary)
+        //ch_tree_data = ch_tree_data.mix(ORTHO_SEQ_COUNT.out.species_summary)
     }
 
     emit:
