@@ -23,7 +23,7 @@ components:
   - famdb/py/embl # nf-core lint derives this alias from the FAMDB_PY_EMBL process name
   - repeatmodeler/builddatabase
   - repeatmodeler/repeatmodeler
-  - cat/cat
+  - find/concatenate
   - cdhit/cdhitest
   - mmseqs/easycluster
   - mmseqs_easylinclust

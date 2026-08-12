@@ -30,11 +30,6 @@
                         "git_sha": "3927a974459b80b8e24d73e00da029e8c7335c4d",
                         "installed_by": ["modules"]
                     },
-                    "cat/cat": {
-                        "branch": "master",
-                        "git_sha": "eeda4136c096688d04cc40bb3c70d948213ed641",
-                        "installed_by": ["modules"]
-                    },
                     "cdhit/cdhitest": {
                         "branch": "master",
                         "git_sha": "6d46786420b4d7bc88eba026eb389c0c5535d120",
@@ -61,6 +56,11 @@
                         "installed_by": ["modules"]
                     },
                     "fcsgx/rungx": {
+                        "branch": "master",
+                        "git_sha": "6d46786420b4d7bc88eba026eb389c0c5535d120",
+                        "installed_by": ["modules"]
+                    },
+                    "find/concatenate": {
                         "branch": "master",
                         "git_sha": "6d46786420b4d7bc88eba026eb389c0c5535d120",
                         "installed_by": ["modules"]

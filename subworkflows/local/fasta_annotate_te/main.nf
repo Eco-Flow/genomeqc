@@ -2,7 +2,7 @@ include { RM_DOWNLOAD_DB              } from '../../../modules/local/repeatmaske
 include { FAMDB_PY_EMBL               } from '../../../modules/local/famdb_py_embl/main'
 include { REPEATMODELER_BUILDDATABASE } from '../../../modules/nf-core/repeatmodeler/builddatabase/main'
 include { REPEATMODELER_REPEATMODELER } from '../../../modules/nf-core/repeatmodeler/repeatmodeler/main'
-include { CAT_CAT                     } from '../../../modules/nf-core/cat/cat/main'
+include { FIND_CONCATENATE            } from '../../../modules/nf-core/find/concatenate/main'
 include { CDHIT_CDHITEST              } from '../../../modules/nf-core/cdhit/cdhitest/main'
 include { MMSEQS_EASYCLUSTER          } from '../../../modules/nf-core/mmseqs/easycluster/main'
 include { MMSEQS_EASYLINCLUST         } from '../../../modules/local/mmseqs_easylinclust/main'
@@ -69,7 +69,7 @@ workflow FASTA_ANNOTATE_TE {
 
             ch_famdb_fasta = FAMDB_PY_EMBL.out.famdb_lib | map { _meta, fasta -> fasta }
 
-            // Genomes where RepeatModeler succeeded: pair [famdb, modeler] for CAT_CAT.
+            // Genomes where RepeatModeler succeeded: pair [famdb, modeler] for FIND_CONCATENATE.
             ch_famdb_with_modeler = ch_modeler_fasta
                                   | combine(ch_famdb_fasta)
                                   | map { meta, modeler, famdb -> tuple(meta, [famdb, modeler]) }
@@ -90,23 +90,23 @@ workflow FASTA_ANNOTATE_TE {
                              }
 
 
-            // MODULE: CAT_CAT — concatenate famdb and de novo libraries (per genome)
-            CAT_CAT ( ch_combined_libs )
+            // MODULE: FIND_CONCATENATE — concatenate famdb and de novo libraries (per genome)
+            FIND_CONCATENATE ( ch_combined_libs )
 
             if (val_te_clusterer == 'cdhit') {
-                CDHIT_CDHITEST ( CAT_CAT.out.file_out )
+                CDHIT_CDHITEST ( FIND_CONCATENATE.out.file_out )
                 ch_clustered_lib = CDHIT_CDHITEST.out.fasta
             } else if (val_te_clusterer == 'linclust') {
-                MMSEQS_EASYLINCLUST ( CAT_CAT.out.file_out )
+                MMSEQS_EASYLINCLUST ( FIND_CONCATENATE.out.file_out )
                 ch_clustered_lib = MMSEQS_EASYLINCLUST.out.representatives
             } else {
-                MMSEQS_EASYCLUSTER ( CAT_CAT.out.file_out )
+                MMSEQS_EASYCLUSTER ( FIND_CONCATENATE.out.file_out )
                 ch_clustered_lib = MMSEQS_EASYCLUSTER.out.representatives
             }
 
         } else {
             // Shared path: cluster the famdb library once, then broadcast to every genome.
-            // CAT_CAT is not needed — there is only one input library.
+            // FIND_CONCATENATE is not needed — there is only one input library.
 
             if (val_te_clusterer == 'cdhit') {
                 CDHIT_CDHITEST ( FAMDB_PY_EMBL.out.famdb_lib )

@@ -10,9 +10,6 @@ The directories listed below will be created in the results directory after the 
 
 The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes data using the following steps:
 
-<!-- [pigz uncompress](#pigz-uncompress) - Uncompresses FASTA and GFF files -->
-<!-- [FastaValidator](#fastavalidator) Validate FASTA files -->
-
 - [NCBI genome download](#ncbi-genome-download) - Download genomes and their annotations from RefSeq and GenBank.
 - Genome quality metrics:
   - [Quast](#quast) - Genome quality and contiguity metrics.
