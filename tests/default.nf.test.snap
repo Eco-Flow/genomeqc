@@ -1550,9 +1550,9 @@
                 "refseq_db.faa.gz.md5:md5,6887879a644001fa73d949edf5363613",
                 "scores_cutoff:md5,2623afeb9d5da7ac653bfc0e035d2221",
                 "n_seqs_above_x_buscos.tsv:md5,31ab90ca82335e1f9d19299343a875fd",
-                "Mycoplasmoides_fastidiosum.counts.tsv:md5,9c26cf55f0816537622549f05bd439ed",
-                "Mycoplasmoides_gallisepticum.counts.tsv:md5,690035540d9d3c1bc0ff661f9037a0f3",
-                "Mycoplasmoides_genitalium.counts.tsv:md5,f63a08e010d95bd0916f02282ad20e2a",
+                "Mycoplasmoides_fastidiosum.counts.tsv:md5,68d748d076ce628cf0587e4aab8b4584",
+                "Mycoplasmoides_gallisepticum.counts.tsv:md5,140a17aa394bb42a8bff214d11c9f651",
+                "Mycoplasmoides_genitalium.counts.tsv:md5,9825177610c8320f5229accd3e4f4bc4",
                 "multiqc_citations.txt:md5,2d1a8ef8ba06c7eada06ab3e96552ea4",
                 "multiqc_general_stats.txt:md5,c5eea8705f7c23531a641d4375e8b458",
                 "multiqc_quast.txt:md5,212667a92010b49affdd226db9033cec",
@@ -1581,7 +1581,7 @@
                 "Busco_combined_geno.tsv:md5,26f9c022760f12596975f8f1d85be3c7",
                 "Busco_combined_prot.tsv:md5,1762ec07b7b0bcf0e0e6ffbbb44cd311",
                 "Quast_to_plot.tsv:md5,8999cc8c39faffd39986947d60d65a1c",
-                "gene_stats.tsv:md5,3fe2c13858d88b0f78ce02c9c6c58ced",
+                "gene_stats.tsv:md5,549857ddcdf89d52a406d7682a4164df",
                 "n_seqs_above_x_buscos_output.tsv:md5,31ab90ca82335e1f9d19299343a875fd",
                 "shiny_app.R:md5,fb92385c8e1487a68c1c90d2d005d7e2",
                 "shiny_app.sh:md5,808c1c0dedc4852a0b57f8a16ea489f3",
@@ -1598,14 +1598,14 @@
                 "Busco_combined_geno.tsv:md5,26f9c022760f12596975f8f1d85be3c7",
                 "Busco_combined_prot.tsv:md5,1762ec07b7b0bcf0e0e6ffbbb44cd311",
                 "Quast_to_plot.tsv:md5,8999cc8c39faffd39986947d60d65a1c",
-                "gene_stats.tsv:md5,3fe2c13858d88b0f78ce02c9c6c58ced",
+                "gene_stats.tsv:md5,549857ddcdf89d52a406d7682a4164df",
                 "n_seqs_above_x_buscos_output.tsv:md5,31ab90ca82335e1f9d19299343a875fd"
             ]
         ],
-        "timestamp": "2026-08-10T08:15:20.446579904",
+        "timestamp": "2026-08-11T19:38:03.61498839",
         "meta": {
-            "nf-test": "0.9.4",
-            "nextflow": "25.10.4"
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
         }
     }
 }

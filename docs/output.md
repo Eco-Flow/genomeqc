@@ -23,7 +23,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 - Annotation quality metrics:
   - [AGAT sp_statistics](#agat-sp_statistics) - Gene statistics.
   - [AGAT sp_keep_longest_isoform](#agat-sp_keep_longest_isoform) - Filter longest isoform from GXF file.
-  - [Gene overlaps](#gene-overlaps) - Find overlapping genes (sense and antisense).
+  - [Gene overlaps](#gene-overlaps) - Find overlapping genes (same_strand and opposite_strand).
 - [Decontamination](#decontamination):
   - [FCS-GX](#fcs-gx) - Foreign genome contamination screening.
   - [FCS-adaptor](#fcs-adaptor) - Adaptor and vector contamination screening.
@@ -240,13 +240,13 @@ This directory will only be present if `--save_longest_isoform` flag is set.
 
 **Gene overlaps** is a local module based on the R package [GenomicRanges](https://bioconductor.org/packages/release/bioc/html/GenomicRanges.html), used for manipulating genomic intervals. It finds the number of genes that are overlapping in the GXF file, which can be used as a metric to evaluate the quality of the annotation.
 
-It outputs a brief report with information about the number of reads, the number of genes fully contained in sense direction and in the antisense direction, and the total number of overlapping genes.
+It outputs a brief report with information about the number of reads, the number of genes fully contained in same_strand direction and in the opposite_strand direction, and the total number of overlapping genes.
 
 <details markdown="1">
 <summary>Output files</summary>
 
 - `gene_overlaps/`
-  - `<species_name>.counts.tsv`: Summary counts of sense and antisense overlapping genes.
+  - `<species_name>.counts.tsv`: Summary counts of same_strand and opposite_strand overlapping genes.
 
 </details>
 

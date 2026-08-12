@@ -7,8 +7,8 @@ library(GenomicRanges)
 
 # Parse command-line arguments
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) < 2) {
-    stop("Usage: overlap_analysis.R <input_gff_file> <output_table>")
+if (length(args) < 3) {
+    stop("Usage: overlap_analysis.R <input_gff_file> <output_table> <output_count>")
 }
 
 input_gff_file <- args[1]
@@ -20,13 +20,15 @@ read_gff_to_granges <- function(gff_file) {
     gff_data <- read.delim(gff_file, header = FALSE, comment.char = "#")
     colnames(gff_data) <- c("seqname", "source", "feature", "start", "end",
                             "score", "strand", "frame", "attribute")
-    gff_data <- gff_data %>%
-      filter(strand %in% c("-","+"))
+    # GRanges only accepts "+"/"-"/"*" for strand; map anything else (e.g. GFF's
+    # "." for unresolved strand) to "*" so these features stay in the overlap
+    # search instead of being dropped, participating as strand-agnostic.
+    strand_resolved <- ifelse(gff_data$strand %in% c("-", "+"), gff_data$strand, "*")
 
     gr <- GRanges(
         seqnames = gff_data$seqname,
         ranges = IRanges(start = gff_data$start, end = gff_data$end),
-        strand = gff_data$strand,
+        strand = strand_resolved,
         feature = gff_data$feature,
         attribute = gff_data$attribute
     )
@@ -41,14 +43,15 @@ print("Filering gene features...")
 # Filter only "gene" features
 genes <- gr[gr$feature == "gene"]
 total_genes <- length(genes)
+strandless_genes <- sum(as.character(strand(genes)) == "*")
 
 print("Finding overlaps...")
 # Find overlaps
-overlap_results <- findOverlaps(genes, genes, ignore.strand = FALSE)
+overlap_results <- findOverlaps(genes, genes, ignore.strand = TRUE)
 
 # Initialize counts
-sense_count_within <- 0
-antisense_count_within <- 0
+same_strand_count_within <- 0
+opposite_strand_count_within <- 0
 
 # extract indices once
 q_idx <- queryHits(overlap_results)
@@ -79,16 +82,17 @@ s_pct <- (overlap_len / s_len) * 100
 q_strand <- as.character(strand(q_genes))
 s_strand <- as.character(strand(s_genes))
 
-# overlap type
+# overlap type: "unknown" whenever either side's strand is unresolved (*),
+# since same_strand/opposite_strand can't be called without both strands
 overlap_type <- ifelse(
-  !is.na(q_strand) & !is.na(s_strand),
-  ifelse(q_strand == s_strand, "sense", "antisense"),
-  "unknown"
+  q_strand == "*" | s_strand == "*",
+  "unknown",
+  ifelse(q_strand == s_strand, "same_strand", "opposite_strand")
 )
 
 # counters for fully contained overlaps
-sense_count_within     <- sum(q_pct == 100 & overlap_type == "sense")
-antisense_count_within <- sum(q_pct == 100 & overlap_type == "antisense")
+same_strand_count_within     <- sum(q_pct == 100 & overlap_type == "same_strand")
+opposite_strand_count_within <- sum(q_pct == 100 & overlap_type == "opposite_strand")
 
 # results data.frame all at once
 results <- data.frame(
@@ -119,8 +123,8 @@ print("Writing to output...")
 write.table(results, file = output_table, sep = "\t", row.names = FALSE, quote = FALSE)
 
 # Print the summary
-cat("Number of genes fully contained in sense direction:", sense_count_within, "\n")
-cat("Number of genes fully contained in antisense direction:", antisense_count_within, "\n")
+cat("Number of genes fully contained in same strand direction:", same_strand_count_within, "\n")
+cat("Number of genes fully contained in opposite strand direction:", opposite_strand_count_within, "\n")
 cat("Overlap analysis complete. Results saved to:", output_table, "\n")
 
 # Calculate total number of overlapping genes
@@ -129,12 +133,14 @@ total_overlapping_genes <- length(unique(c(results$query_gene, results$subject_g
 # Create summary statistics table
 summary_stats <- data.frame(
     Statistic = c("Total number of genes",
-                  "Number of genes fully contained in sense direction",
-                  "Number of genes fully contained in antisense direction",
+                  "Number of genes with unresolved strand",
+                  "Number of genes fully contained in same strand direction",
+                  "Number of genes fully contained in opposite strand direction",
                   "Total number of overlapping genes"),
     Count = c(total_genes,
-              sense_count_within,
-              antisense_count_within,
+              strandless_genes,
+              same_strand_count_within,
+              opposite_strand_count_within,
               total_overlapping_genes)
 )
 
@@ -143,8 +149,9 @@ write.table(summary_stats, file=output_count, sep="\t", quote=FALSE, row.names=F
 
 # Print the summary
 cat("Total number of genes:", total_genes, "\n")
-cat("Number of genes fully contained in sense direction:", sense_count_within, "\n")
-cat("Number of genes fully contained in antisense direction:", antisense_count_within, "\n")
+cat("Number of genes with unresolved strand:", strandless_genes, "\n")
+cat("Number of genes fully contained in same strand direction:", same_strand_count_within, "\n")
+cat("Number of genes fully contained in opposite strand direction:", opposite_strand_count_within, "\n")
 cat("Total number of overlapping genes:", total_overlapping_genes, "\n")
 cat("Overlap analysis complete. Results saved to:", output_table, "\n")
 cat("Summary statistics saved to:", output_count, "\n")
