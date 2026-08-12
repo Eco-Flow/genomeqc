@@ -59,9 +59,7 @@
                 "QUAST": {
                     "quast": "5.3.0"
                 },
-                "SHINY_APP_GENOME_ANNO": {
-                    "cat": 8.32
-                },
+                "SHINY_APP_GENOME_ANNO": {},
                 "SORT_BY_LENGTH": {
                     "seqkit": "2.13.0"
                 },
@@ -1347,17 +1345,14 @@
                 "Mycoplasmoides_fastidiosum-mycoplasmatales_odb10-genome-busco.batch_summary.txt:md5,751aca5cdf00cbcfe4ec1962d22af4bf",
                 "Mycoplasmoides_fastidiosum-mycoplasmatales_odb10-proteins-busco.batch_summary.txt:md5,ba695e9ff9fa3d72d76f56bbea94c961",
                 "Mycoplasmoides_fastidiosum.csv:md5,1cd4a9574f8cd004c8f8df484dd9967a",
-                "Mycoplasmoides_fastidiosum.png:md5,2e7b81d5936407bd61fb98d939256606",
                 "Mycoplasmoides_fastidiosum.svg:md5,05ca5c3e498f91b14efd0a75504c6eaf",
                 "Mycoplasmoides_gallisepticum-mycoplasmatales_odb10-genome-busco.batch_summary.txt:md5,a91554aefaebed48a976355fabf104c2",
                 "Mycoplasmoides_gallisepticum-mycoplasmatales_odb10-proteins-busco.batch_summary.txt:md5,a36779b40c8739827d6da7aaedb0983b",
                 "Mycoplasmoides_gallisepticum.csv:md5,4c026a3c4b36bbdd1e91108b236693e0",
-                "Mycoplasmoides_gallisepticum.png:md5,f789437ca6644f4df5492b3bbf373e0c",
                 "Mycoplasmoides_gallisepticum.svg:md5,8985f811e0db29f6d1e56ebb016db514",
                 "Mycoplasmoides_genitalium-mycoplasmatales_odb10-genome-busco.batch_summary.txt:md5,f6425899adaad97352f08dd3b02f1a4f",
                 "Mycoplasmoides_genitalium-mycoplasmatales_odb10-proteins-busco.batch_summary.txt:md5,c5671507254c9253205dff57e58800dc",
                 "Mycoplasmoides_genitalium.csv:md5,42250d600ee1e994474e23cc4004cb97",
-                "Mycoplasmoides_genitalium.png:md5,7cd10f22780977437d7f3f1d03c06091",
                 "Mycoplasmoides_genitalium.svg:md5,26f52de1d4f4a62b7ad76d079a0c2025",
                 "file_versions.tsv:md5,dadbe48e909083f816eab8efb874bc34",
                 "ancestral:md5,42cbd94308a901f676bfbb13cc7762f7",
