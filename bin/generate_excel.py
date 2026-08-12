@@ -392,19 +392,46 @@ def _combine_tsv_files(paths, add_species_col=True):
     return rows
 
 
+# AGAT's report has no "key: value" syntax - fields are a label, then 2+
+# spaces, then the value (e.g. "Number of gene<spaces>9934"), grouped under
+# "--- sectionname ---" headers. The same label (e.g. "Number of gene")
+# repeats under every section with a different value each time, so the
+# section name has to be carried along as its own column, not folded into
+# the metric label.
+_AGAT_SECTION_HEADER_RE = re.compile(r"^-{2,}\s+([A-Za-z][\w]*)\s+-{2,}$")
+_AGAT_STAT_LINE_RE = re.compile(r"^(.*\S)\s{2,}(\S+)\s*$")
+
+
 def _agat_stats_rows(paths):
-    """Parse AGAT spstatistics *.txt files (key: value text format) into rows."""
-    rows = [["species", "metric", "value"]]
+    """Parse AGAT sp_statistics.pl *.stats.txt files into tidy long-format rows.
+
+    One row per (species, section, metric). A metric that AGAT recalculated
+    with isoforms collapsed to one-per-gene is emitted as a second row with
+    isoforms=collapsed, so both variants stay in the sheet and are
+    distinguishable (rather than the isoform-collapsed numbers silently
+    overwriting the raw ones, or being dropped).
+    """
+    rows = [["species", "section", "metric", "value", "isoforms"]]
     for p in sorted(paths, key=lambda x: Path(x).name):
-        species = Path(p).stem
+        species = Path(p).stem.replace(".stats", "")
+        section = None
+        isoforms = "all"
         with open(p) as fh:
-            for line in fh:
-                line = line.strip()
-                if not line or line.startswith("-"):
+            for raw_line in fh:
+                stripped = raw_line.strip()
+                if not stripped:
                     continue
-                if ":" in line:
-                    key, _, val = line.partition(":")
-                    rows.append([species, key.strip(), val.strip()])
+                header = _AGAT_SECTION_HEADER_RE.match(stripped)
+                if header:
+                    section = header.group(1)
+                    isoforms = "all"
+                    continue
+                if section is not None and "have isoforms!" in stripped:
+                    isoforms = "collapsed"
+                    continue
+                m = _AGAT_STAT_LINE_RE.match(stripped)
+                if m and section is not None:
+                    rows.append([species, section, m.group(1), m.group(2), isoforms])
     return rows
 
 
