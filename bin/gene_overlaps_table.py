@@ -10,8 +10,8 @@ import argparse
 parser = argparse.ArgumentParser(description='Extract gene statistics from files.')
 parser.add_argument('input_files', nargs='+', help='List of input files.')
 parser.add_argument('output_file', help='Path to save the output TSV file.')
-parser.add_argument('--include-sense', action='store_true', help='Include sense genes count.')
-parser.add_argument('--include-antisense', action='store_true', help='Include antisense genes count.')
+parser.add_argument('--include-same-strand', action='store_true', help='Include same-strand genes count.')
+parser.add_argument('--include-opposite-strand', action='store_true', help='Include opposite-strand genes count.')
 
 # Parse the arguments
 args = parser.parse_args()
@@ -30,9 +30,9 @@ for file in args.input_files:
         overlapping_genes = df.loc[df['Statistic'] == 'Total number of overlapping genes', 'Count'].values[0]
 
         # Optional statistics
-        sense_genes = df.loc[df['Statistic'] == 'Number of genes fully contained in sense direction', 'Count'].values[0] if args.include_sense else "NA"
-        antisense_genes = df.loc[df['Statistic'] == 'Number of genes fully contained in antisense direction', 'Count'].values[0] if args.include_antisense else "NA"
-        print(sense_genes)
+        same_strand_genes = df.loc[df['Statistic'] == 'Number of genes fully contained in same strand direction', 'Count'].values[0] if args.include_same_strand else "NA"
+        opposite_strand_genes = df.loc[df['Statistic'] == 'Number of genes fully contained in opposite strand direction', 'Count'].values[0] if args.include_opposite_strand else "NA"
+        print(same_strand_genes)
 
         # Collect results in a dictionary
         entry = {
@@ -40,10 +40,10 @@ for file in args.input_files:
             'Total_genes': total_genes,
             'Overlapping_genes': overlapping_genes,
         }
-        if args.include_sense:
-            entry['Fully_contained_sense_genes'] = sense_genes
-        if args.include_antisense:
-            entry['Fully_contained_antisense_genes'] = antisense_genes
+        if args.include_same_strand:
+            entry['Fully_contained_same_strand_genes'] = same_strand_genes
+        if args.include_opposite_strand:
+            entry['Fully_contained_opposite_strand_genes'] = opposite_strand_genes
 
         results.append(entry)
     except Exception as e:
@@ -52,10 +52,10 @@ for file in args.input_files:
 
 # Convert the results to a DataFrame
 columns = ['File', 'Total_genes', 'Overlapping_genes']
-if args.include_sense:
-    columns.append('Fully_contained_sense_genes')
-if args.include_antisense:
-    columns.append('Fully_contained_antisense_genes')
+if args.include_same_strand:
+    columns.append('Fully_contained_same_strand_genes')
+if args.include_opposite_strand:
+    columns.append('Fully_contained_opposite_strand_genes')
 
 result_df = pd.DataFrame(results, columns=columns)
 

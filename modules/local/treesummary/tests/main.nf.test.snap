@@ -210,7 +210,7 @@
     },
     "treesummary - genome_anno - two species": {
         "content": [
-            "gene_stats.tsv:md5,f21480a98deb2f433e83d083503a0de7",
+            "gene_stats.tsv:md5,74922931605a2d15ba57ab39cb419884",
             "Busco_combined_geno.tsv:md5,8bd5eeda185018a3f71dde15e9f2637b",
             "Busco_combined_prot.tsv:md5,a9835ba3926e58a20d9b2248b024ddd4",
             "Quast_to_plot.tsv:md5,300d39b2f8add7de22f32ea283ffeb1b",
@@ -287,10 +287,10 @@
                 ]
             }
         ],
-        "timestamp": "2026-08-07T10:58:02.678361",
+        "timestamp": "2026-08-11T18:17:56.84966845",
         "meta": {
-            "nf-test": "0.9.4",
-            "nextflow": "25.10.4"
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
         }
     }
 }
