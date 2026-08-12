@@ -103,6 +103,7 @@
                 },
                 "skip_busco": {
                     "type": "boolean",
+                    "default": false,
                     "description": "Skip BUSCO. If run on genome only, it will also skip orthofinder."
                 }
             }
@@ -183,6 +184,7 @@
             "properties": {
                 "skip_tidk": {
                     "type": "boolean",
+                    "default": false,
                     "description": "Do not run TIDK."
                 },
                 "repeat": {
