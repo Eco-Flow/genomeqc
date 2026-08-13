@@ -1118,12 +1118,15 @@ build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes 
       else if (all(abs(v - round(v)) < 1e-8, na.rm = TRUE)) as.character(round(v))
       else                                                  sprintf("%.1f", v)
     }
-    # Radial centre of each ring, read back from the rendered tile layers
+    # Radial centre of each ring, read back from the rendered tile layers.
+    # tile_layers[[1]] is the invisible primer ring (always added above when
+    # n_rings > 0), not a real ring - skip it so values land on the ring they
+    # actually describe instead of the one drawn just inside it.
     tile_layers <- Filter(function(dd) all(c("xmin", "xmax") %in% names(dd)),
                           ggplot_build(p)$data)
-    if (length(tile_layers) >= n_rings) {
+    if (length(tile_layers) >= n_rings + 1) {
       for (i in seq_len(n_rings)) {
-        dd <- tile_layers[[i]]
+        dd <- tile_layers[[i + 1]]
         # NB: the radius must live in the data, not the aes expression - aes() is
         # evaluated lazily, so aes(x = rad) would resolve every layer to the last
         # value of the loop variable.

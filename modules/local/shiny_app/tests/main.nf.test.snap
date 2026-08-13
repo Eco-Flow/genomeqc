@@ -67,7 +67,7 @@
                         "shiny_app.sh:md5,808c1c0dedc4852a0b57f8a16ea489f3",
                         "test.tsv:md5,f7b71340c1bc3467eac0921c5dd1db44",
                         "tree.nw:md5,ff8e67b1d74ea48c5012812b6e39f066",
-                        "tree_functions.R:md5,c03138af34b08d684305447b08fb80de"
+                        "tree_functions.R:md5,929dff44e5db1af23a5c6f3722917ade"
                     ]
                 ],
                 "2": [
@@ -91,7 +91,7 @@
                         "shiny_app.sh:md5,808c1c0dedc4852a0b57f8a16ea489f3",
                         "test.tsv:md5,f7b71340c1bc3467eac0921c5dd1db44",
                         "tree.nw:md5,ff8e67b1d74ea48c5012812b6e39f066",
-                        "tree_functions.R:md5,c03138af34b08d684305447b08fb80de"
+                        "tree_functions.R:md5,929dff44e5db1af23a5c6f3722917ade"
                     ]
                 ],
                 "versions_shiny": [
@@ -103,7 +103,7 @@
                 ]
             }
         ],
-        "timestamp": "2026-08-13T15:48:11.373714",
+        "timestamp": "2026-08-13T17:59:34.461182",
         "meta": {
             "nf-test": "0.9.5",
             "nextflow": "26.04.6"
