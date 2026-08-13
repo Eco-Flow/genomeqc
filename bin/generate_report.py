@@ -693,33 +693,89 @@ def agat_feature_has_isoforms(agat_data, key):
     )
 
 
-def agat_feature_table_html(agat_data, key, view):
-    """Wide table for one feature type: species as rows, metrics as columns.
+# AGAT reports dozens of metrics per feature type, most of them rarely useful
+# at a glance. Default tables show a compact subset - AGAT's own first few
+# counts (which are always the basic "how many X" fields) plus a couple of
+# specific metrics worth always keeping - with a toggle to see every column.
+_AGAT_RELEVANT_FIRST_N = 4
+_AGAT_RELEVANT_EXTRA_METRICS = [
+    "mean gene length (bp)", "Number of single exon gene",
+    "Number gene overlapping", "Total gene length (bp)",
+]
 
-    view is "all" (every transcript) or "collapsed" (isoforms collapsed to
-    one per gene). A species missing this feature, or missing a particular
-    metric within it, shows "NA" rather than being left out of the table.
+
+def agat_feature_metrics(agat_data, key, view):
+    """Ordered union of metric names for one feature type/view: metrics that
+    more species report come first, ties broken by order of first appearance.
+
+    AGAT's field set for a section isn't fully fixed across species - e.g. it
+    inserts an extra "Number of pseudogene" count (shifting every later field
+    over by one) when a GFF tags pseudogenes, and some sections' labels echo
+    the source GFF's own feature-type spelling (e.g. "lnc_rna" vs "lncrna").
+    Ordering by first-appearance alone would make the default columns depend
+    on whichever species happens to sort first, rather than on what most
+    species actually share.
+    """
+    stat_key = "stats" if view == "all" else "stats_no_isoforms"
+    order = []
+    seen = set()
+    counts = {}
+    for sp in sorted(agat_data.keys()):
+        stats = (agat_data[sp].get(key) or {}).get(stat_key) or {}
+        for m in stats:
+            counts[m] = counts.get(m, 0) + 1
+            if m not in seen:
+                seen.add(m)
+                order.append(m)
+    rank = {m: i for i, m in enumerate(order)}
+    return sorted(order, key=lambda m: (-counts[m], rank[m]))
+
+
+def agat_relevant_metrics(metrics):
+    relevant = list(metrics[:_AGAT_RELEVANT_FIRST_N])
+    for m in _AGAT_RELEVANT_EXTRA_METRICS:
+        if m in metrics and m not in relevant:
+            relevant.append(m)
+    return relevant
+
+
+def agat_feature_table_html(agat_data, key, view, metrics):
+    """Wide table for one feature type: species as rows, given metrics as
+    columns. A species missing this feature, or missing a particular metric
+    within it, shows "NA" rather than being left out of the table.
     """
     stat_key = "stats" if view == "all" else "stats_no_isoforms"
     species_list = sorted(agat_data.keys())
 
-    per_species_stats = {}
-    metrics = []
-    seen = set()
-    for sp in species_list:
-        stats = (agat_data[sp].get(key) or {}).get(stat_key) or {}
-        per_species_stats[sp] = stats
-        for m in stats:
-            if m not in seen:
-                seen.add(m)
-                metrics.append(m)
-
     header = _th(["Species"] + metrics)
     body = "\n".join(
-        _td([sp] + [per_species_stats[sp].get(m, "NA") for m in metrics])
+        _td([sp] + [((agat_data[sp].get(key) or {}).get(stat_key) or {}).get(m, "NA") for m in metrics])
         for sp in species_list
     )
     return f'<div style="overflow-x:auto"><table class="table">{header}{body}</table></div>'
+
+
+def _agat_view_block(agat_data, key, view, view_id, hidden=False):
+    """Build one isoform-view's markup: a compact table plus a hidden full-column
+    table, both scoped by a per-key CSS class so a single "show all columns"
+    checkbox can toggle them together regardless of which isoform view is active.
+    """
+    metrics = agat_feature_metrics(agat_data, key, view)
+    relevant = agat_relevant_metrics(metrics)
+    has_extra = len(relevant) < len(metrics)
+
+    relevant_table = agat_feature_table_html(agat_data, key, view, relevant)
+    full_table = (
+        f'<div class="agat-cols-full-{key}" style="display:none">'
+        f'{agat_feature_table_html(agat_data, key, view, metrics)}</div>'
+        if has_extra else ""
+    )
+    relevant_div = (
+        f'<div class="agat-cols-relevant-{key}">{relevant_table}</div>'
+        if has_extra else relevant_table
+    )
+    style = ' style="display:none"' if hidden else ""
+    return f'<div id="{view_id}"{style}>{relevant_div}{full_table}</div>', has_extra
 
 
 def agat_panel_html(agat_data):
@@ -739,22 +795,33 @@ def agat_panel_html(agat_data):
     for i, key in enumerate(feature_keys):
         display = "" if i == 0 else ' style="display:none"'
         has_iso = agat_feature_has_isoforms(agat_data, key)
+
+        all_block, has_extra_all = _agat_view_block(agat_data, key, "all", f"agat-table-all-{key}")
+        if has_iso:
+            collapsed_block, has_extra_collapsed = _agat_view_block(
+                agat_data, key, "collapsed", f"agat-table-collapsed-{key}", hidden=True
+            )
+        else:
+            collapsed_block, has_extra_collapsed = "", False
+
         iso_toggle = (
-            f'<label style="font-size:12px;color:#555;margin-bottom:8px;display:inline-block">'
+            f'<label style="font-size:12px;color:#555;margin-bottom:8px;display:inline-block;margin-right:16px">'
             f'<input type="checkbox" onchange="agatToggleIsoforms(\'{key}\',this.checked)"> '
             f'Collapse isoforms (one transcript per gene)</label>'
             if has_iso else ""
         )
-        collapsed_table = (
-            f'<div id="agat-table-collapsed-{key}" style="display:none">'
-            f'{agat_feature_table_html(agat_data, key, "collapsed")}</div>'
-            if has_iso else ""
+        cols_toggle = (
+            f'<label style="font-size:12px;color:#555;margin-bottom:8px;display:inline-block">'
+            f'<input type="checkbox" onchange="agatToggleColumns(\'{key}\',this.checked)"> '
+            f'Show all columns</label>'
+            if (has_extra_all or has_extra_collapsed) else ""
         )
+
         feature_panels.append(
             f'<div id="agat-feature-{key}" class="agat-feature-panel"{display}>'
-            f'{iso_toggle}'
-            f'<div id="agat-table-all-{key}">{agat_feature_table_html(agat_data, key, "all")}</div>'
-            f'{collapsed_table}'
+            f'{iso_toggle}{cols_toggle}'
+            f'{all_block}'
+            f'{collapsed_block}'
             f'</div>'
         )
 
@@ -978,6 +1045,15 @@ function agatToggleIsoforms(key, checked) {
   var collapsedView = document.getElementById('agat-table-collapsed-' + key);
   if (allView) allView.style.display = checked ? 'none' : '';
   if (collapsedView) collapsedView.style.display = checked ? '' : 'none';
+}
+
+function agatToggleColumns(key, checked) {
+  document.querySelectorAll('.agat-cols-relevant-' + key).forEach(function(el) {
+    el.style.display = checked ? 'none' : '';
+  });
+  document.querySelectorAll('.agat-cols-full-' + key).forEach(function(el) {
+    el.style.display = checked ? '' : 'none';
+  });
 }
 
 function tidkSetMode(spId, mode) {

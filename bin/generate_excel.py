@@ -446,6 +446,53 @@ def _parse_agat_stats_nested(paths):
     return sections
 
 
+# AGAT reports dozens of metrics per feature type. Keep only a compact,
+# readable subset per sheet - AGAT's own first few counts (its report always
+# leads with the basic "how many X" fields) plus a couple of specific
+# metrics worth always keeping. Matches the default columns shown in the
+# HTML report's AGAT tab (which also offers a "show all columns" toggle -
+# there's no Excel equivalent, so this is the only view here).
+_AGAT_RELEVANT_FIRST_N = 4
+_AGAT_RELEVANT_EXTRA_METRICS = [
+    "mean gene length (bp)", "Number of single exon gene",
+    "Number gene overlapping", "Total gene length (bp)",
+]
+
+
+def _agat_ordered_metrics(species_map):
+    """Union of metric names across species/views, metrics more species report
+    coming first (ties broken by first appearance).
+
+    AGAT's field set for a section isn't fully fixed across species - e.g. it
+    inserts an extra "Number of pseudogene" count (shifting every later field
+    over by one) when a GFF tags pseudogenes, and some sections' labels echo
+    the source GFF's own feature-type spelling (e.g. "lnc_rna" vs "lncrna").
+    Ordering by first-appearance alone would make the default columns depend
+    on whichever species happens to sort first, rather than on what most
+    species actually share.
+    """
+    order = []
+    seen = set()
+    counts = {}
+    for entry in species_map.values():
+        for view in ("all", "collapsed"):
+            for m in (entry.get(view) or {}):
+                counts[m] = counts.get(m, 0) + 1
+                if m not in seen:
+                    seen.add(m)
+                    order.append(m)
+    rank = {m: i for i, m in enumerate(order)}
+    return sorted(order, key=lambda m: (-counts[m], rank[m]))
+
+
+def _agat_relevant_metrics(metrics):
+    relevant = list(metrics[:_AGAT_RELEVANT_FIRST_N])
+    for m in _AGAT_RELEVANT_EXTRA_METRICS:
+        if m in metrics and m not in relevant:
+            relevant.append(m)
+    return relevant
+
+
 def _agat_feature_sheets(paths):
     """Build one wide sheet per AGAT feature type: species as rows, metrics as
     columns (NA where a species lacks that feature or metric). Feature types
@@ -457,14 +504,8 @@ def _agat_feature_sheets(paths):
     for key, species_map in sorted(sections.items()):
         has_iso = any(v["collapsed"] is not None for v in species_map.values())
 
-        metrics = []
-        seen = set()
-        for entry in species_map.values():
-            for view in ("all", "collapsed"):
-                for m in (entry.get(view) or {}):
-                    if m not in seen:
-                        seen.add(m)
-                        metrics.append(m)
+        all_metrics = _agat_ordered_metrics(species_map)
+        metrics = _agat_relevant_metrics(all_metrics)
 
         header = (["species", "isoforms"] if has_iso else ["species"]) + metrics
         rows = [header]
