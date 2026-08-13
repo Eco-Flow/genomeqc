@@ -279,7 +279,7 @@ def _parse_repeatmasker_tbl(path):
 
 def _repeatmasker_rows(paths):
     """Combine RepeatMasker .tbl files into a single table (one sheet, all species)."""
-    rows = [["species", "category", "number_of_elements", "length_occupied_bp", "percent_of_sequence"]]
+    rows = [["assembly", "category", "number_of_elements", "length_occupied_bp", "percent_of_sequence"]]
     for p in sorted(paths, key=lambda x: Path(x).name):
         species = Path(p).stem
         info, cat_rows = _parse_repeatmasker_tbl(p)
@@ -320,7 +320,7 @@ def _summary_rows(busco_rows, tidk_data, busco_seqs_data=None, busco_seqs_col=No
     busco_prot_by_species = {r.get("Input_file", ""): r for r in (busco_prot_rows or [])}
 
     genome_col = "BUSCO genome complete (%)" if has_prot else "BUSCO complete (%)"
-    cols = ["Species", genome_col]
+    cols = ["Assembly", genome_col]
     if has_prot:
         cols.append("BUSCO proteins complete (%)")
     cols += ["BUSCO lineage", "Scaffold N50", "# scaffolds", "Telomeric repeat"]
@@ -378,7 +378,7 @@ def _combine_tsv_files(paths, add_species_col=True):
         if not file_rows:
             continue
         if not header_written:
-            header = (["species"] + file_rows[0]) if add_species_col else file_rows[0]
+            header = (["assembly"] + file_rows[0]) if add_species_col else file_rows[0]
             rows.append(header)
             header_written = True
             data_rows = file_rows[1:]
@@ -491,7 +491,7 @@ def _agat_feature_sheets(paths):
 
         metrics = _agat_ordered_metrics(species_map)
 
-        header = (["species", "isoforms"] if has_iso else ["species"]) + metrics
+        header = (["assembly", "isoforms"] if has_iso else ["assembly"]) + metrics
         rows = [header]
         for species in all_species:
             entry = species_map.get(species, empty_entry)

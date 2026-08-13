@@ -617,7 +617,7 @@ def quast_table_html(species_data, metric_order):
     if not species_data:
         return "<p><em>No QUAST statistics available.</em></p>"
     species_list = sorted(species_data.keys())
-    header = _th(["Species"] + metric_order)
+    header = _th(["Assembly"] + metric_order)
     body = "\n".join(
         _td([sp] + [species_data[sp].get(m, "NA") for m in metric_order])
         for sp in species_list
@@ -656,7 +656,7 @@ def tiara_summary_html(data):
     if not data:
         return "<p><em>No Tiara data available.</em></p>"
     classes = ["eukarya", "bacteria", "archaea", "prokarya", "mitochondria", "plastid", "unknown"]
-    header = _th(["Species", "Status"] + [c.capitalize() for c in classes] + ["Total"])
+    header = _th(["Assembly", "Status"] + [c.capitalize() for c in classes] + ["Total"])
     rows_html = []
     for species in sorted(data.keys()):
         rows = data[species]
@@ -747,7 +747,7 @@ def agat_feature_table_html(agat_data, key, view, metrics):
     stat_key = "stats" if view == "all" else "stats_no_isoforms"
     species_list = sorted(agat_data.keys())
 
-    header = _th(["Species"] + metrics)
+    header = _th(["Assembly"] + metrics)
     body = "\n".join(
         _td([sp] + [((agat_data[sp].get(key) or {}).get(stat_key) or {}).get(m, "NA") for m in metrics])
         for sp in species_list
@@ -906,7 +906,7 @@ def summary_table_html(busco_rows, tidk_data, busco_seqs_data=None, busco_seqs_c
     # When protein BUSCO is present, disambiguate the genome column and add a
     # protein completeness column right after it.
     genome_col = "BUSCO genome complete (%)" if has_prot else "BUSCO complete (%)"
-    cols = ["Species", genome_col]
+    cols = ["Assembly", genome_col]
     if has_prot:
         cols.append("BUSCO proteins complete (%)")
     cols += ["BUSCO lineage", "Scaffold N50", "# scaffolds", "Telomeric repeat"]
@@ -1098,11 +1098,11 @@ def build_html(busco_rows, tidk_data, tidk_apriori_data=None,
         f'<div id="overview" class="tab-panel active">'
         f'<div class="card">'
         f'<h2>Run summary</h2>'
-        f'<p><strong>{n_species}</strong> species analysed &nbsp;·&nbsp; '
+        f'<p><strong>{n_species}</strong> assemblies analysed &nbsp;·&nbsp; '
         f'BUSCO lineage(s): {badges or "—"} &nbsp;·&nbsp; '
         f'<span class="tag">Generated {now}</span></p>'
         f'</div>'
-        f'<div class="card"><h2>Per-species overview</h2>'
+        f'<div class="card"><h2>Per-assembly overview</h2>'
         f'<div style="overflow-x:auto">{summary_tbl}</div></div>'
         f'</div>'
     )
@@ -1216,7 +1216,7 @@ def build_html(busco_rows, tidk_data, tidk_apriori_data=None,
             f'<h2>Repeat content (RepeatMasker)</h2>'
             f'<div style="margin-bottom:14px">'
             f'<label for="rm-species-select" style="font-size:13px;color:#555;margin-right:6px">'
-            f'Species:</label>'
+            f'Assembly:</label>'
             f'<select id="rm-species-select" onchange="rmShowSpecies(this.value)">{options}</select>'
             f'</div>'
             f'{"".join(rm_panels)}'
@@ -1231,7 +1231,7 @@ def build_html(busco_rows, tidk_data, tidk_apriori_data=None,
             f'<div class="card">'
             f'<h2>AGAT annotation statistics</h2>'
             f'<p style="margin-bottom:14px;font-size:12px;color:#888">'
-            f'Per-species gene/transcript statistics, broken down by feature type. '
+            f'Per-assembly gene/transcript statistics, broken down by feature type. '
             f'Sections shown depend on which feature types are present in each annotation.</p>'
             f'{agat_panel_html(agat_data)}'
             f'</div></div>'
