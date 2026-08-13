@@ -1008,6 +1008,8 @@ build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes 
 
   n_rings <- length(ring_specs)
 
+  ring_offset <- 0.055
+
   if (n_rings > 0) {
     # PRIMER RING: geom_fruit()'s very first call on a fresh ggtree allocates a
     # one-off, disproportionately large slice of radius regardless of width/
@@ -1024,6 +1026,32 @@ build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes 
         width = ring_width, offset = 0.10
       ) +
       ggnewscale::new_scale_fill()
+
+    # CALIBRATION: geom_fruit's `width` is not the ring's actual rendered
+    # thickness - rings are drawn as overlapping tiles staggered by `offset`,
+    # each one visually clipped by the next ring drawn on top of it down to
+    # the gap between their start positions. The last ring has nothing after
+    # it to clip its trailing edge, so it alone renders at its full declared
+    # `width` - several times wider than every other (clipped) ring. Measure
+    # the true stagger `ring_offset` produces on this tree with a throwaway
+    # invisible ring, then use that measured value (not ring_width) as every
+    # real ring's width below, so every ring - including the last - renders
+    # the same actual thickness.
+    range_before_calib <- suppressWarnings(max(vapply(
+      ggplot_build(p)$data,
+      function(dd) if ("x" %in% names(dd)) max(dd$x, na.rm = TRUE) else NA_real_,
+      numeric(1)), na.rm = TRUE))
+    p_calib <- p +
+      ggtreeExtra::geom_fruit(
+        data = ring_df, geom = geom_tile,
+        mapping = aes(y = label, x = 1), fill = NA, colour = NA,
+        width = ring_width, offset = ring_offset
+      )
+    range_after_calib <- suppressWarnings(max(vapply(
+      ggplot_build(p_calib)$data,
+      function(dd) if ("x" %in% names(dd)) max(dd$x, na.rm = TRUE) else NA_real_,
+      numeric(1)), na.rm = TRUE))
+    measured_width <- range_after_calib - range_before_calib
   }
 
   # Add each stat as a concentric ring. Quality rings share one discrete
@@ -1037,7 +1065,7 @@ build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes 
       ggtreeExtra::geom_fruit(
         data = ring_df, geom = geom_tile,
         mapping = aes(y = label, x = 1, fill = .data[[spec$name]]),
-        width = ring_width, offset = 0.055,
+        width = measured_width, offset = ring_offset,
         color = "white", linewidth = 0.2
       )
     if (identical(spec$scale, "quality")) {
