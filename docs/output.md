@@ -421,11 +421,9 @@ The app has two tabs, the **Plot Controls** tab to adjust the plot and remove/ad
 
 The pipeline summarises the results from the tools above into two reports: a HTML report and an Excel spreadsheet.
 
-The **HTML report** is a single-file report with one tab per tool. The BUSCO, Telomeres, FCS-GX, FCS-Adaptor and Tiara tabs are only shown if the corresponding tool was run. The Telomeres tab includes a chromosome selector for assemblies with multiple sequences, and a toggle to switch between the a priori and a posteriori tidk searches when both were run.
+The **HTML report** is a single-file report with one tab per tool. The BUSCO, Assembly stats (Quast), Telomeres, FCS-GX, FCS-Adaptor, Tiara and Annotation stats (AGAT) tabs are only shown if the corresponding tool was run. The Telomeres tab includes a chromosome selector for assemblies with multiple sequences, and a toggle to switch between the a priori and a posteriori tidk searches when both were run. The Annotation stats tab has a feature-type selector; each feature's table lists every assembly side by side, with `NA` where an assembly doesn't have that feature type or metric. Since AGAT can reports dozens of metrics per feature type (this depedends on the annotation file), each table shows a compact default selection - use the "Show all columns" checkbox to see every metric, and, for feature types where AGAT recalculates stats with isoforms collapsed to one transcript per gene, the "Collapse isoforms" checkbox to switch views.
 
-The **Excel report** contains the same summary statistics as separate tables.
-
-**Agat** results are missing from the HTML report, and are not shown in the Excel report. This is yet to be fixed.
+The **Excel report** contains the same summary statistics as separate tables. AGAT statistics are all in one `Annotation_AGAT` sheet, one table per feature type stacked vertically under a title row naming the feature - assemblies as rows and every metric as a column (unlike the HTML report, nothing is hidden by default), `NA` where an assembly doesn't have that feature type or metric.
 
 <details markdown="1">
 <summary>Output files</summary>
