@@ -302,7 +302,10 @@ plot_te_bars <- function(data_te, bar_width = NULL, len_pos_x = 0) {
       axis.ticks.y = element_blank(),
       axis.line.x = element_line(),
       axis.line.y = element_blank(),
-      plot.title = element_text(size = 9, hjust = 0.5, vjust = -5)
+      # vjust=-5 (used by the two-line titles like "Genome\nsize (Mb)") pushes a
+      # single-line title like this one below the panel instead of above it -
+      # match N50 (Mb)'s single-line calibration instead.
+      plot.title = element_text(size = 9, hjust = 0.5, vjust = -0.4)
     ) +
     coord_flip() +
     xlab(NULL) + ylab(NULL)
