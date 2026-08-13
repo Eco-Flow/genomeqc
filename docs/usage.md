@@ -218,6 +218,8 @@ The decontamination subsworkflow consists of three modules:
 >
 > To improve preformance, use `--ramdisk` to point to a `tmpfs` or `ramfs` mount (e.g. `/dev/shm` on Linux). The pipeline will copy the database into memory before each run and clean it up afterwards
 
+When decontamination is run, each genome's FCS-GX contamination percentage is also added to the [tree summary plot](#tree-summary) as a pie chart (conventional layout) or a Good/Warn/Poor traffic-light ring (`--tree_style circular`) - see [Circular tree quality scoring](#circular-tree-quality-scoring).
+
 ### Running TE annotation
 
 The pipeline supports two optional methods for transposable element (TE) annotation, selected with the `--te` parameter. TE annotation is skipped by default. Enabling either method adds a TE composition bar to the [tree summary plot](output.md#tree-summary) for each genome.
@@ -354,7 +356,7 @@ For TE quantification in a comparative genomics context, `qq` is usually suffici
 
 ### Circular tree quality scoring
 
-With `--tree_style circular`, sequence count, N50 and BUSCO completeness/duplication are scored Good/Warn/Poor against `--quality_preset` (default `generic`; also `vertebrate`, `insect`, `plant`, `fungi`, `bacteria`). Pick the preset matching your taxa: e.g. `bacteria` expects a scaffold N50 ≥ 500 kb and ≤ 100 sequences for "Good", while `vertebrate` expects ≥ 10 Mb and ≤ 1000 sequences. These cut-offs are starting points and should be tuned per project.
+With `--tree_style circular`, sequence count, N50, BUSCO completeness/duplication, and (if decontamination was run) FCS-GX contamination are scored Good/Warn/Poor against `--quality_preset` (default `generic`; also `vertebrate`, `insect`, `plant`, `fungi`, `bacteria`). Pick the preset matching your taxa: e.g. `bacteria` expects a scaffold N50 ≥ 500 kb and ≤ 100 sequences for "Good", while `vertebrate` expects ≥ 10 Mb and ≤ 1000 sequences. These cut-offs are starting points and should be tuned per project. The FCS-GX contamination cut-offs (≥99.5% non-contaminant = Good, 98-99.5% = Warn, <98% = Poor) are fixed across every preset, since there's no taxon-dependent expectation for how much of an assembly should be foreign contamination.
 
 To override individual cut-offs without picking a whole new preset, use `--quality_thresholds` with comma-separated `metric=good:warn` pairs, e.g.:
 
@@ -362,7 +364,7 @@ To override individual cut-offs without picking a whole new preset, use `--quali
 --quality_preset bacteria --quality_thresholds 'n50=2e6:5e5,seq_number=50:500'
 ```
 
-Metrics: `busco_complete`, `busco_duplicated`, `n50`, `seq_number`. Direction (higher/lower is better) is fixed per metric, so only the cut-off values are given; any metric not mentioned keeps the selected preset's cut-offs. The same overrides are available interactively via the "Custom..." option in the Shiny app's quality-preset selector.
+Metrics: `busco_complete`, `busco_duplicated`, `n50`, `seq_number`, `fcs_noncontam`. Direction (higher/lower is better) is fixed per metric, so only the cut-off values are given; any metric not mentioned keeps the selected preset's cut-offs. The same overrides are available interactively via the "Custom..." option in the Shiny app's quality-preset selector.
 
 ### The Shiny App
 

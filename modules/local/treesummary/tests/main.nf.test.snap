@@ -43,6 +43,7 @@
                             "mode": "genome_anno"
                         },
                         [
+                            "fcs_table_output.tsv:md5,d41d8cd98f00b204e9800998ecf8427e",
                             "n_seqs_above_x_buscos_output.tsv:md5,d41d8cd98f00b204e9800998ecf8427e",
                             "species_ortho_seq_count_output.tsv:md5,d41d8cd98f00b204e9800998ecf8427e",
                             "te_table_output.tsv:md5,d41d8cd98f00b204e9800998ecf8427e",
@@ -114,6 +115,7 @@
                             "mode": "genome_anno"
                         },
                         [
+                            "fcs_table_output.tsv:md5,d41d8cd98f00b204e9800998ecf8427e",
                             "n_seqs_above_x_buscos_output.tsv:md5,d41d8cd98f00b204e9800998ecf8427e",
                             "species_ortho_seq_count_output.tsv:md5,d41d8cd98f00b204e9800998ecf8427e",
                             "te_table_output.tsv:md5,d41d8cd98f00b204e9800998ecf8427e",
@@ -202,10 +204,10 @@
                 ]
             }
         ],
-        "timestamp": "2026-08-07T10:55:11.145525",
+        "timestamp": "2026-08-13T11:31:38.815318",
         "meta": {
-            "nf-test": "0.9.4",
-            "nextflow": "25.10.4"
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
         }
     },
     "treesummary - genome_anno - two species": {

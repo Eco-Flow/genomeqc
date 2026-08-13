@@ -12,6 +12,7 @@ process TREESUMMARY {
     tuple val(meta1), path(geno_busco)
     tuple val(meta2), path(prot_busco)
     tuple val(meta3), path(te_table)
+    tuple val(meta4), path(fcs_table)
     path  multiqc_files
 
     output:
@@ -43,6 +44,7 @@ process TREESUMMARY {
     def geno_busco_file = geno_busco ? '--busco_geno Busco_combined_geno.tsv' : ''
     def prot_busco_file = prot_busco ? '--busco_prot Busco_combined_prot.tsv' : ''
     def te_table_file = te_table ? "--te_file $te_table" : ''
+    def fcs_table_file = fcs_table ? "--fcs_file $fcs_table" : ''
 
 
     """
@@ -76,6 +78,7 @@ process TREESUMMARY {
     $prot_busco_file \\
     $ortho_file \\
     $te_table_file \\
+    $fcs_table_file \\
     $args
 
     # Make sure input TSV files are captured as outputs by copying them
@@ -93,6 +96,10 @@ process TREESUMMARY {
         cp "${te_table}" te_table_output.tsv
     fi
 
+    if [ -n "${fcs_table}" ] && [ -f "${fcs_table}" ]; then
+        cp "${fcs_table}" fcs_table_output.tsv
+    fi
+
     """
 
     stub:
@@ -107,6 +114,7 @@ process TREESUMMARY {
     touch tree.nw
     touch ${prefix}.tsv
     touch te_table_output.tsv
+    touch fcs_table_output.tsv
     touch n_seqs_above_x_buscos_output.tsv
     touch species_ortho_seq_count_output.tsv
     """

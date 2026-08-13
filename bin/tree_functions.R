@@ -133,6 +133,19 @@ load_te <- function(file, tree_tips) {
   })
 }
 
+load_fcs <- function(file, tree_tips) {
+  if (is.null(file) || !file.exists(file)) return(NULL)
+  tryCatch({
+    data_fcs <- read.csv(file, sep = "\t") %>%
+      arrange(match(species, tree_tips)) %>%
+      mutate(node = 1:length(species))
+    data_fcs
+  }, error = function(e) {
+    warning("Failed to load FCS file: ", conditionMessage(e))
+    NULL
+  })
+}
+
 load_nseqs <- function(file, tree_tips) {
   if (is.null(file) || !file.exists(file)) return(NULL)
   tryCatch({
@@ -158,7 +171,7 @@ load_nseqs <- function(file, tree_tips) {
 # Main data ingest (same name)
 # ---------------------------
 process_tree_data <- function(tree_file, busco_file_geno = NULL, busco_file_prot = NULL, quast_file = NULL,
-                              genes_file = NULL, nseqs_file = NULL, ortho_file = NULL, te_file = NULL) {
+                              genes_file = NULL, nseqs_file = NULL, ortho_file = NULL, te_file = NULL, fcs_file = NULL) {
 
   tree <- read.tree(tree_file)
   tree$tip.label <- trimws(tree$tip.label)
@@ -173,6 +186,7 @@ process_tree_data <- function(tree_file, busco_file_geno = NULL, busco_file_prot
   data_nseqs <- load_nseqs(nseqs_file, tips_order)
   data_ortho <- load_nseqs(ortho_file, tips_order)
   data_te    <- load_te(te_file, tips_order)
+  data_fcs   <- load_fcs(fcs_file, tips_order)
 
   tree$tip.label <- gsub("_", " ", tree$tip.label)  # matches gff_valid behavior
 
@@ -185,7 +199,8 @@ process_tree_data <- function(tree_file, busco_file_geno = NULL, busco_file_prot
     data_genes = data_genes,
     data_nseqs = data_nseqs,
     data_ortho = data_ortho,
-    data_te    = data_te
+    data_te    = data_te,
+    data_fcs   = data_fcs
   )
 }
 
@@ -308,6 +323,47 @@ plot_te_bars <- function(data_te, bar_width = NULL, len_pos_x = 0) {
   out
 }
 
+plot_fcs_pie <- function(data_fcs, rad_width = NULL, len_pos_x = 0) {
+  out <- list(plot = NULL, legend = NULL)
+  if (is.null(data_fcs)) return(out)
+
+  pies_plot <- ggplot() +
+    geom_scatterpie(
+      aes(x = 0, y = node, group = species, r = rad_width),
+      data = data_fcs,
+      cols = c("non_contaminant_pct", "contaminant_pct"),
+      color = NA
+    ) +
+    scale_fill_manual(
+      labels = c("Non-contaminant", "Contaminant"),
+      values = c(
+        "non_contaminant_pct" = "deepskyblue",
+        "contaminant_pct"     = "firebrick1"
+      )
+    ) +
+    coord_fixed() +
+    theme_void() +
+    ggtitle("FCS") +
+    theme(
+      plot.title = element_text(size = 9, hjust = 0.5, vjust = 0.05)
+    )
+
+  legend_fcs <- cowplot::get_legend(
+    pies_plot +
+      theme(
+        legend.position = "right",
+        legend.justification = c(len_pos_x, 1.08),
+        legend.title = element_blank(),
+        legend.key.size = unit(0.2, "cm"),
+        legend.text = element_text(size = 8)
+      )
+  )
+
+  out$plot   <- pies_plot + guides(fill = "none")
+  out$legend <- legend_fcs
+  out
+}
+
 # Now for the plot generator
 generate_plots <- function(processed_data, text_size = 3, tree_scale = 0.0005,
                            bar_width = 0.7, rad_width = 0.4, skip_stats = NULL, busco_len_pos_x = 0.5,
@@ -321,6 +377,7 @@ generate_plots <- function(processed_data, text_size = 3, tree_scale = 0.0005,
   data_nseqs <- processed_data$data_nseqs
   data_ortho <- processed_data$data_ortho
   data_te    <- processed_data$data_te
+  data_fcs   <- processed_data$data_fcs
 
   # Small trees: reduce bar/pie sizes (as in gff_valid)
   if (length(tree$tip.label) < 7) {
@@ -413,6 +470,7 @@ generate_plots <- function(processed_data, text_size = 3, tree_scale = 0.0005,
                                       title = "BUSCO\nprotein",
                                       len_pos_x = len_pos_x)
   te_result <- plot_te_bars(data_te, bar_width = bar_width, len_pos_x = len_pos_x)
+  fcs_result <- plot_fcs_pie(data_fcs, rad_width = rad_width, len_pos_x = len_pos_x)
 
 
   gene_plot <- NULL
@@ -466,6 +524,7 @@ generate_plots <- function(processed_data, text_size = 3, tree_scale = 0.0005,
     get_plot_range(ortho_plot, "y"),
     get_plot_range(busco_gen_plot$plot, "y"),
     get_plot_range(busco_prot_plot$plot, "y"),
+    get_plot_range(fcs_result$plot, "y"),
     get_plot_range(len_plot, "x"),
     get_plot_range(n50_plot, "x"),
     get_plot_range(gene_plot, "x"),
@@ -481,6 +540,7 @@ generate_plots <- function(processed_data, text_size = 3, tree_scale = 0.0005,
     if (!is.null(ch_plot))    ch_plot    <- ch_plot    + new_ylim
     if (!is.null(busco_gen_plot$plot))  busco_gen_plot$plot  <- busco_gen_plot$plot  + new_ylim
     if (!is.null(busco_prot_plot$plot))  busco_prot_plot$plot  <- busco_prot_plot$plot  + new_ylim
+    if (!is.null(fcs_result$plot)) fcs_result$plot <- fcs_result$plot + new_ylim
 
     if (!is.null(len_plot))   len_plot   <- len_plot   + new_xlim
     if (!is.null(n50_plot))   n50_plot   <- n50_plot   + new_xlim
@@ -502,7 +562,8 @@ generate_plots <- function(processed_data, text_size = 3, tree_scale = 0.0005,
     n50_plot   = n50_plot,
     busco_gen_plot  = busco_gen_plot$plot,
     busco_prot_plot = busco_prot_plot$plot,
-    te_plot         = te_result$plot
+    te_plot         = te_result$plot,
+    fcs_plot        = fcs_result$plot
   )
   all_legends <- list(
     ch_plot   = NULL,
@@ -513,7 +574,8 @@ generate_plots <- function(processed_data, text_size = 3, tree_scale = 0.0005,
     n50_plot   = NULL,
     busco_gen_plot  = busco_gen_plot$legend,
     busco_prot_plot = if (!is.null(busco_gen_plot$legend)) NULL else busco_prot_plot$legend, # Only plot legend once
-    te_plot         = te_result$legend
+    te_plot         = te_result$legend,
+    fcs_plot        = fcs_result$legend
   )
 
   # What's this for? To filter out skipped plots and legends?
@@ -595,42 +657,51 @@ QUALITY_COLOURS <- c(Good = "#009E73", Warn = "#E69F00", Poor = "#D55E00")
 # NOTE: the BUSCO cut-offs follow community practice; the N50 and sequence-count
 # cut-offs are clade-dependent STARTING POINTS and should be tuned per project.
 # 'generic' is deliberately lenient.
+# fcs_noncontam (FCS-GX non-contaminant %) is the same across every preset: unlike
+# BUSCO/N50/sequence-count, "how much of the genome is foreign contamination" has
+# no taxon-dependent expectation, so there's no reason to vary it by clade.
 QUALITY_PRESETS <- list(
   generic = list(
     busco_complete   = list(direction = "higher", good = 95,     warn = 90),
     busco_duplicated = list(direction = "lower",  good = 5,      warn = 10),
     n50              = list(direction = "higher", good = 1e6,    warn = 1e5),
-    seq_number       = list(direction = "lower",  good = 1000,   warn = 10000)
+    seq_number       = list(direction = "lower",  good = 1000,   warn = 10000),
+    fcs_noncontam    = list(direction = "higher", good = 99.5,   warn = 98)
   ),
   vertebrate = list(
     busco_complete   = list(direction = "higher", good = 95,     warn = 90),
     busco_duplicated = list(direction = "lower",  good = 5,      warn = 10),
     n50              = list(direction = "higher", good = 1e7,    warn = 1e6),
-    seq_number       = list(direction = "lower",  good = 1000,   warn = 10000)
+    seq_number       = list(direction = "lower",  good = 1000,   warn = 10000),
+    fcs_noncontam    = list(direction = "higher", good = 99.5,   warn = 98)
   ),
   insect = list(
     busco_complete   = list(direction = "higher", good = 95,     warn = 90),
     busco_duplicated = list(direction = "lower",  good = 5,      warn = 10),
     n50              = list(direction = "higher", good = 1e6,    warn = 1e5),
-    seq_number       = list(direction = "lower",  good = 1000,   warn = 10000)
+    seq_number       = list(direction = "lower",  good = 1000,   warn = 10000),
+    fcs_noncontam    = list(direction = "higher", good = 99.5,   warn = 98)
   ),
   plant = list(
     busco_complete   = list(direction = "higher", good = 95,     warn = 90),
     busco_duplicated = list(direction = "lower",  good = 10,     warn = 20),
     n50              = list(direction = "higher", good = 1e6,    warn = 1e5),
-    seq_number       = list(direction = "lower",  good = 5000,   warn = 50000)
+    seq_number       = list(direction = "lower",  good = 5000,   warn = 50000),
+    fcs_noncontam    = list(direction = "higher", good = 99.5,   warn = 98)
   ),
   fungi = list(
     busco_complete   = list(direction = "higher", good = 95,     warn = 90),
     busco_duplicated = list(direction = "lower",  good = 5,      warn = 10),
     n50              = list(direction = "higher", good = 1e6,    warn = 1e5),
-    seq_number       = list(direction = "lower",  good = 100,    warn = 1000)
+    seq_number       = list(direction = "lower",  good = 100,    warn = 1000),
+    fcs_noncontam    = list(direction = "higher", good = 99.5,   warn = 98)
   ),
   bacteria = list(
     busco_complete   = list(direction = "higher", good = 95,     warn = 90),
     busco_duplicated = list(direction = "lower",  good = 5,      warn = 10),
     n50              = list(direction = "higher", good = 5e5,    warn = 1e5),
-    seq_number       = list(direction = "lower",  good = 10,     warn = 100)
+    seq_number       = list(direction = "lower",  good = 10,     warn = 100),
+    fcs_noncontam    = list(direction = "higher", good = 99.5,   warn = 98)
   )
 )
 
@@ -656,7 +727,7 @@ classify_quality <- function(values, thr) {
 # ---------------------------
 build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes = NULL,
                                 data_busco_geno = NULL, data_busco_prot = NULL,
-                                data_nseqs = NULL, data_ortho = NULL,
+                                data_nseqs = NULL, data_ortho = NULL, data_fcs = NULL,
                                 text_size = 3, skip = NULL, rings = NULL,
                                 quality_preset = "generic", thresholds = NULL, show_values = FALSE,
                                 open_angle = 14, ring_width = 0.13) {
@@ -728,6 +799,8 @@ build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes 
                            get = function() if (!is.null(data_busco_prot)) data_busco_prot$Single + data_busco_prot$Duplicated),
     busco_dup_plot  = list(name = "BUSCO duplicated", scale = "quality", metric = "busco_duplicated",
                            get = function() if (!is.null(data_busco_geno)) data_busco_geno$Duplicated),
+    fcs_plot        = list(name = "FCS non-contaminant %", scale = "quality", metric = "fcs_noncontam",
+                           get = function() if (!is.null(data_fcs)) col_by_node(data_fcs, "non_contaminant_pct")),
     nseqs_plot      = list(name = "Seqs ≥5 BUSCOs", scale = "descriptive", low = "#f0f0f0", high = "#4d4d4d",
                            get = function() if (!is.null(data_nseqs)) col_by_node(data_nseqs, names(data_nseqs)[2])),
     ortho_plot      = list(name = "Ortho seqs",     scale = "descriptive", low = "#f0f0f0", high = "#4d4d4d",
@@ -945,6 +1018,7 @@ generate_complete_plot <- function(processed_data, text_size = 3, tree_scale = 0
       data_busco_prot = processed_data$data_busco_prot,
       data_nseqs      = processed_data$data_nseqs,
       data_ortho      = processed_data$data_ortho,
+      data_fcs        = processed_data$data_fcs,
       text_size       = text_size,
       skip            = skip_stats,
       rings           = circular_rings,
