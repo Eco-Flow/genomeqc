@@ -300,6 +300,30 @@ def parse_repeatmasker_tbls(paths):
     return result
 
 
+def parse_quast_tsvs(paths):
+    """Return ({species: {metric: value}}, metric_order) from QUAST report TSVs.
+
+    Each file is transposed (one metric per line: name, then value), so we
+    read them directly rather than treating the first line as a header.
+    """
+    species_data = {}
+    metric_order = []
+    for p in sorted(paths, key=lambda x: Path(x).name):
+        species = Path(p).stem.replace(".quast", "")
+        data = {}
+        with open(p) as fh:
+            for line in fh:
+                parts = line.rstrip("\n").split("\t")
+                if len(parts) < 2:
+                    continue
+                metric, value = parts[0], parts[1]
+                data[metric] = value
+                if metric not in metric_order:
+                    metric_order.append(metric)
+        species_data[species] = data
+    return species_data, metric_order
+
+
 # ── SVG chart generators ──────────────────────────────────────────────────────
 
 def busco_stacked_bar_svg(rows, mode_label=""):
@@ -588,6 +612,19 @@ def busco_panel_html(tab_id, rows, mode_label):
     )
 
 
+def quast_table_html(species_data, metric_order):
+    """Wide QUAST table: species as rows, metrics as columns."""
+    if not species_data:
+        return "<p><em>No QUAST statistics available.</em></p>"
+    species_list = sorted(species_data.keys())
+    header = _th(["Species"] + metric_order)
+    body = "\n".join(
+        _td([sp] + [species_data[sp].get(m, "NA") for m in metric_order])
+        for sp in species_list
+    )
+    return f'<div style="overflow-x:auto"><table class="table">{header}{body}</table></div>'
+
+
 def decontam_table_html(data, no_hit_msg="No contamination detected."):
     """Render per-species tables for FCS-GX or FCS-Adaptor data."""
     if not data:
@@ -640,77 +677,94 @@ def tiara_summary_html(data):
     return f'<div style="overflow-x:auto"><table class="table">{header}{body}</table></div>'
 
 
-def agat_stats_table_html(stats_dict):
-    header = _th(["Metric", "Value"])
-    body = "\n".join(_td([k, v]) for k, v in stats_dict.items())
-    return f'<table class="table">{header}{body}</table>'
+def agat_feature_keys(agat_data):
+    """Union of feature-type keys across all species, as {key: label}."""
+    features = {}
+    for sections in agat_data.values():
+        for key, section in sections.items():
+            features.setdefault(key, section["label"])
+    return features
+
+
+def agat_feature_has_isoforms(agat_data, key):
+    return any(
+        sections.get(key, {}).get("stats_no_isoforms") is not None
+        for sections in agat_data.values()
+    )
+
+
+def agat_feature_table_html(agat_data, key, view):
+    """Wide table for one feature type: species as rows, metrics as columns.
+
+    view is "all" (every transcript) or "collapsed" (isoforms collapsed to
+    one per gene). A species missing this feature, or missing a particular
+    metric within it, shows "NA" rather than being left out of the table.
+    """
+    stat_key = "stats" if view == "all" else "stats_no_isoforms"
+    species_list = sorted(agat_data.keys())
+
+    per_species_stats = {}
+    metrics = []
+    seen = set()
+    for sp in species_list:
+        stats = (agat_data[sp].get(key) or {}).get(stat_key) or {}
+        per_species_stats[sp] = stats
+        for m in stats:
+            if m not in seen:
+                seen.add(m)
+                metrics.append(m)
+
+    header = _th(["Species"] + metrics)
+    body = "\n".join(
+        _td([sp] + [per_species_stats[sp].get(m, "NA") for m in metrics])
+        for sp in species_list
+    )
+    return f'<div style="overflow-x:auto"><table class="table">{header}{body}</table></div>'
 
 
 def agat_panel_html(agat_data):
-    """Build the AGAT stats tab body: a species dropdown, and within each
-    species panel a second dropdown listing only the feature-type sections
-    that species actually has (section availability varies per species)."""
+    """Build the AGAT stats tab body: a feature-type dropdown showing one wide
+    table (species x metric) at a time, so species are easy to compare for a
+    given feature type instead of clicking through species one at a time."""
     if not agat_data:
         return "<p><em>No AGAT statistics available.</em></p>"
 
-    species_list = sorted(agat_data.keys())
-    species_options = "\n".join(
-        f'<option value="{_safe_id(sp)}">{sp}</option>' for sp in species_list
+    features = agat_feature_keys(agat_data)
+    feature_keys = sorted(features.keys(), key=lambda k: features[k])
+    feature_options = "\n".join(
+        f'<option value="{key}">{features[key]}</option>' for key in feature_keys
     )
 
-    species_panels = []
-    for i, sp in enumerate(species_list):
-        sections = agat_data[sp]
-        sp_id = _safe_id(sp)
-        section_keys = sorted(sections.keys(), key=lambda k: sections[k]["label"])
-        section_options = "\n".join(
-            f'<option value="{key}">{sections[key]["label"]}</option>' for key in section_keys
-        )
-
-        section_panels = []
-        for j, key in enumerate(section_keys):
-            section = sections[key]
-            display = "" if j == 0 else ' style="display:none"'
-            has_iso = section["stats_no_isoforms"] is not None
-            iso_toggle = (
-                f'<label style="font-size:12px;color:#555;margin-bottom:8px;display:inline-block">'
-                f'<input type="checkbox" onchange="agatToggleIsoforms(\'{sp_id}\',\'{key}\',this.checked)"> '
-                f'Collapse isoforms (one transcript per gene)</label>'
-                if has_iso else ""
-            )
-            no_iso_table = (
-                f'<div id="agat-stats-noiso-{sp_id}-{key}" style="display:none">'
-                f'{agat_stats_table_html(section["stats_no_isoforms"])}</div>'
-                if has_iso else ""
-            )
-            section_panels.append(
-                f'<div id="agat-section-{sp_id}-{key}" class="agat-section-panel"{display}>'
-                f'{iso_toggle}'
-                f'<div id="agat-stats-{sp_id}-{key}">{agat_stats_table_html(section["stats"])}</div>'
-                f'{no_iso_table}'
-                f'</div>'
-            )
-
+    feature_panels = []
+    for i, key in enumerate(feature_keys):
         display = "" if i == 0 else ' style="display:none"'
-        species_panels.append(
-            f'<div id="agat-panel-{sp_id}" class="agat-species-panel"{display}>'
-            f'<div style="margin-bottom:14px">'
-            f'<label for="agat-section-select-{sp_id}" style="font-size:13px;color:#555;margin-right:6px">'
-            f'Feature type:</label>'
-            f'<select id="agat-section-select-{sp_id}" onchange="agatShowSection(\'{sp_id}\', this.value)">'
-            f'{section_options}</select>'
-            f'</div>'
-            f'{"".join(section_panels)}'
+        has_iso = agat_feature_has_isoforms(agat_data, key)
+        iso_toggle = (
+            f'<label style="font-size:12px;color:#555;margin-bottom:8px;display:inline-block">'
+            f'<input type="checkbox" onchange="agatToggleIsoforms(\'{key}\',this.checked)"> '
+            f'Collapse isoforms (one transcript per gene)</label>'
+            if has_iso else ""
+        )
+        collapsed_table = (
+            f'<div id="agat-table-collapsed-{key}" style="display:none">'
+            f'{agat_feature_table_html(agat_data, key, "collapsed")}</div>'
+            if has_iso else ""
+        )
+        feature_panels.append(
+            f'<div id="agat-feature-{key}" class="agat-feature-panel"{display}>'
+            f'{iso_toggle}'
+            f'<div id="agat-table-all-{key}">{agat_feature_table_html(agat_data, key, "all")}</div>'
+            f'{collapsed_table}'
             f'</div>'
         )
 
     return (
         f'<div style="margin-bottom:14px">'
-        f'<label for="agat-species-select" style="font-size:13px;color:#555;margin-right:6px">'
-        f'Species:</label>'
-        f'<select id="agat-species-select" onchange="agatShowSpecies(this.value)">{species_options}</select>'
+        f'<label for="agat-feature-select" style="font-size:13px;color:#555;margin-right:6px">'
+        f'Feature type:</label>'
+        f'<select id="agat-feature-select" onchange="agatShowFeature(this.value)">{feature_options}</select>'
         f'</div>'
-        f'{"".join(species_panels)}'
+        f'{"".join(feature_panels)}'
     )
 
 
@@ -913,23 +967,17 @@ function rmShowSpecies(spId) {
   });
 }
 
-function agatShowSpecies(spId) {
-  document.querySelectorAll('.agat-species-panel').forEach(function(p) {
-    p.style.display = (p.id === 'agat-panel-' + spId) ? '' : 'none';
+function agatShowFeature(key) {
+  document.querySelectorAll('.agat-feature-panel').forEach(function(p) {
+    p.style.display = (p.id === 'agat-feature-' + key) ? '' : 'none';
   });
 }
 
-function agatShowSection(spId, key) {
-  document.querySelectorAll('#agat-panel-' + spId + ' .agat-section-panel').forEach(function(p) {
-    p.style.display = (p.id === 'agat-section-' + spId + '-' + key) ? '' : 'none';
-  });
-}
-
-function agatToggleIsoforms(spId, key, checked) {
-  var withIso = document.getElementById('agat-stats-' + spId + '-' + key);
-  var noIso = document.getElementById('agat-stats-noiso-' + spId + '-' + key);
-  if (withIso) withIso.style.display = checked ? 'none' : '';
-  if (noIso) noIso.style.display = checked ? '' : 'none';
+function agatToggleIsoforms(key, checked) {
+  var allView = document.getElementById('agat-table-all-' + key);
+  var collapsedView = document.getElementById('agat-table-collapsed-' + key);
+  if (allView) allView.style.display = checked ? 'none' : '';
+  if (collapsedView) collapsedView.style.display = checked ? '' : 'none';
 }
 
 function tidkSetMode(spId, mode) {
@@ -949,7 +997,8 @@ function tidkSetMode(spId, mode) {
 def build_html(busco_rows, tidk_data, tidk_apriori_data=None,
                fcsgx_data=None, fcsadp_data=None, tiara_data=None,
                busco_seqs_data=None, busco_seqs_col=None,
-               busco_prot_rows=None, repeatmasker_data=None, agat_data=None):
+               busco_prot_rows=None, repeatmasker_data=None, agat_data=None,
+               quast_data=None):
     tabs = []
     panels = []
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
@@ -993,6 +1042,18 @@ def build_html(busco_rows, tidk_data, tidk_apriori_data=None,
     if busco_prot_rows:
         tabs.append(("busco_prot", "BUSCO (Proteins)"))
         panels.append(busco_panel_html("busco_prot", busco_prot_rows, "Proteins"))
+
+    # ── QUAST tab ─────────────────────────────────────────────────────────────
+    if quast_data and quast_data[0]:
+        quast_species, quast_metrics = quast_data
+        tabs.append(("quast", "Assembly stats"))
+        panels.append(
+            f'<div id="quast" class="tab-panel">'
+            f'<div class="card">'
+            f'<h2>QUAST — Assembly statistics</h2>'
+            f'{quast_table_html(quast_species, quast_metrics)}'
+            f'</div></div>'
+        )
 
     # ── Telomeres tab ─────────────────────────────────────────────────────────
     all_tidk_species = sorted(set(tidk_data.keys()) | set((tidk_apriori_data or {}).keys()))
@@ -1230,6 +1291,11 @@ def main():
         help="AGAT sp_statistics.pl *.stats.txt files (one per species, omit to hide tab)",
     )
     parser.add_argument(
+        "--quast_tsvs", nargs="*", default=[],
+        metavar="TSV",
+        help="QUAST report.tsv files (one per species, omit to hide tab)",
+    )
+    parser.add_argument(
         "--output", default="genomeqc_report.html",
         metavar="HTML",
         help="Output HTML file path (default: genomeqc_report.html)",
@@ -1255,14 +1321,16 @@ def main():
 
     agat_data = parse_agat_stats_files(args.agat_stats) if args.agat_stats else None
 
-    if not busco_rows and not busco_prot_rows and not tidk_data and not tidk_apriori_data and not agat_data:
+    quast_data = parse_quast_tsvs(args.quast_tsvs) if args.quast_tsvs else None
+
+    if not busco_rows and not busco_prot_rows and not tidk_data and not tidk_apriori_data and not agat_data and not quast_data:
         print("WARNING: no input data found; generating empty report.", file=sys.stderr)
 
     html = build_html(busco_rows, tidk_data, tidk_apriori_data,
                       fcsgx_data=fcsgx_data, fcsadp_data=fcsadp_data, tiara_data=tiara_data,
                       busco_seqs_data=busco_seqs_data, busco_seqs_col=busco_seqs_col,
                       busco_prot_rows=busco_prot_rows, repeatmasker_data=repeatmasker_data,
-                      agat_data=agat_data)
+                      agat_data=agat_data, quast_data=quast_data)
 
     Path(args.output).write_text(html)
     print(f"Report written to {args.output}", file=sys.stderr)

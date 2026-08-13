@@ -421,9 +421,9 @@ The app has two tabs, the **Plot Controls** tab to adjust the plot and remove/ad
 
 The pipeline summarises the results from the tools above into two reports: a HTML report and an Excel spreadsheet.
 
-The **HTML report** is a single-file report with one tab per tool. The BUSCO, Telomeres, FCS-GX, FCS-Adaptor, Tiara and Annotation stats (AGAT) tabs are only shown if the corresponding tool was run. The Telomeres tab includes a chromosome selector for assemblies with multiple sequences, and a toggle to switch between the a priori and a posteriori tidk searches when both were run. The Annotation stats tab has a species selector and, within each species, a feature-type selector.
+The **HTML report** is a single-file report with one tab per tool. The BUSCO, Assembly stats (Quast), Telomeres, FCS-GX, FCS-Adaptor, Tiara and Annotation stats (AGAT) tabs are only shown if the corresponding tool was run. The Telomeres tab includes a chromosome selector for assemblies with multiple sequences, and a toggle to switch between the a priori and a posteriori tidk searches when both were run. The Annotation stats tab has a feature-type selector; each feature's table lists every species as a row so they can be compared side by side, with `NA` where a species doesn't have that feature type or metric.
 
-The **Excel report** contains the same summary statistics as separate tables. AGAT statistics are included as a long-format table (one row per species/feature-type/metric), since the set of metrics varies per species and doesn't fit a fixed-column layout.
+The **Excel report** contains the same summary statistics as separate tables. AGAT statistics get one sheet per feature type (e.g. `AGAT_mRNA`, `AGAT_tRNA`), with species as rows and metrics as columns, `NA` where a species doesn't have that feature type or metric, since the set of metrics varies per species and doesn't fit a single fixed-column sheet.
 
 <details markdown="1">
 <summary>Output files</summary>

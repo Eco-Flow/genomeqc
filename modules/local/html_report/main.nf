@@ -11,6 +11,7 @@ process HTML_REPORT {
     path busco_tables,       stageAs: "busco/*"         // genome BUSCO batch_summary_modified.txt files (one per species)
     path busco_prot_tables,  stageAs: "busco_prot/*"    // protein BUSCO batch_summary_modified.txt files (optional)
     path agat_stats,         stageAs: "agat/*"          // AGAT sp_statistics.pl *.stats.txt files (optional)
+    path quast_tsvs,         stageAs: "quast/*"         // QUAST report.tsv files (optional)
     path tidk_tsvs,          stageAs: "tidk/*"          // tidk aposteriori search TSV files
     path tidk_apriori_tsvs,  stageAs: "tidk_apriori/*"  // tidk apriori search TSV files (optional)
     path fcsgx_reports,      stageAs: "fcsgx/*"         // FCS-GX report files (optional)
@@ -30,6 +31,7 @@ process HTML_REPORT {
     def busco_arg        = busco_tables      ? "--busco_tables busco/*"             : ""
     def busco_prot_arg   = busco_prot_tables ? "--busco_prot_tables busco_prot/*"   : ""
     def agat_arg         = agat_stats        ? "--agat_stats agat/*"                : ""
+    def quast_arg        = quast_tsvs        ? "--quast_tsvs quast/*"               : ""
     def tidk_tsv_arg     = tidk_tsvs         ? "--tidk_tsvs tidk/*"                 : ""
     def tidk_apriori_arg = tidk_apriori_tsvs ? "--tidk_apriori_tsvs tidk_apriori/*" : ""
     def fcsgx_arg        = fcsgx_reports     ? "--fcsgx_reports fcsgx/*"            : ""
@@ -43,6 +45,7 @@ process HTML_REPORT {
         ${busco_arg} \\
         ${busco_prot_arg} \\
         ${agat_arg} \\
+        ${quast_arg} \\
         ${tidk_tsv_arg} \\
         ${tidk_apriori_arg} \\
         ${fcsgx_arg} \\

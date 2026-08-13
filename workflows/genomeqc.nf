@@ -252,11 +252,15 @@ workflow GENOMEQC {
     ch_fcsadp = (params.gxdb || params.gxdb_manifest) ? DECONTAMINATION.out.adaptor_report.map { _meta, f -> f }.collect().first()  : channel.value([])
     ch_tiara  = (params.gxdb || params.gxdb_manifest) ? DECONTAMINATION.out.tiara_cleaned.map  { _meta, f -> f }.collect().first()  : channel.value([])
     ch_excel_agat = GENOME_AND_ANNOTATION.out.agat_stats.map { _meta, f -> f }.collect().ifEmpty([])
+    ch_excel_quast  = GENOME_AND_ANNOTATION.out.quast_tsv.map { _meta, f -> f }
+                    | mix( GENOME_ONLY.out.quast_tsv.map { _meta, f -> f } )
+                    | collect
 
     HTML_REPORT (
         ch_report_busco,
         ch_report_busco_prot,
         ch_excel_agat,
+        ch_excel_quast.ifEmpty([]),
         ch_tidk,
         ch_report_tidk_apriori,
         ch_fcsgx,
@@ -269,10 +273,6 @@ workflow GENOMEQC {
     //
     // MODULE: Run EXCEL REPORT (genome + annotation mode)
     //
-    ch_excel_quast  = GENOME_AND_ANNOTATION.out.quast_tsv.map { _meta, f -> f }
-                    | mix( GENOME_ONLY.out.quast_tsv.map { _meta, f -> f } )
-                    | collect
-
     EXCEL_REPORT (
         ch_report_busco,
         ch_report_busco_prot,
