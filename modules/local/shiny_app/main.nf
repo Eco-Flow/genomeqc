@@ -25,7 +25,7 @@ process SHINY_APP {
     // Fully qualify the registry: this is a plain `docker run`, so (unlike the
     // Nextflow-managed processes) it does not get the docker.registry='quay.io'
     // prefix and would otherwise resolve to Docker Hub, where the image is not published.
-    def docker_url       = 'community.wave.seqera.io/library/python_pandas_r-base_bioconductor-ggtreeextra_pruned:60dbbdd8c84de8ef'
+    def docker_url       = 'community.wave.seqera.io/library/python_pandas_r-base_bioconductor-ggtreeextra_pruned:5327fed29a6ac09f'
     def results_path     = file(params.outdir).toAbsolutePath()
     """
     # Package the QC tables and tree into a launchable Shiny app container script
