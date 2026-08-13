@@ -826,10 +826,29 @@ build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes 
 
   p <- ggtree(tree, layout = "fan", open.angle = open_angle, size = 0.5, colour = "grey30")
 
+  n_rings <- length(ring_specs)
+
+  if (n_rings > 0) {
+    # PRIMER RING: geom_fruit()'s very first call on a fresh ggtree allocates a
+    # one-off, disproportionately large slice of radius regardless of width/
+    # offset (a ggtreeExtra quirk, not something width/offset can compensate
+    # for) - every ring after the first is sized consistently. A fully
+    # transparent zero-content ring absorbs that anomaly so every REAL ring
+    # below gets uniform, comparable thickness. Deliberately uses only width/
+    # offset (never pwidth: explicitly passing it - at any value - corrupts
+    # the whole plot's scale in the ggtreeExtra version this pipeline pins).
+    p <- p +
+      ggtreeExtra::geom_fruit(
+        data = ring_df, geom = geom_tile,
+        mapping = aes(y = label, x = 1), fill = NA, colour = NA,
+        width = ring_width, offset = 0.10
+      ) +
+      ggnewscale::new_scale_fill()
+  }
+
   # Quality rings share one discrete Good/Warn/Poor scale (legend shown once -
   # the ring key on the left says which ring is which); descriptive rings keep a
   # sequential ramp, each with its own legend ordered outer-ring-first.
-  n_rings <- length(ring_specs)
   shown_quality_legend <- FALSE
   for (i in seq_along(ring_specs)) {
     spec <- ring_specs[[i]]
@@ -837,7 +856,7 @@ build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes 
       ggtreeExtra::geom_fruit(
         data = ring_df, geom = geom_tile,
         mapping = aes(y = label, x = 1, fill = .data[[spec$name]]),
-        width = ring_width, offset = if (i == 1) 0.10 else 0.055,
+        width = ring_width, offset = 0.055,
         color = "white", linewidth = 0.2
       )
     if (identical(spec$scale, "quality")) {
