@@ -123,9 +123,14 @@ load_genes <- function(file, tree_tips) {
 load_te <- function(file, tree_tips) {
   if (is.null(file) || !file.exists(file)) return(NULL)
   tryCatch({
+    # node = this species' real index in tree_tips, not its row position -
+    # TE annotation can be missing for some species (e.g. a species-level
+    # failure), and 1:length(species) would silently misassign the row that
+    # follows a gap onto the wrong tip. Drop any species tree_tips doesn't
+    # recognise (shouldn't happen, but never plot at a fabricated position).
     data_te <- read.csv(file, sep = "\t") %>%
-      arrange(match(species, tree_tips)) %>%
-      mutate(node = 1:length(species))
+      mutate(node = match(species, tree_tips)) %>%
+      filter(!is.na(node))
     data_te
   }, error = function(e) {
     warning("Failed to load TE file: ", conditionMessage(e))
@@ -136,9 +141,16 @@ load_te <- function(file, tree_tips) {
 load_fcs <- function(file, tree_tips) {
   if (is.null(file) || !file.exists(file)) return(NULL)
   tryCatch({
+    # node = this species' real index in tree_tips, not its row position -
+    # FCS-GX only runs for samples with a taxid set (a documented, per-sample
+    # opt-in), so this table is routinely a subset of all species. Using
+    # 1:length(species) here would silently misassign a present species'
+    # pie onto a DIFFERENT tip's row rather than just omitting the absent
+    # ones. Drop any species tree_tips doesn't recognise (shouldn't happen,
+    # but never plot at a fabricated position).
     data_fcs <- read.csv(file, sep = "\t") %>%
-      arrange(match(species, tree_tips)) %>%
-      mutate(node = 1:length(species))
+      mutate(node = match(species, tree_tips)) %>%
+      filter(!is.na(node))
     data_fcs
   }, error = function(e) {
     warning("Failed to load FCS file: ", conditionMessage(e))
@@ -774,9 +786,16 @@ build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes 
     spec$values <- values             # keep raw values for the printed labels
     ring_specs[[length(ring_specs) + 1]] <<- spec
   }
+  # Aligns df[[col]] to the ring's full n_tips positions by node index, NA
+  # everywhere df has no row. df is routinely a subset (e.g. FCS-GX only runs
+  # for taxid-bearing samples) - returning just the present rows in df's own
+  # order would give a short vector that R silently RECYCLES across every
+  # tip when it's assigned into ring_df, fabricating data for species that
+  # have none at all instead of leaving them blank.
   col_by_node <- function(df, col) {
-    d <- df[order(df$node), ]
-    as.numeric(d[[col]])
+    out <- rep(NA_real_, n_tips)
+    out[df$node] <- as.numeric(df[[col]])
+    out
   }
 
   # Registry of every stat that can be a ring. Each key matches its
