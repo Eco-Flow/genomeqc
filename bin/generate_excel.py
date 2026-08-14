@@ -279,7 +279,7 @@ def _parse_repeatmasker_tbl(path):
 
 def _repeatmasker_rows(paths):
     """Combine RepeatMasker .tbl files into a single table (one sheet, all species)."""
-    rows = [["species", "category", "number_of_elements", "length_occupied_bp", "percent_of_sequence"]]
+    rows = [["assembly", "category", "number_of_elements", "length_occupied_bp", "percent_of_sequence"]]
     for p in sorted(paths, key=lambda x: Path(x).name):
         species = Path(p).stem
         info, cat_rows = _parse_repeatmasker_tbl(p)
@@ -320,7 +320,7 @@ def _summary_rows(busco_rows, tidk_data, busco_seqs_data=None, busco_seqs_col=No
     busco_prot_by_species = {r.get("Input_file", ""): r for r in (busco_prot_rows or [])}
 
     genome_col = "BUSCO genome complete (%)" if has_prot else "BUSCO complete (%)"
-    cols = ["Species", genome_col]
+    cols = ["Assembly", genome_col]
     if has_prot:
         cols.append("BUSCO proteins complete (%)")
     cols += ["BUSCO lineage", "Scaffold N50", "# scaffolds", "Telomeric repeat"]
@@ -378,7 +378,7 @@ def _combine_tsv_files(paths, add_species_col=True):
         if not file_rows:
             continue
         if not header_written:
-            header = (["species"] + file_rows[0]) if add_species_col else file_rows[0]
+            header = (["assembly"] + file_rows[0]) if add_species_col else file_rows[0]
             rows.append(header)
             header_written = True
             data_rows = file_rows[1:]
@@ -392,20 +392,124 @@ def _combine_tsv_files(paths, add_species_col=True):
     return rows
 
 
-def _agat_stats_rows(paths):
-    """Parse AGAT spstatistics *.txt files (key: value text format) into rows."""
-    rows = [["species", "metric", "value"]]
+# AGAT's report has no "key: value" syntax - fields are a label, then 2+
+# spaces, then the value (e.g. "Number of gene<spaces>9934"), grouped under
+# "--- sectionname ---" headers. The same label (e.g. "Number of gene")
+# repeats under every section with a different value each time, so the
+# section name has to be carried along as its own column, not folded into
+# the metric label.
+_AGAT_SECTION_HEADER_RE = re.compile(r"^-{2,}\s+([A-Za-z][\w]*)\s+-{2,}$")
+_AGAT_STAT_LINE_RE = re.compile(r"^(.*\S)\s{2,}(\S+)\s*$")
+
+
+_AGAT_SECTION_LABELS = {
+    "region": "Region", "sequencefeature": "Sequence feature",
+    "genefeature": "Gene feature", "guiderna": "Guide RNA",
+    "lncrna": "lncRNA", "mirna": "miRNA", "mrna": "mRNA",
+    "primarytranscript": "Primary transcript", "rna": "Other RNA (pseudogene)",
+    "rrna": "rRNA", "snorna": "snoRNA", "snrna": "snRNA",
+    "transcript": "Transcript", "trna": "tRNA",
+}
+
+
+def _agat_section_key(name):
+    return re.sub(r"[^a-z0-9]", "", name.lower())
+
+
+def _parse_agat_stats_nested(paths):
+    """Parse AGAT stats files into {section_key: {species: {"all": {...}, "collapsed": {...}|None}}}."""
+    sections = {}
     for p in sorted(paths, key=lambda x: Path(x).name):
-        species = Path(p).stem
+        species = Path(p).stem.replace(".stats", "")
+        entry = None
+        target = None
         with open(p) as fh:
-            for line in fh:
-                line = line.strip()
-                if not line or line.startswith("-"):
+            for raw_line in fh:
+                stripped = raw_line.strip()
+                if not stripped:
                     continue
-                if ":" in line:
-                    key, _, val = line.partition(":")
-                    rows.append([species, key.strip(), val.strip()])
-    return rows
+                header = _AGAT_SECTION_HEADER_RE.match(stripped)
+                if header:
+                    section_key = _agat_section_key(header.group(1))
+                    entry = sections.setdefault(section_key, {}).setdefault(
+                        species, {"all": {}, "collapsed": None}
+                    )
+                    target = entry["all"]
+                    continue
+                if entry is not None and "have isoforms!" in stripped:
+                    entry["collapsed"] = {}
+                    target = entry["collapsed"]
+                    continue
+                m = _AGAT_STAT_LINE_RE.match(stripped)
+                if m and target is not None:
+                    target[m.group(1)] = m.group(2)
+    return sections
+
+
+def _agat_ordered_metrics(species_map):
+    """Union of metric names across species/views, metrics more species report
+    coming first (ties broken by first appearance).
+
+    AGAT's field set for a section isn't fully fixed across species - e.g. it
+    inserts an extra "Number of pseudogene" count (shifting every later field
+    over by one) when a GFF tags pseudogenes, and some sections' labels echo
+    the source GFF's own feature-type spelling (e.g. "lnc_rna" vs "lncrna").
+    Ordering by first-appearance alone would make the column order depend on
+    whichever species happens to sort first, rather than on what most species
+    actually share.
+    """
+    order = []
+    seen = set()
+    counts = {}
+    for entry in species_map.values():
+        for view in ("all", "collapsed"):
+            for m in (entry.get(view) or {}):
+                counts[m] = counts.get(m, 0) + 1
+                if m not in seen:
+                    seen.add(m)
+                    order.append(m)
+    rank = {m: i for i, m in enumerate(order)}
+    return sorted(order, key=lambda m: (-counts[m], rank[m]))
+
+
+def _agat_feature_sheets(paths):
+    """Build a single AGAT sheet with one wide table per feature type, stacked
+    vertically and separated by a title row naming the feature: species as
+    rows, metrics as columns (NA where a species lacks that feature or
+    metric). Feature types that report isoform-collapsed numbers get an
+    extra "isoforms" column (all/collapsed) rather than a separate table,
+    since Excel has no toggle.
+
+    Every species passed in gets a row in every table, even ones that don't
+    have that feature type at all - filled entirely with NA - rather than
+    silently disappearing from the table.
+    """
+    all_species = sorted({Path(p).stem.replace(".stats", "") for p in paths})
+    sections = _parse_agat_stats_nested(paths)
+    combined_rows = []
+    for key, species_map in sorted(sections.items()):
+        has_iso = any(v["collapsed"] is not None for v in species_map.values())
+        empty_entry = {"all": {}, "collapsed": None}
+
+        metrics = _agat_ordered_metrics(species_map)
+
+        header = (["assembly", "isoforms"] if has_iso else ["assembly"]) + metrics
+        table_rows = [header]
+        for species in all_species:
+            entry = species_map.get(species, empty_entry)
+            views = [("all", entry["all"])] + ([("collapsed", entry["collapsed"] or {})] if has_iso else [])
+            for view_name, stats in views:
+                row = [species] + ([view_name] if has_iso else [])
+                row += [stats.get(m, "NA") for m in metrics]
+                table_rows.append(row)
+
+        label = _AGAT_SECTION_LABELS.get(key, key.replace("_", " ").capitalize())
+        if combined_rows:
+            combined_rows.append([])
+        combined_rows.append([label])
+        combined_rows.extend(table_rows)
+
+    return {"Annotation_AGAT": combined_rows} if combined_rows else {}
 
 
 def _quast_rows(paths):
@@ -507,9 +611,8 @@ def main():
             added += 1
 
     if args.agat_stats:
-        rows = _agat_stats_rows(args.agat_stats)
-        if rows:
-            wb.add_sheet("Annotation_AGAT", rows)
+        for sheet_name, rows in _agat_feature_sheets(args.agat_stats).items():
+            wb.add_sheet(sheet_name, rows)
             added += 1
 
     if args.tidk_tsvs:
