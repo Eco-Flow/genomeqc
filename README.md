@@ -26,8 +26,8 @@
 The pipeline takes a list of genomes and annotations (from local files or ncbi accessions), and runs commonly used tools to assess their quality.
 
 <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="docs/images/nf-core-genomeqc_metro_map_v3_logo_dark.png">
-   <img alt="nf-core/genomeqc" src="docs/images/nf-core-genomeqc_metro_map_v3.png">
+   <source media="(prefers-color-scheme: dark)" srcset="docs/images/nf-core-genomeqc_metro_map_v4_logo_dark.png">
+   <img alt="nf-core/genomeqc" src="docs/images/nf-core-genomeqc_metro_map_v4.png">
 </picture>
 
 1. Downloads the genome and gene annotation files from NCBI: [NCBI genome download](https://github.com/kblin/ncbi-genome-download) - Or **provide your own genomes and annotations**.
