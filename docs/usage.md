@@ -150,9 +150,8 @@ The pipeline will produce a tree plot summary that can be modified in real time 
 
 The pipeline will run on genome and annotation mode if these inputs are provided in the samplesheet:
 
-1. Path to `fasta` AND
-2. Path to `gff` OR
-3. `ncbi` RefSeq accession.
+1. Path to `fasta` AND path to `gff` OR
+2. `ncbi` RefSeq accession.
 
 The pipeline will produce a tree plot summary that can be modified in real time using a packaged shiny app, as well as a MultiQC report with quality statistics.
 
