@@ -15,6 +15,7 @@ workflow TREE_SUMMARY_SHINY_APP {
     ch_geno_anno_orthofinder
     ch_geno_orthofinder
     ch_te_table
+    ch_fcs_table
 
     main:
 
@@ -62,6 +63,7 @@ workflow TREE_SUMMARY_SHINY_APP {
         ch_busco_geno_anno.geno,
         ch_busco_geno_anno.prot,
         ch_te_table,
+        ch_fcs_table,
         ch_tree_inputs_genome_anno
     )
 
@@ -79,6 +81,7 @@ workflow TREE_SUMMARY_SHINY_APP {
             ch_busco_geno,
             [[],[]], // No busco proteins for genome only (busco runs on genome)
             ch_te_table,
+            ch_fcs_table,
             ch_tree_inputs_genome
         )
         // Run SHINY APP for genome only

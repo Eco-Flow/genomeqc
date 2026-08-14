@@ -11,6 +11,7 @@ include { GENOME_AND_ANNOTATION                    } from '../subworkflows/local
 include { TREE_SUMMARY_SHINY_APP                   } from '../subworkflows/local/tree_summary_shiny_app/main'
 include { FASTA_EXPLORE_SEARCH_PLOT_TIDK           } from '../subworkflows/nf-core/fasta_explore_search_plot_tidk/main'
 include { DECONTAMINATION                          } from '../subworkflows/local/decontamination/main'
+include { FCSGX_REPORT_2_TABLE                     } from '../modules/local/fcsgx_report_2_table/main'
 include { BUSCO_SEQS as BUSCO_SEQS_GENOME_ANNO     } from '../modules/local/buscos_seqs/main'
 include { BUSCO_SEQS as BUSCO_SEQS_GENOME          } from '../modules/local/buscos_seqs/main'
 include { HTML_REPORT                              } from '../modules/local/html_report/main'
@@ -86,6 +87,7 @@ workflow GENOMEQC {
     // If statement in case people give taxids but no database.
     // This way subworkflow won't try to run (otherwise it'll just fail)
     // Add warning in parameter/input validation plugin
+    ch_fcs_table = channel.empty()
     if ( params.gxdb || params.gxdb_manifest ) {
         DECONTAMINATION (
             ch_input_decon,
@@ -93,6 +95,17 @@ workflow GENOMEQC {
             params.gxdb ?: [],
             params.gxdb_manifest ? file(params.gxdb_manifest) : []
         )
+
+        // Parse each species' FCS-GX report into a combined contamination-summary
+        // table for the tree plot (this is only needed for the tree plot, which
+        // requires a single TSV table, same as the TE-composition table above)
+        FCSGX_REPORT_2_TABLE (
+            DECONTAMINATION.out.fcs_gx_report
+                .map { _meta, f -> f }
+                .collect()
+                .map { f -> tuple([id:'fcs_table'], f) }
+        )
+        ch_fcs_table = FCSGX_REPORT_2_TABLE.out.table
     }
 
     //
@@ -228,6 +241,7 @@ workflow GENOMEQC {
         ch_geno_anno_orthofinder,
         ch_geno_orthofinder,
         ch_te_table.ifEmpty([[],[]]),
+        ch_fcs_table.ifEmpty([[],[]]),
     )
 
     //

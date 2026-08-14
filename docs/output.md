@@ -52,7 +52,7 @@ It generates a report with assembly sequence classifications, contamination summ
 <summary>Output files</summary>
 
 - `decontamination/fcs-gx`
-  - `<assembly>_<taxid>.fsc_gx_report.txt`: Summary report with sequence classification and cleaning recommendations.
+  - `<assembly>_<taxid>.fcs_gx_report.txt`: Summary report with sequence classification and cleaning recommendations.
   - `<assembly>_<taxid>.taxonomy.rpt`: Detailed breakdown of sequence classification.
 
 </details>
@@ -68,7 +68,7 @@ It generates a report with a list of sequences flagged as adaptor or vector matc
 
 - `decontamination/fcs-adaptor`
   - `<assembly>.cleaned_sequences.fa.gz`: Genome assembly with contaminant regions removed.
-  - `<assembly>.fsc_adaptor_report.txt`: Summary report with flagged sequences and cleaning recommendations.
+  - `<assembly>.fcs_adaptor_report.txt`: Summary report with flagged sequences and cleaning recommendations.
 
 </details>
 
@@ -380,9 +380,11 @@ This directory will only be present if `--save_orthofinder_results` flag is set.
 
 The idea of the tree summary is to give some phylogenetic context to the quality stats, which might help users when evaluating the integrity of the assemblies.
 
-The layout is set with `--tree_style`: a conventional left-to-right tree (`roundrect`, `ellipse` or `rectangular`), or `circular`, which draws the tree as a fan with each summary statistic as a concentric ring and a numbered species key. In the circular layout, quality metrics (sequence count, N50, BUSCO completeness/duplication) are scored against `--quality_preset` thresholds (overridable per-metric with `--quality_thresholds`) and drawn as a colour-blind-safe Good/Warn/Poor traffic light on the outer rings, while descriptive metrics (e.g. genome size, gene number) use a neutral grey ramp on the inner rings; a key showing the swatches and their thresholds is drawn alongside the plot. `--show_ring_values` additionally prints each value on its ring.
+The layout is set with `--tree_style`: a conventional left-to-right tree (`roundrect`, `ellipse` or `rectangular`), or `circular`, which draws the tree as a fan with each summary statistic as a concentric ring and a numbered species key. In the circular layout, quality metrics (sequence count, N50, BUSCO completeness/duplication, FCS-GX contamination) are scored against `--quality_preset` thresholds (overridable per-metric with `--quality_thresholds`) and drawn as a colour-blind-safe Good/Warn/Poor traffic light on the outer rings, while descriptive metrics (e.g. genome size, gene number) use a neutral grey ramp on the inner rings; a key showing the swatches and their thresholds is drawn alongside the plot. `--show_ring_values` additionally prints each value on its ring.
 
 If [TE annotation](#te-annotation) was run (`--te hite` or `--te repeatmasker`), each genome also gets a **TE** panel: a 100%-stacked horizontal bar showing the proportion of the genome made up of each repeat category (SINE, LINE, LTR, Penelope, DNA, Rolling Circle, Unclassified, Other, and non-repetitive sequence), coloured left-to-right in the same order as the legend. The panel is omitted entirely when TE annotation wasn't run.
+
+If [decontamination](#decontamination) was run (`--gxdb` or `--gxdb_manifest`), each genome also gets an **FCS** panel showing the percentage of the assembly flagged as foreign contamination by FCS-GX: a pie chart (non-contaminant in blue, contaminant in red, matching the BUSCO colour scheme) in the conventional layout, or a Good (≥99.5% non-contaminant) / Warn (98-99.5%) / Poor (<98%) traffic-light ring in the circular layout. The panel is omitted entirely when decontamination wasn't run.
 
 <details markdown="1">
 <summary>Output files</summary>
@@ -396,6 +398,10 @@ If [TE annotation](#te-annotation) was run (`--te hite` or `--te repeatmasker`),
 </details>
 
 ![output_example_tree](images/output_example/tree_plot.png)
+
+The `circular` layout draws the same statistics as concentric rings instead:
+
+![output_example_tree_circular](images/output_example/tree_plot_circular.png)
 
 ### Shiny App
 
@@ -423,7 +429,7 @@ The pipeline summarises the results from the tools above into two reports: a HTM
 
 The **HTML report** is a single-file report with one tab per tool. The BUSCO, Assembly stats (Quast), Telomeres, FCS-GX, FCS-Adaptor, Tiara and Annotation stats (AGAT) tabs are only shown if the corresponding tool was run. The Telomeres tab includes a chromosome selector for assemblies with multiple sequences, and a toggle to switch between the a priori and a posteriori tidk searches when both were run. The Annotation stats tab has a feature-type selector; each feature's table lists every assembly side by side, with `NA` where an assembly doesn't have that feature type or metric. Since AGAT can reports dozens of metrics per feature type (this depedends on the annotation file), each table shows a compact default selection - use the "Show all columns" checkbox to see every metric, and, for feature types where AGAT recalculates stats with isoforms collapsed to one transcript per gene, the "Collapse isoforms" checkbox to switch views.
 
-The **Excel report** contains the same summary statistics as separate tables. AGAT statistics get one sheet per feature type, with assemblies as rows and every metric as a column (unlike the HTML report, nothing is hidden by default), `NA` where an assembly doesn't have that feature type or metric.
+The **Excel report** contains the same summary statistics as separate tables. AGAT statistics are all in one `Annotation_AGAT` sheet, one table per feature type stacked vertically under a title row naming the feature - assemblies as rows and every metric as a column (unlike the HTML report, nothing is hidden by default), `NA` where an assembly doesn't have that feature type or metric.
 
 <details markdown="1">
 <summary>Output files</summary>

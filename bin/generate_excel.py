@@ -473,18 +473,20 @@ def _agat_ordered_metrics(species_map):
 
 
 def _agat_feature_sheets(paths):
-    """Build one wide sheet per AGAT feature type: species as rows, metrics as
-    columns (NA where a species lacks that feature or metric). Feature types
-    that report isoform-collapsed numbers get an extra "isoforms" column
-    (all/collapsed) rather than a second sheet, since Excel has no toggle.
+    """Build a single AGAT sheet with one wide table per feature type, stacked
+    vertically and separated by a title row naming the feature: species as
+    rows, metrics as columns (NA where a species lacks that feature or
+    metric). Feature types that report isoform-collapsed numbers get an
+    extra "isoforms" column (all/collapsed) rather than a separate table,
+    since Excel has no toggle.
 
-    Every species passed in gets a row in every sheet, even ones that don't
+    Every species passed in gets a row in every table, even ones that don't
     have that feature type at all - filled entirely with NA - rather than
-    silently disappearing from the sheet.
+    silently disappearing from the table.
     """
     all_species = sorted({Path(p).stem.replace(".stats", "") for p in paths})
     sections = _parse_agat_stats_nested(paths)
-    sheets = {}
+    combined_rows = []
     for key, species_map in sorted(sections.items()):
         has_iso = any(v["collapsed"] is not None for v in species_map.values())
         empty_entry = {"all": {}, "collapsed": None}
@@ -492,18 +494,22 @@ def _agat_feature_sheets(paths):
         metrics = _agat_ordered_metrics(species_map)
 
         header = (["assembly", "isoforms"] if has_iso else ["assembly"]) + metrics
-        rows = [header]
+        table_rows = [header]
         for species in all_species:
             entry = species_map.get(species, empty_entry)
             views = [("all", entry["all"])] + ([("collapsed", entry["collapsed"] or {})] if has_iso else [])
             for view_name, stats in views:
                 row = [species] + ([view_name] if has_iso else [])
                 row += [stats.get(m, "NA") for m in metrics]
-                rows.append(row)
+                table_rows.append(row)
 
         label = _AGAT_SECTION_LABELS.get(key, key.replace("_", " ").capitalize())
-        sheets[f"AGAT_{label}"] = rows
-    return sheets
+        if combined_rows:
+            combined_rows.append([])
+        combined_rows.append([label])
+        combined_rows.extend(table_rows)
+
+    return {"Annotation_AGAT": combined_rows} if combined_rows else {}
 
 
 def _quast_rows(paths):
