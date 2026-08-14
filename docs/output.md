@@ -199,8 +199,9 @@ The annotation file is validated and standardised before being processed downstr
 <details markdown="1">
 <summary>Output files</summary>
 
-- `validated_gff/<species_name>/`
+- `validated_gff/agat/<species_name>/`
   - `<species_name>.agat.gff`: Validated and standardised annotation file (AGAT, default).
+- `validated_gff/gffread/<species_name>/`
   - `<species_name>.gff3`: Validated and standardised annotation file (GffRead, only if `--val_tool gffread` is used).
 
 </details>
@@ -218,7 +219,7 @@ This directory is only saved if `--save_validated_annotation` is set.
 <details markdown="1">
 <summary>Output files</summary>
 
-- `agat/<species_name>/stats/`
+- `agat/<species_name>/`
   - `<species_name>.stats.txt`: Gene annotation statistics report.
 
 </details>
@@ -277,10 +278,9 @@ It outputs a report with completness stats, a summarized table with these stats,
 - `busco/<species_name>/stats/`
   - `short_summary.specific.<busco_db>.<species_name>.txt`: Per-run BUSCO completeness report.
   - `<species_name>-<busco_db>-busco.batch_summary.txt`: Summarised completeness report.
-- `busco/<species_name>/ideogram/` _(genome only mode)_
-  - `<species_name>_<lineage>.png`: Ideogram with the location of single-copy markers across sequences.
-- `busco/<species_name>_<lineage>/ideogram/` _(genome and annotation mode)_
-  - `<species_name>.png`: Ideogram with the location of single-copy markers across sequences.
+- `busco/<species_name>/ideogram/`
+  - `<species_name>_<lineage>.png`: Ideogram with the location of single-copy markers across sequences (genome only mode).
+  - `<species_name>.png`: Ideogram with the location of single-copy markers across sequences (genome and annotation mode).
 
 </details>
 
@@ -346,7 +346,7 @@ The pipeline supports both OrthoFinder v2 and v3 (selected via `--ortho_version`
 <details markdown="1">
 <summary>Output files</summary>
 
-- `orthofinder_v2/` or `orthofinder_v3/` (depending on `--ortho_version`)
+- `orthofinder/v2/` or `orthofinder/v3/` (depending on `--ortho_version`)
   - `Orthogroups/`
     - Orthogroup assignments from MCL clustering (present in both v2 and v3).
   - `Species_Tree/`
