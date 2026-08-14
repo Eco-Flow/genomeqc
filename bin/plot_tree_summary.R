@@ -94,6 +94,7 @@ parser$add_argument('--busco_geno', type = 'character', help = 'Path to processe
 parser$add_argument('--busco_prot', type = 'character', help = 'Path to processed BUSCO protein output file')
 parser$add_argument('--ortho_file', type = 'character', default = NULL, help = 'Path to number of orthologous sequences file')
 parser$add_argument('--te_file', type = 'character', help = 'Path to Transposable Elementes stats table')
+parser$add_argument('--fcs_file', type = 'character', help = 'Path to FCS-GX contamination stats table')
 parser$add_argument('--text_size', type = 'double', default = 3, help = 'Text size for the tree plot')
 parser$add_argument('--tree_scale', type = 'double', default = 0.0005, help = 'x axis limits scaling for tree plot (useful when tree labels appear truncated)')
 parser$add_argument('--tree_margin', type = 'double', default = 15, help = "Tree's right margin size")
@@ -102,9 +103,9 @@ parser$add_argument('--rad_width', type = 'double', default = 0.4, help = 'Radiu
 parser$add_argument('--skip_stats', type = 'character', default = NULL, help = "Don't plot these stats (comma separated list)")
 parser$add_argument('--type', type = 'character', choices = c('genome_only', 'genome_anno'), default = 'genome_anno', help = 'Select stats for genome only or for both genome and annotation')
 parser$add_argument('--tree_style', type = 'character', choices = c('roundrect', 'ellipse', 'rectangular', 'circular'), default = 'roundrect', help = 'Tree layout style: roundrect (rounded branches, default), ellipse (curved branches with node points), rectangular (legacy look with dotted leader lines), or circular (fan tree with the stats drawn as concentric coloured rings)')
-parser$add_argument('--circular_rings', type = 'character', default = 'ch_plot,n50_plot,busco_gen_plot,busco_prot_plot,len_plot,gene_plot', help = "Circular layout only: comma-separated, ordered (inner->outer) list of stats to draw as rings, or 'all' to show every available stat. Descriptive rings are always grouped nearest the tree and quality (traffic-light) rings on the outer rim, so the two stay visually separate. Keys: ch_plot, len_plot, n50_plot, gene_plot, busco_gen_plot, busco_prot_plot, busco_dup_plot, nseqs_plot, ortho_plot")
+parser$add_argument('--circular_rings', type = 'character', default = 'ch_plot,n50_plot,busco_gen_plot,busco_prot_plot,fcs_plot,len_plot,gene_plot', help = "Circular layout only: comma-separated, ordered (inner->outer) list of stats to draw as rings, or 'all' to show every available stat. Descriptive rings are always grouped nearest the tree and quality (traffic-light) rings on the outer rim, so the two stay visually separate. Keys: ch_plot, len_plot, n50_plot, gene_plot, busco_gen_plot, busco_prot_plot, busco_dup_plot, fcs_plot, nseqs_plot, ortho_plot")
 parser$add_argument('--quality_preset', type = 'character', choices = c('generic', 'vertebrate', 'insect', 'plant', 'fungi', 'bacteria'), default = 'generic', help = "Circular layout only: phylogenetic-group thresholds used to score the quality rings (traffic light). 'generic' is deliberately lenient; pick the group matching your taxa. The N50/sequence-count cut-offs in particular are starting points and should be tuned per project.")
-parser$add_argument('--quality_thresholds', type = 'character', default = NULL, help = "Circular layout only: override individual --quality_preset cut-offs, as comma-separated 'metric=good:warn' pairs. Metrics: busco_complete, busco_duplicated, n50, seq_number (direction is fixed per metric, so only the cut-offs are given). Example: 'n50=2e6:5e5,seq_number=500:5000'. Unmentioned metrics keep the preset's cut-offs.")
+parser$add_argument('--quality_thresholds', type = 'character', default = NULL, help = "Circular layout only: override individual --quality_preset cut-offs, as comma-separated 'metric=good:warn' pairs. Metrics: busco_complete, busco_duplicated, n50, seq_number, fcs_noncontam (direction is fixed per metric, so only the cut-offs are given). Example: 'n50=2e6:5e5,seq_number=500:5000'. Unmentioned metrics keep the preset's cut-offs.")
 parser$add_argument('--show_ring_values', action = 'store_true', help = 'Circular layout only: print each value on its ring (redundant encoding, so the figure is not colour-only). Best for small trees.')
 parser$add_argument('--len_pos_x', type = 'double', default = 0.5, help = 'Position (legend.justification x-anchor) of the BUSCO pie and TE bar legends')
 
@@ -261,14 +262,37 @@ load_te <- function(file, tree_tips) {
   tryCatch({
     # Load gene stats
     data_te <- read.csv(file, sep = "\t")
-    # Arrange data according to tree labels
+    # node = this species' real index in tree_tips, not its row position -
+    # TE annotation can be missing for some species (e.g. a species-level
+    # failure), and 1:length(species) would silently misassign the row that
+    # follows a gap onto the wrong tip. Drop any species tree_tips doesn't
+    # recognise (shouldn't happen, but never plot at a fabricated position).
     data_te <- data_te %>%
-    # Arrange data according to tree labels
-      arrange(match(species, tree_tips)) %>%
-    # Add node column
-      mutate(node = 1:length(species)) # Node number needed for nodpie
+      mutate(node = match(species, tree_tips)) %>%
+      filter(!is.na(node))
   }, error = function(e) {
     warning("Failed to load TE file: ", conditionMessage(e))
+    NULL
+  })
+}
+
+# --- Helper function to load FCS-GX contamination data ---
+load_fcs <- function(file, tree_tips) {
+  if (is.null(file)) return(NULL)
+  tryCatch({
+    data_fcs <- read.csv(file, sep = "\t")
+    # node = this species' real index in tree_tips, not its row position -
+    # FCS-GX only runs for samples with a taxid set (a documented, per-sample
+    # opt-in), so this table is routinely a subset of all species. Using
+    # 1:length(species) here would silently misassign a present species'
+    # pie onto a DIFFERENT tip's row rather than just omitting the absent
+    # ones. Drop any species tree_tips doesn't recognise (shouldn't happen,
+    # but never plot at a fabricated position).
+    data_fcs <- data_fcs %>%
+      mutate(node = match(species, tree_tips)) %>%
+      filter(!is.na(node))
+  }, error = function(e) {
+    warning("Failed to load FCS file: ", conditionMessage(e))
     NULL
   })
 }
@@ -281,6 +305,7 @@ data_genes <- load_genes(args$genes_file, tips_order)
 data_nseqs <- load_nseqs(args$nseqs_file, tips_order)
 data_ortho <- load_nseqs(args$ortho_file, tips_order)
 data_te <- load_te(args$te_file, tips_order)
+data_fcs <- load_fcs(args$fcs_file, tips_order)
 
 # Extract names for debugging
 # tree_sp <- sort(tree$tip.label)
@@ -510,7 +535,10 @@ make_te_barplot <- function(data_te,
     ) +
     ggtitle("TE") +
     barplots_theme +
-    theme(plot.title = element_text(size = 9, hjust = 0.5, vjust = -5)) +
+    # vjust=-5 (used by the two-line titles like "Genome\nsize (Mb)") pushes a
+    # single-line title like this one below the panel instead of above it -
+    # match N50 (Mb)'s single-line calibration instead.
+    theme(plot.title = element_text(size = 9, hjust = 0.5, vjust = -0.4)) +
     coord_flip() +
     xlab(NULL) +
     ylab(NULL)
@@ -533,6 +561,60 @@ make_te_barplot <- function(data_te,
   list(
     plot   = bars_plot,
     legend = legend_te
+  )
+}
+
+# Helper function to plot FCS-GX contamination as a 2-category pie chart
+make_fcs_piechart <- function(data_fcs,
+                               rad_width,
+                               len_pos_x = 0) {
+
+  if (is.null(data_fcs)) {
+    return(list(
+      plot   = NULL,
+      legend = NULL
+    ))
+  }
+
+  pies_plot <- ggplot() +
+    geom_scatterpie(
+      aes(x = 0, y = node, group = species, r = rad_width),
+      data = data_fcs,
+      cols = c("non_contaminant_pct", "contaminant_pct"),
+      color = NA
+    ) +
+    scale_fill_manual(
+      labels = c("Non-contaminant", "Contaminant"),
+      values = c(
+        "non_contaminant_pct" = "deepskyblue",
+        "contaminant_pct"     = "firebrick1"
+      )
+    ) +
+    coord_fixed() +
+    theme_void() +
+    ggtitle("FCS") +
+    theme(
+      plot.title = element_text(size = 9, hjust = 0.5, vjust = 0.05)
+    )
+
+  # Extract legend
+  legend_fcs <- cowplot::get_legend(
+    pies_plot +
+      theme(
+        legend.position = "right",
+        legend.justification = c(len_pos_x, 1.08),
+        legend.title = element_blank(),
+        legend.key.size = unit(0.2, "cm"),
+        legend.text = element_text(size = 8)
+      )
+  )
+
+  # Remove legend from pie plot
+  pies_plot <- pies_plot + guides(fill = "none")
+
+  list(
+    plot   = pies_plot,
+    legend = legend_fcs
   )
 }
 
@@ -561,6 +643,13 @@ busco_prot_plot <- make_busco_scatterpie(
 te_plot <- make_te_barplot(
   data_te = data_te,
   bar_width = args$bar_width,
+  len_pos_x = len_pos_x
+)
+
+# FCS-GX contamination plot
+fcs_plot <- make_fcs_piechart(
+  data_fcs = data_fcs,
+  rad_width = args$rad_width,
   len_pos_x = len_pos_x
 )
 
@@ -669,6 +758,7 @@ all_ranges <- c(
   get_plot_range(ortho_plot, "y"),
   get_plot_range(busco_gen_plot$plot, "y"),
   get_plot_range(busco_prot_plot$plot, "y"),
+  get_plot_range(fcs_plot$plot, "y"),
   get_plot_range(len_plot, "x"),
   get_plot_range(n50_plot, "x"),
   get_plot_range(gene_plot, "x"),
@@ -697,6 +787,9 @@ if (!is.null(n50_plot))  n50_plot  <- n50_plot + new_xlim
 if (!is.null(busco_gen_plot$plot)) busco_gen_plot$plot <- busco_gen_plot$plot + new_ylim
 if (!is.null(busco_prot_plot$plot)) busco_prot_plot$plot <- busco_prot_plot$plot + new_ylim
 
+# Set new ylim for FCS pie
+if (!is.null(fcs_plot$plot)) fcs_plot$plot <- fcs_plot$plot + new_ylim
+
 # Set new xlim for TE bars (equivalent to ylim, since te_plot is coord_flip()'d)
 if (!is.null(te_plot$plot)) te_plot$plot <- te_plot$plot + new_xlim
 
@@ -717,42 +810,51 @@ QUALITY_COLOURS <- c(Good = "#009E73", Warn = "#E69F00", Poor = "#D55E00")
 # cut-offs are clade-dependent STARTING POINTS and should be tuned per project.
 # 'generic' is deliberately lenient - eukaryote/vertebrate standards are far too
 # strict for, say, a bacterial assembly.
+# fcs_noncontam (FCS-GX non-contaminant %) is the same across every preset: unlike
+# BUSCO/N50/sequence-count, "how much of the genome is foreign contamination" has
+# no taxon-dependent expectation, so there's no reason to vary it by clade.
 QUALITY_PRESETS <- list(
   generic = list(
     busco_complete   = list(direction = "higher", good = 95,     warn = 90),
     busco_duplicated = list(direction = "lower",  good = 5,      warn = 10),
     n50              = list(direction = "higher", good = 1e6,    warn = 1e5),
-    seq_number       = list(direction = "lower",  good = 1000,   warn = 10000)
+    seq_number       = list(direction = "lower",  good = 1000,   warn = 10000),
+    fcs_noncontam    = list(direction = "higher", good = 99.5,   warn = 98)
   ),
   vertebrate = list(
     busco_complete   = list(direction = "higher", good = 95,     warn = 90),
     busco_duplicated = list(direction = "lower",  good = 5,      warn = 10),
     n50              = list(direction = "higher", good = 1e7,    warn = 1e6),
-    seq_number       = list(direction = "lower",  good = 1000,   warn = 10000)
+    seq_number       = list(direction = "lower",  good = 1000,   warn = 10000),
+    fcs_noncontam    = list(direction = "higher", good = 99.5,   warn = 98)
   ),
   insect = list(
     busco_complete   = list(direction = "higher", good = 95,     warn = 90),
     busco_duplicated = list(direction = "lower",  good = 5,      warn = 10),
     n50              = list(direction = "higher", good = 1e6,    warn = 1e5),
-    seq_number       = list(direction = "lower",  good = 1000,   warn = 10000)
+    seq_number       = list(direction = "lower",  good = 1000,   warn = 10000),
+    fcs_noncontam    = list(direction = "higher", good = 99.5,   warn = 98)
   ),
   plant = list(
     busco_complete   = list(direction = "higher", good = 95,     warn = 90),
     busco_duplicated = list(direction = "lower",  good = 10,     warn = 20),
     n50              = list(direction = "higher", good = 1e6,    warn = 1e5),
-    seq_number       = list(direction = "lower",  good = 5000,   warn = 50000)
+    seq_number       = list(direction = "lower",  good = 5000,   warn = 50000),
+    fcs_noncontam    = list(direction = "higher", good = 99.5,   warn = 98)
   ),
   fungi = list(
     busco_complete   = list(direction = "higher", good = 95,     warn = 90),
     busco_duplicated = list(direction = "lower",  good = 5,      warn = 10),
     n50              = list(direction = "higher", good = 1e6,    warn = 1e5),
-    seq_number       = list(direction = "lower",  good = 100,    warn = 1000)
+    seq_number       = list(direction = "lower",  good = 100,    warn = 1000),
+    fcs_noncontam    = list(direction = "higher", good = 99.5,   warn = 98)
   ),
   bacteria = list(
     busco_complete   = list(direction = "higher", good = 95,     warn = 90),
     busco_duplicated = list(direction = "lower",  good = 5,      warn = 10),
     n50              = list(direction = "higher", good = 5e5,    warn = 1e5),
-    seq_number       = list(direction = "lower",  good = 10,     warn = 100)
+    seq_number       = list(direction = "lower",  good = 10,     warn = 100),
+    fcs_noncontam    = list(direction = "higher", good = 99.5,   warn = 98)
   )
 )
 
@@ -809,7 +911,7 @@ parse_quality_thresholds <- function(spec) {
 # around a fan tree, tips are numbered, and a species key is shown alongside.
 build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes = NULL,
                                 data_busco_geno = NULL, data_busco_prot = NULL,
-                                data_nseqs = NULL, data_ortho = NULL,
+                                data_nseqs = NULL, data_ortho = NULL, data_fcs = NULL,
                                 text_size = 3, skip = NULL, rings = NULL,
                                 quality_preset = "generic", thresholds = NULL, show_values = FALSE,
                                 open_angle = 14, ring_width = 0.13) {
@@ -856,9 +958,16 @@ build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes 
     ring_specs[[length(ring_specs) + 1]] <<- spec
   }
   # pull a stat's per-tip values in node (i.e. labs) order
+  # Aligns df[[col]] to the ring's full n_tips positions by node index, NA
+  # everywhere df has no row. df is routinely a subset (e.g. FCS-GX only runs
+  # for taxid-bearing samples) - returning just the present rows in df's own
+  # order would give a short vector that R silently RECYCLES across every
+  # tip when it's assigned into ring_df, fabricating data for species that
+  # have none at all instead of leaving them blank.
   col_by_node <- function(df, col) {
-    d <- df[order(df$node), ]
-    as.numeric(d[[col]])
+    out <- rep(NA_real_, n_tips)
+    out[df$node] <- as.numeric(df[[col]])
+    out
   }
 
   # Registry of every stat that can be a ring. Each key matches its
@@ -885,6 +994,8 @@ build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes 
                            get = function() if (!is.null(data_busco_prot)) data_busco_prot$Single + data_busco_prot$Duplicated),
     busco_dup_plot  = list(name = "BUSCO duplicated", scale = "quality", metric = "busco_duplicated",
                            get = function() if (!is.null(data_busco_geno)) data_busco_geno$Duplicated),
+    fcs_plot        = list(name = "FCS non-contaminant %", scale = "quality", metric = "fcs_noncontam",
+                           get = function() if (!is.null(data_fcs)) col_by_node(data_fcs, "non_contaminant_pct")),
     nseqs_plot      = list(name = "Seqs ≥5 BUSCOs", scale = "descriptive", low = "#f0f0f0", high = "#4d4d4d",
                            get = function() if (!is.null(data_nseqs)) col_by_node(data_nseqs, names(data_nseqs)[2])),
     ortho_plot      = list(name = "Ortho seqs",     scale = "descriptive", low = "#f0f0f0", high = "#4d4d4d",
@@ -912,11 +1023,58 @@ build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes 
   # Fan tree
   p <- ggtree(tree, layout = "fan", open.angle = open_angle, size = 0.5, colour = "grey30")
 
+  n_rings <- length(ring_specs)
+
+  ring_offset <- 0.055
+
+  if (n_rings > 0) {
+    # PRIMER RING: geom_fruit()'s very first call on a fresh ggtree allocates a
+    # one-off, disproportionately large slice of radius regardless of width/
+    # offset (a ggtreeExtra quirk, not something width/offset can compensate
+    # for) - every ring after the first is sized consistently. A fully
+    # transparent zero-content ring absorbs that anomaly so every REAL ring
+    # below gets uniform, comparable thickness. Deliberately uses only width/
+    # offset (never pwidth: explicitly passing it - at any value - corrupts
+    # the whole plot's scale in the ggtreeExtra version this pipeline pins).
+    p <- p +
+      ggtreeExtra::geom_fruit(
+        data = ring_df, geom = geom_tile,
+        mapping = aes(y = label, x = 1), fill = NA, colour = NA,
+        width = ring_width, offset = 0.10
+      ) +
+      ggnewscale::new_scale_fill()
+
+    # CALIBRATION: geom_fruit's `width` is not the ring's actual rendered
+    # thickness - rings are drawn as overlapping tiles staggered by `offset`,
+    # each one visually clipped by the next ring drawn on top of it down to
+    # the gap between their start positions. The last ring has nothing after
+    # it to clip its trailing edge, so it alone renders at its full declared
+    # `width` - several times wider than every other (clipped) ring. Measure
+    # the true stagger `ring_offset` produces on this tree with a throwaway
+    # invisible ring, then use that measured value (not ring_width) as every
+    # real ring's width below, so every ring - including the last - renders
+    # the same actual thickness.
+    range_before_calib <- suppressWarnings(max(vapply(
+      ggplot_build(p)$data,
+      function(dd) if ("x" %in% names(dd)) max(dd$x, na.rm = TRUE) else NA_real_,
+      numeric(1)), na.rm = TRUE))
+    p_calib <- p +
+      ggtreeExtra::geom_fruit(
+        data = ring_df, geom = geom_tile,
+        mapping = aes(y = label, x = 1), fill = NA, colour = NA,
+        width = ring_width, offset = ring_offset
+      )
+    range_after_calib <- suppressWarnings(max(vapply(
+      ggplot_build(p_calib)$data,
+      function(dd) if ("x" %in% names(dd)) max(dd$x, na.rm = TRUE) else NA_real_,
+      numeric(1)), na.rm = TRUE))
+    measured_width <- range_after_calib - range_before_calib
+  }
+
   # Add each stat as a concentric ring. Quality rings share one discrete
   # Good/Warn/Poor scale (so the legend is shown only once - the ring key on the
   # left says which ring is which); descriptive rings keep a sequential ramp,
   # each with its own legend ordered outer-ring-first.
-  n_rings <- length(ring_specs)
   shown_quality_legend <- FALSE
   for (i in seq_along(ring_specs)) {
     spec <- ring_specs[[i]]
@@ -924,7 +1082,7 @@ build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes 
       ggtreeExtra::geom_fruit(
         data = ring_df, geom = geom_tile,
         mapping = aes(y = label, x = 1, fill = .data[[spec$name]]),
-        width = ring_width, offset = if (i == 1) 0.10 else 0.055,
+        width = measured_width, offset = ring_offset,
         color = "white", linewidth = 0.2
       )
     if (identical(spec$scale, "quality")) {
@@ -977,12 +1135,15 @@ build_circular_plot <- function(tree, tips_order, data_quast = NULL, data_genes 
       else if (all(abs(v - round(v)) < 1e-8, na.rm = TRUE)) as.character(round(v))
       else                                                  sprintf("%.1f", v)
     }
-    # Radial centre of each ring, read back from the rendered tile layers
+    # Radial centre of each ring, read back from the rendered tile layers.
+    # tile_layers[[1]] is the invisible primer ring (always added above when
+    # n_rings > 0), not a real ring - skip it so values land on the ring they
+    # actually describe instead of the one drawn just inside it.
     tile_layers <- Filter(function(dd) all(c("xmin", "xmax") %in% names(dd)),
                           ggplot_build(p)$data)
-    if (length(tile_layers) >= n_rings) {
+    if (length(tile_layers) >= n_rings + 1) {
       for (i in seq_len(n_rings)) {
-        dd <- tile_layers[[i]]
+        dd <- tile_layers[[i + 1]]
         # NB: the radius must live in the data, not the aes expression - aes() is
         # evaluated lazily, so aes(x = rad) would resolve every layer to the last
         # value of the loop variable.
@@ -1098,6 +1259,7 @@ if (args$tree_style == "circular") {
     data_busco_prot = data_busco_prot,
     data_nseqs      = data_nseqs,
     data_ortho      = data_ortho,
+    data_fcs        = data_fcs,
     text_size       = args$text_size,
     skip            = skip,
     rings           = circular_rings,
@@ -1146,7 +1308,8 @@ all_plots <- list(
   n50_plot   = n50_plot,
   busco_gen_plot  = busco_gen_plot$plot,
   busco_prot_plot = busco_prot_plot$plot,
-  te_plot = te_plot$plot
+  te_plot = te_plot$plot,
+  fcs_plot = fcs_plot$plot
 )
 
 all_legends <- list(
@@ -1158,7 +1321,8 @@ all_legends <- list(
   n50_plot   = NULL,
   busco_gen_plot  = busco_gen_plot$legend,
   busco_prot_plot = if (!is.null(busco_gen_plot$legend)) NULL else busco_prot_plot$legend, # Only plot legend once
-  te_plot = te_plot$legend
+  te_plot = te_plot$legend,
+  fcs_plot = fcs_plot$legend
 )
 
 # Keep only plots and legends not in the skip list (thanks to chat gpt)

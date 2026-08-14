@@ -36,6 +36,10 @@ nextflow_process {
                     file("\${baseDir}/modules/local/treesummary/tests/te_summary.tsv", checkIfExists: true)
                 ]
                 input[4] = [
+                    [ id:'fcs' ],
+                    file("\${baseDir}/modules/local/treesummary/tests/fcs_summary.tsv", checkIfExists: true)
+                ]
+                input[5] = [
                     file("\${baseDir}/modules/local/treesummary/tests/speciesA.quast.tsv", checkIfExists: true),
                     file("\${baseDir}/modules/local/treesummary/tests/speciesB.quast.tsv", checkIfExists: true),
                     file("\${baseDir}/modules/local/treesummary/tests/test.counts.tsv", checkIfExists: true),
@@ -60,6 +64,7 @@ nextflow_process {
                 { assert table_names.contains('Quast_to_plot.tsv') },
                 { assert table_names.contains('n_seqs_above_x_buscos_output.tsv') },
                 { assert table_names.contains('te_table_output.tsv') },
+                { assert table_names.contains('fcs_table_output.tsv') },
                 // species_ortho_seq_count.tsv never reaches this process (see genome_and_annotation.nf).
                 { assert !table_names.contains('species_ortho_seq_count_output.tsv') },
                 { assert snapshot(
@@ -103,6 +108,10 @@ nextflow_process {
                     file("\${baseDir}/modules/local/treesummary/tests/te_summary.tsv", checkIfExists: true)
                 ]
                 input[4] = [
+                    [ id:'fcs' ],
+                    file("\${baseDir}/modules/local/treesummary/tests/fcs_summary.tsv", checkIfExists: true)
+                ]
+                input[5] = [
                     file("\${baseDir}/modules/local/treesummary/tests/speciesA.quast.tsv", checkIfExists: true),
                     file("\${baseDir}/modules/local/treesummary/tests/speciesB.quast.tsv", checkIfExists: true),
                     file("\${baseDir}/modules/local/treesummary/tests/test.counts.tsv", checkIfExists: true),

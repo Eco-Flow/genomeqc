@@ -53,6 +53,9 @@ nextflow_workflow {
                 input[7] = Channel.of(
                     [ [ id:'te' ], file("\${baseDir}/modules/local/treesummary/tests/te_summary.tsv", checkIfExists: true) ]
                 )
+                input[8] = Channel.of(
+                    [ [ id:'fcs' ], file("\${baseDir}/modules/local/treesummary/tests/fcs_summary.tsv", checkIfExists: true) ]
+                )
                 """
             }
         }

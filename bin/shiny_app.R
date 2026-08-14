@@ -31,8 +31,9 @@ processed_data <- process_tree_data(
   quast_file = if(file.exists("Quast_to_plot.tsv")) "Quast_to_plot.tsv" else NULL,
   genes_file = if(file.exists("gene_stats.tsv")) "gene_stats.tsv" else NULL,
   nseqs_file = if(file.exists("n_seqs_above_x_buscos_output.tsv")) "n_seqs_above_x_buscos_output.tsv" else NULL,
-  ortho_file = if(file.exists("species_orthologous_chromosomes_output.tsv")) "species_orthologous_chromosomes_output.tsv" else NULL,
-  te_file    = if(file.exists("te_table_output.tsv")) "te_table_output.tsv" else NULL
+  ortho_file = if(file.exists("species_ortho_seq_count_output.tsv")) "species_ortho_seq_count_output.tsv" else NULL,
+  te_file    = if(file.exists("te_table_output.tsv")) "te_table_output.tsv" else NULL,
+  fcs_file   = if(file.exists("fcs_table_output.tsv")) "fcs_table_output.tsv" else NULL
 )
 
 # UI
@@ -110,7 +111,9 @@ ui <- fluidPage(
                             numericInput("thr_n50_good",   "N50 (bp) - Good at or above:", value = 1e6, min = 0, step = 1e5),
                             numericInput("thr_n50_warn",   "N50 (bp) - Warn at or above:", value = 1e5, min = 0, step = 1e4),
                             numericInput("thr_seq_good",   "Sequence count - Good at or below:", value = 1000, min = 0, step = 10),
-                            numericInput("thr_seq_warn",   "Sequence count - Warn at or below:", value = 10000, min = 0, step = 100)
+                            numericInput("thr_seq_warn",   "Sequence count - Warn at or below:", value = 10000, min = 0, step = 100),
+                            numericInput("thr_fcs_good",   "FCS non-contaminant % - Good at or above:", value = 99.5, min = 0, max = 100, step = 0.1),
+                            numericInput("thr_fcs_warn",   "FCS non-contaminant % - Warn at or above:", value = 98, min = 0, max = 100, step = 0.1)
                           ),
                           checkboxInput("show_values", "Print values on rings", value = FALSE)
                         )
@@ -152,7 +155,8 @@ ui <- fluidPage(
                                              "N50" = "n50_plot",
                                              "BUSCO Genome" = "busco_gen_plot",
                                              "BUSCO Protein" = "busco_prot_plot",
-                                             "TE Composition" = "te_plot"
+                                             "TE Composition" = "te_plot",
+                                             "FCS Contamination" = "fcs_plot"
                                            )),
                         #selectInput("plot_type", "Plot Type:",
                         #            choices = list("Genome + Annotation" = "genome_anno", "Genome Only" = "genome_only"),
@@ -216,6 +220,7 @@ server <- function(input, output, session) {
                  input$ring_width, input$quality_preset, input$show_values,
                  input$thr_busco_good, input$thr_busco_warn, input$thr_dup_good, input$thr_dup_warn,
                  input$thr_n50_good, input$thr_n50_warn, input$thr_seq_good, input$thr_seq_warn,
+                 input$thr_fcs_good, input$thr_fcs_warn,
                  input$tree_space_ratio, input$top_margin, input$right_margin,
                  input$bottom_margin, input$left_margin, input$tree_margin, input$skip_stats,
                  input$export_width, input$export_height, input$export_dpi), {
@@ -230,7 +235,8 @@ server <- function(input, output, session) {
                      busco_complete   = list(direction = "higher", good = input$thr_busco_good, warn = input$thr_busco_warn),
                      busco_duplicated = list(direction = "lower",  good = input$thr_dup_good,   warn = input$thr_dup_warn),
                      n50              = list(direction = "higher", good = input$thr_n50_good,   warn = input$thr_n50_warn),
-                     seq_number       = list(direction = "lower",  good = input$thr_seq_good,   warn = input$thr_seq_warn)
+                     seq_number       = list(direction = "lower",  good = input$thr_seq_good,   warn = input$thr_seq_warn),
+                     fcs_noncontam    = list(direction = "higher", good = input$thr_fcs_good,   warn = input$thr_fcs_warn)
                    ) else NULL
 
                    # Generate the plot

@@ -63,11 +63,11 @@
                 ],
                 "1": [
                     [
-                        "shiny_app.R:md5,fb92385c8e1487a68c1c90d2d005d7e2",
+                        "shiny_app.R:md5,02f3d1faf79d22d6160c0ce3eff6114d",
                         "shiny_app.sh:md5,808c1c0dedc4852a0b57f8a16ea489f3",
                         "test.tsv:md5,f7b71340c1bc3467eac0921c5dd1db44",
                         "tree.nw:md5,ff8e67b1d74ea48c5012812b6e39f066",
-                        "tree_functions.R:md5,48048c82e1a08663cf9922fa4c5bfe73"
+                        "tree_functions.R:md5,89ee160ed862cf9511fd1469fde36e37"
                     ]
                 ],
                 "2": [
@@ -87,11 +87,11 @@
                 ],
                 "shiny_app_files": [
                     [
-                        "shiny_app.R:md5,fb92385c8e1487a68c1c90d2d005d7e2",
+                        "shiny_app.R:md5,02f3d1faf79d22d6160c0ce3eff6114d",
                         "shiny_app.sh:md5,808c1c0dedc4852a0b57f8a16ea489f3",
                         "test.tsv:md5,f7b71340c1bc3467eac0921c5dd1db44",
                         "tree.nw:md5,ff8e67b1d74ea48c5012812b6e39f066",
-                        "tree_functions.R:md5,48048c82e1a08663cf9922fa4c5bfe73"
+                        "tree_functions.R:md5,89ee160ed862cf9511fd1469fde36e37"
                     ]
                 ],
                 "versions_shiny": [
@@ -103,10 +103,10 @@
                 ]
             }
         ],
-        "timestamp": "2026-08-10T17:39:18.541243",
+        "timestamp": "2026-08-14T12:09:01.071424",
         "meta": {
-            "nf-test": "0.9.4",
-            "nextflow": "25.10.4"
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
         }
     }
 }

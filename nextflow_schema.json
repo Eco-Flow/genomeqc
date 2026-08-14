@@ -212,24 +212,24 @@
                     "type": "string",
                     "default": "roundrect",
                     "description": "Tree layout style for the tree summary plot.",
-                    "help_text": "'roundrect' draws rounded branches (default), 'ellipse' draws curved branches with node points, 'rectangular' reproduces the legacy look with dotted leader lines, and 'circular' draws a fan tree with each summary statistic as a concentric coloured ring and a numbered species key. In circular mode the same stats as the default layout are available (sequence number, genome size, N50, gene number, genome and protein BUSCO completeness, etc.), each toggled independently via --skip_stats.",
+                    "help_text": "'roundrect' draws rounded branches (default), 'ellipse' draws curved branches with node points, 'rectangular' reproduces the legacy look with dotted leader lines, and 'circular' draws a fan tree with each summary statistic as a concentric coloured ring and a numbered species key. In circular mode the same stats as the default layout are available (sequence number, genome size, N50, gene number, genome and protein BUSCO completeness, FCS-GX contamination, etc.), each toggled independently via --skip_stats.",
                     "enum": ["roundrect", "ellipse", "rectangular", "circular"]
                 },
                 "circular_rings": {
                     "type": "string",
                     "description": "Circular layout only: which summary stats to draw as rings.",
-                    "help_text": "Comma-separated, ordered (inner->outer) list of stat keys, or 'all' to show every available stat. Unset uses a curated assembly/annotation-quality default (sequence number, N50, genome BUSCO, protein BUSCO). Keys: ch_plot, len_plot, n50_plot, gene_plot, busco_gen_plot, busco_prot_plot, nseqs_plot, ortho_plot."
+                    "help_text": "Comma-separated, ordered (inner->outer) list of stat keys, or 'all' to show every available stat. Unset uses a curated assembly/annotation-quality default (sequence number, N50, genome BUSCO, protein BUSCO, FCS-GX contamination). Keys: ch_plot, len_plot, n50_plot, gene_plot, busco_gen_plot, busco_prot_plot, fcs_plot, nseqs_plot, ortho_plot."
                 },
                 "quality_preset": {
                     "type": "string",
                     "description": "Circular layout only: phylogenetic-group thresholds used to score the quality (traffic-light) rings.",
-                    "help_text": "Quality rings (sequence count, N50, BUSCO completeness/duplication) are scored Good/Warn/Poor against these thresholds. 'generic' is deliberately lenient. The N50 and sequence-count cut-offs are clade-dependent starting points and should be tuned per project.",
+                    "help_text": "Quality rings (sequence count, N50, BUSCO completeness/duplication, FCS-GX contamination) are scored Good/Warn/Poor against these thresholds. 'generic' is deliberately lenient. The N50 and sequence-count cut-offs are clade-dependent starting points and should be tuned per project; the FCS-GX contamination cut-offs are fixed across presets.",
                     "enum": ["generic", "vertebrate", "insect", "plant", "fungi", "bacteria"]
                 },
                 "quality_thresholds": {
                     "type": "string",
                     "description": "Circular layout only: override individual --quality_preset cut-offs.",
-                    "help_text": "Comma-separated 'metric=good:warn' pairs, e.g. 'n50=2e6:5e5,seq_number=500:5000'. Metrics: busco_complete, busco_duplicated, n50, seq_number. Direction (higher/lower is better) is fixed per metric, so only the cut-off values are given. Metrics not mentioned keep the selected preset's cut-offs."
+                    "help_text": "Comma-separated 'metric=good:warn' pairs, e.g. 'n50=2e6:5e5,seq_number=500:5000'. Metrics: busco_complete, busco_duplicated, n50, seq_number, fcs_noncontam. Direction (higher/lower is better) is fixed per metric, so only the cut-off values are given. Metrics not mentioned keep the selected preset's cut-offs."
                 },
                 "show_ring_values": {
                     "type": "boolean",
@@ -240,15 +240,15 @@
                 "skip_plots_genome_anno": {
                     "type": "string",
                     "description": "Skip these stat plots in the genome and annotation tree plot.",
-                    "pattern": "^(ch_plot|nseqs_plot|ortho_plot|len_plot|gene_plot|n50_plot|pies_plot)(,(ch_plot|len_plot|gene_plot|n50_plot|pies_plot))*$",
-                    "help_text": "Comma-separated list of plot types to skip. Valid values: ch_plot, len_plot, gene_plot, n50_plot, pies_plot\nch_plot: Number of sequences\nlen_plot: Genome size and GC cotent\ngene_plot: Numeber of genes and overlapping genes\nn50_plot: N50\npies_plot: BUSCO stats",
+                    "pattern": "^(ch_plot|nseqs_plot|ortho_plot|len_plot|gene_plot|n50_plot|busco_gen_plot|busco_prot_plot|te_plot|fcs_plot)(,(ch_plot|nseqs_plot|ortho_plot|len_plot|gene_plot|n50_plot|busco_gen_plot|busco_prot_plot|te_plot|fcs_plot))*$",
+                    "help_text": "Comma-separated list of plot types to skip. Valid values: ch_plot, nseqs_plot, ortho_plot, len_plot, gene_plot, n50_plot, busco_gen_plot, busco_prot_plot, te_plot, fcs_plot\nch_plot: Number of sequences\nlen_plot: Genome size and GC content\ngene_plot: Number of genes and overlapping genes\nn50_plot: N50\nbusco_gen_plot: Genome BUSCO completeness\nbusco_prot_plot: Protein BUSCO completeness\nte_plot: TE composition\nfcs_plot: FCS-GX contamination",
                     "default": "nseqs_plot"
                 },
                 "skip_plots_genome_only": {
                     "type": "string",
                     "description": "Skip these stat plots in the genome only tree plot.",
-                    "pattern": "^(ch_plot|nseqs_plot|ortho_plot|len_plot|n50_plot|pies_plot)(,(ch_plot|len_plot|n50_plot|pies_plot))*$",
-                    "help_text": "Comma-separated list of plot types to skip. Valid values: ch_plot, len_plot, n50_plot, pies_plot\nch_plot: Number of sequences\nlen_plot: Genome size and GC content\nn50_plot: N50\npies_plot: BUSCO stats",
+                    "pattern": "^(ch_plot|nseqs_plot|ortho_plot|len_plot|n50_plot|busco_gen_plot|te_plot|fcs_plot)(,(ch_plot|nseqs_plot|ortho_plot|len_plot|n50_plot|busco_gen_plot|te_plot|fcs_plot))*$",
+                    "help_text": "Comma-separated list of plot types to skip. Valid values: ch_plot, nseqs_plot, ortho_plot, len_plot, n50_plot, busco_gen_plot, te_plot, fcs_plot\nch_plot: Number of sequences\nlen_plot: Genome size and GC content\nn50_plot: N50\nbusco_gen_plot: Genome BUSCO completeness\nte_plot: TE composition\nfcs_plot: FCS-GX contamination",
                     "default": "nseqs_plot"
                 }
             }
