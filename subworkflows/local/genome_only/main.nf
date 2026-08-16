@@ -1,5 +1,5 @@
 include { QUAST                               } from '../../../modules/nf-core/quast/main'
-include { BUSCO_BUSCO                         } from '../../../modules/nf-core/busco/busco/main'
+include { BUSCO_BUSCO as BUSCO_GENOME         } from '../../../modules/nf-core/busco/busco/main'
 include { GENOMEBUSCOIDEOGRAM                 } from '../../../modules/local/genomebuscoideogram/main'
 include { ORTHOFINDER as ORTHOFINDER_V3       } from '../../../modules/nf-core/orthofinder/main'
 include { ORTHOFINDERV2                       } from '../../../modules/local/orthofinderv2/main'
@@ -33,7 +33,7 @@ workflow GENOME_ONLY {
     ch_tree_data = ch_tree_data.mix(QUAST.out.tsv.map { tuple -> tuple[1] })
 
     if (!params.skip_busco) {
-        BUSCO_BUSCO (
+        BUSCO_GENOME (
             ch_fasta,
             "genome", // hardcoded, other options ('proteins', 'transcriptome') make no sense
             params.busco_lineage,
@@ -41,7 +41,7 @@ workflow GENOME_ONLY {
             params.busco_config ?: [],
             params.busco_clean ?: []
         )
-        //ch_tree_data  = ch_tree_data.mix(BUSCO_BUSCO.out.batch_summary.collect { meta, file -> file })
+        //ch_tree_data  = ch_tree_data.mix(BUSCO_GENOME.out.batch_summary.collect { meta, file -> file })
 
         //
         // GAWK
@@ -49,7 +49,7 @@ workflow GENOME_ONLY {
         // Use GAWK to change ID from file name to meta.id
 
         GAWK (
-            BUSCO_BUSCO.out.batch_summary,
+            BUSCO_GENOME.out.batch_summary,
             [],
             false
         )
@@ -59,7 +59,7 @@ workflow GENOME_ONLY {
         // BUSCO Ideogram
         //
 
-        ch_full_table = BUSCO_BUSCO.out.full_table
+        ch_full_table = BUSCO_GENOME.out.full_table
 
         // Combined ch_fasta and BUSCO output channel into a single channel for ideogram
         ch_input_ideo = ch_fasta
@@ -75,7 +75,7 @@ workflow GENOME_ONLY {
         //
 
         // Prepare data
-        ch_busco_proteins = BUSCO_BUSCO.out.single_copy_faa
+        ch_busco_proteins = BUSCO_GENOME.out.single_copy_faa
                           | flatMap { meta, faas ->
                                          faas.collect { faa -> [meta, file(faa)]  }
                           }
@@ -105,7 +105,7 @@ workflow GENOME_ONLY {
         }
         // Transform tsv to gff for ortho_seq_count module
         BUSCO_TSV_TO_GFF (
-            BUSCO_BUSCO.out.busco_dir
+            BUSCO_GENOME.out.busco_dir
         )
 
         //
@@ -125,7 +125,7 @@ workflow GENOME_ONLY {
     orthofinder             = !params.skip_busco ? ch_orthofinder : channel.empty()        // channel: [ val(meta), [folder] ]
     tree_data               = !params.skip_busco ? ch_tree_data.flatten().collect().map { files -> files.toSorted { a, b -> a.name <=> b.name } } : channel.empty() // sort for deterministic behaviour
     quast_results           = QUAST.out.results                   // channel: [ val(meta), [tsv] ]
-    busco_short_summaries   = !params.skip_busco ? BUSCO_BUSCO.out.short_summaries_txt : channel.empty() // channel: [ val(meta), [txt] ]
+    busco_short_summaries   = !params.skip_busco ? BUSCO_GENOME.out.short_summaries_txt : channel.empty() // channel: [ val(meta), [txt] ]
     buscos_per_seqs         = !params.skip_busco ? GENOMEBUSCOIDEOGRAM.out.busco_mappings.collect { meta, table -> table}.map { tables -> tables.toSorted { a, b -> a.name <=> b.name } } : channel.empty() // channel: [ csv ]
     busco_batch_summaries   = !params.skip_busco ? GAWK.out.output : channel.empty()                     // channel: [ val(meta), path(tsv) ] — species-named batch summaries
     quast_tsv               = QUAST.out.tsv                       // channel: [ val(meta), path(tsv) ]
