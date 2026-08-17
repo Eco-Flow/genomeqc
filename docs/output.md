@@ -275,12 +275,13 @@ It outputs a report with completness stats, a summarized table with these stats,
 <details markdown="1">
 <summary>Output files</summary>
 
-- `busco/<species_name>/stats/`
+- `busco/genome/<species_name>/stats/` (genome completeness) or `busco/protein/<species_name>/stats/` (annotation completeness, genome and annotation mode only)
   - `short_summary.specific.<busco_db>.<species_name>.txt`: Per-run BUSCO completeness report.
   - `<species_name>-<busco_db>-busco.batch_summary.txt`: Summarised completeness report.
-- `busco/<species_name>/ideogram/`
-  - `<species_name>_<lineage>.png`: Ideogram with the location of single-copy markers across sequences (genome only mode).
-  - `<species_name>.png`: Ideogram with the location of single-copy markers across sequences (genome and annotation mode).
+- `busco/genome/<species_name>/ideogram/` _(genome only mode)_
+  - `<species_name>_<lineage>.png`: Ideogram with the location of single-copy markers across sequences.
+- `busco/protein/<species_name>/ideogram/` _(genome and annotation mode)_
+  - `<species_name>.png`: Ideogram with the location of single-copy markers across sequences.
 
 </details>
 
@@ -293,8 +294,8 @@ It outputs a report with completness stats, a summarized table with these stats,
 <details markdown="1">
 <summary>Output files</summary>
 
-- `busco/<species_name>/min_number_buscos/`
-  - `n_seqs_above_x_buscos.tsv`: Number of sequences with Complete BUSCOs above the threshold.
+- `busco/genome/min_number_buscos/` (genome only mode) or `busco/protein/min_number_buscos/` (genome and annotation mode)
+  - `n_seqs_above_x_buscos.tsv`: Number of sequences with Complete BUSCOs above the threshold, for every species run in that mode.
 
 </details>
 

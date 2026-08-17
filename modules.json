@@ -1,7 +1,7 @@
 {
     "name": "ecoflow/genomeqc",
-"name": "nf-core/genomeqc",
-"homePage": "https://github.com/nf-core/genomeqc",
+    "name": "nf-core/genomeqc",
+    "homePage": "https://github.com/nf-core/genomeqc",
     "repos": {
         "https://github.com/nf-core/modules.git": {
             "modules": {

@@ -1,10 +1,11 @@
 nextflow_pipeline {
 
-    name "Test pipeline"
+    name "Test decontamination profile"
     script "../main.nf"
-    tag "pipeline"
+    tag "test_decon"
+    profile "test_decon"
 
-    test("-profile test") {
+    test("-profile test_decon") {
 
         when {
             params {
@@ -19,11 +20,11 @@ nextflow_pipeline {
             def stable_content = getAllFilesFromDir(params.outdir, ignoreFile: 'tests/.nftignore')
             // pipeline versions.yml file for multiqc from which Nextflow version is removed because we test pipelines on multiple Nextflow versions
             def software_versions = removeNextflowVersion("$outputDir/pipeline_info/nf_core_genomeqc_software_mqc_versions.yml")
-            // SHINY_APP's `cat` (coreutils) version comes from the container OS package under docker/singularity
-            // (Ubuntu 22.04 ships 8.32) vs. conda-forge under conda (pinned 8.31 - conda-forge's linux-64 channel
-            // has no 8.32 build at all, jumping straight from 8.31 to 9.0), so no single pin can make the two
-            // profiles agree. Drop it from the comparison rather than snapshot a value that's profile-dependent.
-            software_versions.SHINY_APP_GENOME_ANNO?.remove('cat')
+            // fcs_gx_report.txt's first line has a timestamp
+            def fcs_gx_report_body = file("$outputDir/decontamination/fcs-gx/test_combo.fcs_gx_report.txt")
+                .readLines()
+                .drop(1)
+                .join('\n')
             assert workflow.success
             assertAll(
                 { assert snapshot(
@@ -31,11 +32,12 @@ nextflow_pipeline {
                     // All stable path name, with a relative path
                     stable_path,
                     // All files with stable contents
-                    stable_content
+                    stable_content,
+                    fcs_gx_report_body
                 ).match() }
             )
         }
-
+        
         cleanup {
             // Only prune/delete on CI - keeping local VM state intact prevents
             // cross-test launchDir wipes that break nf-test snapshot walks.

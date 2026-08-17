@@ -2,7 +2,7 @@
 include { AGAT_CONVERTSPGXF2GXF as AGAT_VALIDATE } from '../../../modules/nf-core/agat/convertspgxf2gxf'
 include { AGAT_SPKEEPLONGESTISOFORM              } from '../../../modules/nf-core/agat/spkeeplongestisoform'
 include { BUSCO_BUSCO as BUSCO_GENOME            } from '../../../modules/nf-core/busco/busco/main'
-include { BUSCO_BUSCO as BUSCO_PROTEINS          } from '../../../modules/nf-core/busco/busco/main'
+include { BUSCO_BUSCO as BUSCO_PROTEIN          } from '../../../modules/nf-core/busco/busco/main'
 include { QUAST                                  } from '../../../modules/nf-core/quast/main'
 include { AGAT_SPSTATISTICS                      } from '../../../modules/nf-core/agat/spstatistics/main'
 include { GENOMEANNOTATIONBUSCOIDEOGRAM          } from '../../../modules/local/genomeannotationbuscoideogram/main'
@@ -180,7 +180,7 @@ workflow GENOME_AND_ANNOTATION {
         // MODULE: Run BUSCO for proteins
         //
 
-        BUSCO_PROTEINS (
+        BUSCO_PROTEIN (
             GFFREAD.out.gffread_fasta,
             'proteins',
             params.busco_lineage,
@@ -202,7 +202,7 @@ workflow GENOME_AND_ANNOTATION {
 
         // For BUSCO protein
         GAWK_PROT (
-            BUSCO_PROTEINS.out.batch_summary,
+            BUSCO_PROTEIN.out.batch_summary,
             [],
             false
         )
@@ -212,7 +212,7 @@ workflow GENOME_AND_ANNOTATION {
         //
 
         // Prepare BUSCO output
-        ch_busco_full_table = BUSCO_PROTEINS.out.full_table
+        ch_busco_full_table = BUSCO_PROTEIN.out.full_table
                             | map { meta, full_tables ->
                                 def lineages = full_tables.toString().split('/')[-2].replaceAll('run_', '').replaceAll('_odb\\d+', '')
                                 [meta.id, lineages, full_tables]
