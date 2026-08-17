@@ -1,5 +1,4 @@
 {
-    "name": "ecoflow/genomeqc",
     "name": "nf-core/genomeqc",
     "homePage": "https://github.com/nf-core/genomeqc",
     "repos": {
