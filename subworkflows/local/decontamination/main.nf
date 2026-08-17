@@ -36,9 +36,9 @@ workflow DECONTAMINATION {
 
     // Run Module fetch database
     FCSGX_FETCHDB(
-        channel.of(ch_gxdb_manifest).filter { manifest -> manifest != [] } // If there's no manifest, use empty channel (won't run)
+        channel.value(ch_gxdb_manifest).filter { manifest -> manifest != [] } // If there's no manifest, use empty channel (won't run)
     )
-    ch_gxdb            =  ch_gxdb_local != [] ? channel.of(ch_gxdb_local) : FCSGX_FETCHDB.out.database // If there's no local database, use the fetched one
+    ch_gxdb            =  ch_gxdb_local != [] ? channel.value(ch_gxdb_local) : FCSGX_FETCHDB.out.database // If there's no local database, use the fetched one
 
     // Run Module fcs gx
 
