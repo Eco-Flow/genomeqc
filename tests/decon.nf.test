@@ -43,7 +43,7 @@ nextflow_pipeline {
             // cross-test launchDir wipes that break nf-test snapshot walks.
             if (System.getenv("CI") == "true") {
                 if (System.getenv("NFT_PROFILE")?.contains("docker")) {
-                    "docker system prune -a -f --volumes".execute()
+                    "docker system prune -a -f --volumes".execute().waitFor()
                 }
                 new File("${launchDir}").deleteDir()
             }
