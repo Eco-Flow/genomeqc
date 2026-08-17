@@ -79,6 +79,7 @@ runs:
       shell: bash
       env:
         NFT_SKIP_PATHS: ${{ steps.skip_list.outputs.skip_paths }}
+        NFT_PROFILE: ${{ inputs.profile }}
       run: |
         nf-test test \
           --profile=+${{ inputs.profile }} \
