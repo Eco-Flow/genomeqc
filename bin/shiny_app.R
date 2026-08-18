@@ -317,14 +317,14 @@ server <- function(input, output, session) {
                      },
                      content = function(file) {
                        req(current_plot())
-                       ggsave(
-                         filename = file,
-                         plot = current_plot(),
-                         device = "svg",
-                         width = input$export_width, height = input$export_height,
-                         units = "in",
-                         dpi = input$export_dpi
-                       )
+                       # ggsave(..., device = "svg") requires the svglite package, which
+                       # isn't installed in this app's container - use base R's svg()
+                       # device directly instead, matching plot_tree_summary.R's own
+                       # SVG export (no extra dependency, and DPI doesn't apply to a
+                       # vector format so it's dropped here).
+                       svg(filename = file, width = input$export_width, height = input$export_height)
+                       on.exit(dev.off())
+                       print(current_plot())
                      }
                    )
 
