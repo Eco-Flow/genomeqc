@@ -32,4 +32,6 @@ decontamination/fcs-gx/test_combo.taxonomy.rpt
 decontamination/fcs-gx/test_combo.summary.txt
 decontamination/fcs-adaptor/test_combo.fcs_adaptor.log
 decontamination/fcs-gx/test_combo.fcs_gx_report.txt
+# These tables from the te subworkflow are not deterministic
 repeatmasker/*/*.tbl
+**/te_table_output.tsv
