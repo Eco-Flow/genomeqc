@@ -1,0 +1,80 @@
+name: Update nf-test snapshots
+
+# Manually-triggered workflow to regenerate nf-test snapshots on a CI runner and push
+# the result back to the branch, for contributors who can't run the pipeline locally
+# (e.g. Apple Silicon + emulation issues with amd64-only containers).
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "nf-test --tag filter (comma-separated)"
+        required: true
+        default: "pipeline,test_gca"
+      profile:
+        description: "Container profile to run with"
+        required: true
+        default: "docker"
+        type: choice
+        options:
+          - docker
+          - singularity
+          - conda
+
+permissions:
+  contents: write
+
+env:
+  NFT_VER: "0.9.4"
+  NXF_VER: "25.10.4"
+  NXF_ANSI_LOG: false
+
+jobs:
+  update-snapshot:
+    name: Update snapshots on ${{ github.ref_name }}
+    runs-on:
+      - runs-on=${{ github.run_id }}-update-snapshot
+      - runner=4cpu-linux-x64
+      - volume=50gb
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - name: Setup Nextflow
+        uses: nf-core/setup-nextflow@b4ec1bc7c16a94435159de94a05253542fddf6ef # v3
+        with:
+          version: "${{ env.NXF_VER }}"
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
+        with:
+          python-version: "3.14"
+
+      - name: Install nf-test
+        uses: nf-core/setup-nf-test@4069fbbaabe94c08faba4ad261bfa88225ba133f # v2
+        with:
+          version: "${{ env.NFT_VER }}"
+          install-pdiff: true
+
+      - name: Update snapshots
+        run: |
+          nf-test test \
+            --profile=+${{ inputs.profile }} \
+            --tag ${{ inputs.tag }} \
+            --ci \
+            --verbose \
+            --update-snapshot
+
+      - name: Commit and push updated snapshots
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add '**/*.snap'
+          if git diff --cached --quiet; then
+            echo "No snapshot changes to commit."
+          else
+            git commit -m "Update nf-test snapshots via workflow_dispatch"
+            git push origin HEAD:${{ github.ref_name }}
+          fi
