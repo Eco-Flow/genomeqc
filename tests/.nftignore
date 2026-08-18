@@ -36,3 +36,6 @@ decontamination/fcs-gx/test_combo.fcs_gx_report.txt
 repeatmasker/*/*.tbl
 **/te_table_output.tsv
 **/te_table.tsv
+# These are not deterministic if running on the genome branch
+ortho_seq_count/pairwise_ortho_seq_count.tsv
+ortho_seq_count/species_ortho_seq_count.tsv
