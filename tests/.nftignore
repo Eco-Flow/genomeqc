@@ -35,3 +35,4 @@ decontamination/fcs-gx/test_combo.fcs_gx_report.txt
 # These tables from the te subworkflow are not deterministic
 repeatmasker/*/*.tbl
 **/te_table_output.tsv
+**/te_table.tsv
