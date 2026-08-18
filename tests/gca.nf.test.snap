@@ -1,0 +1,191 @@
+{
+    "-profile test_gca": {
+        "content": [
+            {
+                "BUSCO_DOWNLOAD": {
+                    "busco": "6.1.0"
+                },
+                "BUSCO_GENOME": {
+                    "busco": "6.1.0"
+                },
+                "BUSCO_SEQS_GENOME": {
+                    "python": "3.13.5"
+                },
+                "EXCEL_REPORT": {
+                    "python": "3.9.5"
+                },
+                "FILTER_BY_LENGTH": {
+                    "seqkit": "2.13.0"
+                },
+                "GAWK": {
+                    "gawk": "5.3.1"
+                },
+                "GENOMEBUSCOIDEOGRAM": {
+                    "r_base": "4.4.1",
+                    "r_rideogram": "0.2.2"
+                },
+                "HTML_REPORT": {
+                    "python": "3.9.5"
+                },
+                "NCBIGENOMEDOWNLOAD": {
+                    "ncbigenomedownload": "0.3.3"
+                },
+                "QUAST": {
+                    "quast": "5.3.0"
+                },
+                "SORT_BY_LENGTH": {
+                    "seqkit": "2.13.0"
+                },
+                "TIDK_EXPLORE": {
+                    "tidk": "0.2.7"
+                },
+                "TIDK_PLOT_APOSTERIORI": {
+                    "tidk": "0.2.7"
+                },
+                "TIDK_SEARCH_APOSTERIORI": {
+                    "tidk": "0.2.7"
+                },
+                "UNCOMPRESS_FASTA": {
+                    "pigz": 2.8
+                },
+                "Workflow": {
+                    "nf-core/genomeqc": "v1.0.0"
+                }
+            },
+            [
+                "busco",
+                "busco/genome",
+                "busco/genome/Mycoplasmoides_genitalium",
+                "busco/genome/Mycoplasmoides_genitalium/ideogram",
+                "busco/genome/Mycoplasmoides_genitalium/ideogram/Mycoplasmoides_genitalium.csv",
+                "busco/genome/Mycoplasmoides_genitalium/ideogram/Mycoplasmoides_genitalium.png",
+                "busco/genome/Mycoplasmoides_genitalium/ideogram/Mycoplasmoides_genitalium.svg",
+                "busco/genome/Mycoplasmoides_genitalium/stats",
+                "busco/genome/Mycoplasmoides_genitalium/stats/Mycoplasmoides_genitalium-mycoplasmatales_odb10-genome-busco.batch_summary.txt",
+                "busco/genome/Mycoplasmoides_genitalium/stats/short_summary.specific.mycoplasmatales_odb10.GCA_000027325.1_ASM2732v1_genomic.fna.txt",
+                "busco/genome/Mycoplasmoides_pneumoniae",
+                "busco/genome/Mycoplasmoides_pneumoniae/ideogram",
+                "busco/genome/Mycoplasmoides_pneumoniae/ideogram/Mycoplasmoides_pneumoniae.csv",
+                "busco/genome/Mycoplasmoides_pneumoniae/ideogram/Mycoplasmoides_pneumoniae.png",
+                "busco/genome/Mycoplasmoides_pneumoniae/ideogram/Mycoplasmoides_pneumoniae.svg",
+                "busco/genome/Mycoplasmoides_pneumoniae/stats",
+                "busco/genome/Mycoplasmoides_pneumoniae/stats/Mycoplasmoides_pneumoniae-mycoplasmatales_odb10-genome-busco.batch_summary.txt",
+                "busco/genome/Mycoplasmoides_pneumoniae/stats/short_summary.specific.mycoplasmatales_odb10.GCA_000733995.1_ASM73399v1_genomic.fna.txt",
+                "busco/genome/min_number_buscos",
+                "busco/genome/min_number_buscos/n_seqs_above_x_buscos.tsv",
+                "multiqc",
+                "multiqc/multiqc_data",
+                "multiqc/multiqc_data/llms-full.txt",
+                "multiqc/multiqc_data/multiqc.log",
+                "multiqc/multiqc_data/multiqc.parquet",
+                "multiqc/multiqc_data/multiqc_citations.txt",
+                "multiqc/multiqc_data/multiqc_data.json",
+                "multiqc/multiqc_data/multiqc_software_versions.txt",
+                "multiqc/multiqc_data/multiqc_sources.txt",
+                "multiqc/multiqc_report.html",
+                "pipeline_info",
+                "pipeline_info/nf_core_genomeqc_software_mqc_versions.yml",
+                "quast",
+                "quast/Mycoplasmoides_genitalium",
+                "quast/Mycoplasmoides_genitalium/Mycoplasmoides_genitalium.quast",
+                "quast/Mycoplasmoides_genitalium/Mycoplasmoides_genitalium.quast/basic_stats",
+                "quast/Mycoplasmoides_genitalium/Mycoplasmoides_genitalium.quast/basic_stats/GCA_000027325.1_ASM2732v1_genomic_GC_content_plot.pdf",
+                "quast/Mycoplasmoides_genitalium/Mycoplasmoides_genitalium.quast/basic_stats/GC_content_plot.pdf",
+                "quast/Mycoplasmoides_genitalium/Mycoplasmoides_genitalium.quast/basic_stats/Nx_plot.pdf",
+                "quast/Mycoplasmoides_genitalium/Mycoplasmoides_genitalium.quast/basic_stats/cumulative_plot.pdf",
+                "quast/Mycoplasmoides_genitalium/Mycoplasmoides_genitalium.quast/icarus.html",
+                "quast/Mycoplasmoides_genitalium/Mycoplasmoides_genitalium.quast/icarus_viewers",
+                "quast/Mycoplasmoides_genitalium/Mycoplasmoides_genitalium.quast/icarus_viewers/contig_size_viewer.html",
+                "quast/Mycoplasmoides_genitalium/Mycoplasmoides_genitalium.quast/quast.log",
+                "quast/Mycoplasmoides_genitalium/Mycoplasmoides_genitalium.quast/report.html",
+                "quast/Mycoplasmoides_genitalium/Mycoplasmoides_genitalium.quast/report.pdf",
+                "quast/Mycoplasmoides_genitalium/Mycoplasmoides_genitalium.quast/report.tex",
+                "quast/Mycoplasmoides_genitalium/Mycoplasmoides_genitalium.quast/report.tsv",
+                "quast/Mycoplasmoides_genitalium/Mycoplasmoides_genitalium.quast/report.txt",
+                "quast/Mycoplasmoides_genitalium/Mycoplasmoides_genitalium.quast/transposed_report.tex",
+                "quast/Mycoplasmoides_genitalium/Mycoplasmoides_genitalium.quast/transposed_report.tsv",
+                "quast/Mycoplasmoides_genitalium/Mycoplasmoides_genitalium.quast/transposed_report.txt",
+                "quast/Mycoplasmoides_pneumoniae",
+                "quast/Mycoplasmoides_pneumoniae/Mycoplasmoides_pneumoniae.quast",
+                "quast/Mycoplasmoides_pneumoniae/Mycoplasmoides_pneumoniae.quast/basic_stats",
+                "quast/Mycoplasmoides_pneumoniae/Mycoplasmoides_pneumoniae.quast/basic_stats/GCA_000733995.1_ASM73399v1_genomic_GC_content_plot.pdf",
+                "quast/Mycoplasmoides_pneumoniae/Mycoplasmoides_pneumoniae.quast/basic_stats/GC_content_plot.pdf",
+                "quast/Mycoplasmoides_pneumoniae/Mycoplasmoides_pneumoniae.quast/basic_stats/Nx_plot.pdf",
+                "quast/Mycoplasmoides_pneumoniae/Mycoplasmoides_pneumoniae.quast/basic_stats/cumulative_plot.pdf",
+                "quast/Mycoplasmoides_pneumoniae/Mycoplasmoides_pneumoniae.quast/icarus.html",
+                "quast/Mycoplasmoides_pneumoniae/Mycoplasmoides_pneumoniae.quast/icarus_viewers",
+                "quast/Mycoplasmoides_pneumoniae/Mycoplasmoides_pneumoniae.quast/icarus_viewers/contig_size_viewer.html",
+                "quast/Mycoplasmoides_pneumoniae/Mycoplasmoides_pneumoniae.quast/quast.log",
+                "quast/Mycoplasmoides_pneumoniae/Mycoplasmoides_pneumoniae.quast/report.html",
+                "quast/Mycoplasmoides_pneumoniae/Mycoplasmoides_pneumoniae.quast/report.pdf",
+                "quast/Mycoplasmoides_pneumoniae/Mycoplasmoides_pneumoniae.quast/report.tex",
+                "quast/Mycoplasmoides_pneumoniae/Mycoplasmoides_pneumoniae.quast/report.tsv",
+                "quast/Mycoplasmoides_pneumoniae/Mycoplasmoides_pneumoniae.quast/report.txt",
+                "quast/Mycoplasmoides_pneumoniae/Mycoplasmoides_pneumoniae.quast/transposed_report.tex",
+                "quast/Mycoplasmoides_pneumoniae/Mycoplasmoides_pneumoniae.quast/transposed_report.tsv",
+                "quast/Mycoplasmoides_pneumoniae/Mycoplasmoides_pneumoniae.quast/transposed_report.txt",
+                "report",
+                "report/excel",
+                "report/excel/genomeqc_tables.xlsx",
+                "report/html",
+                "report/html/genomeqc_report.html",
+                "tidk",
+                "tidk/Mycoplasmoides_genitalium",
+                "tidk/Mycoplasmoides_genitalium/explore",
+                "tidk/Mycoplasmoides_genitalium/explore/Mycoplasmoides_genitalium.tidk.explore.tsv",
+                "tidk/Mycoplasmoides_genitalium/explore/Mycoplasmoides_genitalium.top.sequence.txt",
+                "tidk/Mycoplasmoides_genitalium/plot",
+                "tidk/Mycoplasmoides_genitalium/plot/aposteriori",
+                "tidk/Mycoplasmoides_genitalium/plot/aposteriori/Mycoplasmoides_genitalium.svg",
+                "tidk/Mycoplasmoides_genitalium/search",
+                "tidk/Mycoplasmoides_genitalium/search/aposteriori",
+                "tidk/Mycoplasmoides_genitalium/search/aposteriori/Mycoplasmoides_genitalium.tsv",
+                "tidk/Mycoplasmoides_pneumoniae",
+                "tidk/Mycoplasmoides_pneumoniae/explore",
+                "tidk/Mycoplasmoides_pneumoniae/explore/Mycoplasmoides_pneumoniae.tidk.explore.tsv",
+                "tidk/Mycoplasmoides_pneumoniae/explore/Mycoplasmoides_pneumoniae.top.sequence.txt",
+                "tidk/Mycoplasmoides_pneumoniae/plot",
+                "tidk/Mycoplasmoides_pneumoniae/plot/aposteriori",
+                "tidk/Mycoplasmoides_pneumoniae/plot/aposteriori/Mycoplasmoides_pneumoniae.svg",
+                "tidk/Mycoplasmoides_pneumoniae/search",
+                "tidk/Mycoplasmoides_pneumoniae/search/aposteriori",
+                "tidk/Mycoplasmoides_pneumoniae/search/aposteriori/Mycoplasmoides_pneumoniae.tsv"
+            ],
+            [
+                "Mycoplasmoides_genitalium.csv:md5,a823ca04448cda428ffbb542dbf38499",
+                "Mycoplasmoides_genitalium.svg:md5,9a5527e3851505971028d41086f2ac46",
+                "Mycoplasmoides_genitalium-mycoplasmatales_odb10-genome-busco.batch_summary.txt:md5,acecfabc82f7a0859e52f369b4a53f2c",
+                "Mycoplasmoides_pneumoniae.csv:md5,c40a6b0b1f1d7110485b24eebe4dd3e7",
+                "Mycoplasmoides_pneumoniae.svg:md5,ef484734b0479a292b2fca44ac381eb5",
+                "Mycoplasmoides_pneumoniae-mycoplasmatales_odb10-genome-busco.batch_summary.txt:md5,b4e2d23d569a27587266b8d4936a07a9",
+                "n_seqs_above_x_buscos.tsv:md5,de0537d7e1247dac7708ac53e53533a1",
+                "multiqc_citations.txt:md5,4c806e63a283ec1b7e78cdae3a923d4f",
+                "report.tex:md5,fb40c8ad27d9e95d8bc9d9d3cee1e0b1",
+                "report.tsv:md5,c30c154bfb32243df808174cf13e19ea",
+                "report.txt:md5,8df19c3bde42fb52f69ec4587c7a2fd2",
+                "transposed_report.tex:md5,166cd31fadd488bc8b5abbf9609fb953",
+                "transposed_report.tsv:md5,7095b7cfd484b2ed2d887fe15c401020",
+                "transposed_report.txt:md5,3b795e2fef5d4daff8c3ec64ee3c8a79",
+                "report.tex:md5,7ede783cb90e27407892b04569348681",
+                "report.tsv:md5,51262a7c817d4e207947e3c97c32c3e4",
+                "report.txt:md5,d1fe04b3947229c1e831a8963b91aca3",
+                "transposed_report.tex:md5,d7689405c0f178f2f2eadd1127d7831c",
+                "transposed_report.tsv:md5,44d5e082f4f117bfc489b9b89646a616",
+                "transposed_report.txt:md5,1c48438ec1d2009eef785f90b2b6b43b",
+                "Mycoplasmoides_genitalium.tidk.explore.tsv:md5,3e21a89f4ca033284562b613d36206cf",
+                "Mycoplasmoides_genitalium.top.sequence.txt:md5,972adfed8d08c0b3c5b6e1b0a6f78e24",
+                "Mycoplasmoides_genitalium.svg:md5,15343990c96dd7be364305a8abe420bd",
+                "Mycoplasmoides_genitalium.tsv:md5,5cbcaf9681c7be5eaf98fe95a8aa25f0",
+                "Mycoplasmoides_pneumoniae.tidk.explore.tsv:md5,5e0ed98016e3d4a9da80490185435a42",
+                "Mycoplasmoides_pneumoniae.top.sequence.txt:md5,53612a5378aba42e580645cabd07d7af",
+                "Mycoplasmoides_pneumoniae.svg:md5,c312b27a34679075af76ab39bf2da11f",
+                "Mycoplasmoides_pneumoniae.tsv:md5,4251cd67d7eaabb86b1c6b7ea97c88d7"
+            ]
+        ],
+        "timestamp": "2026-08-18T13:44:32.886446414",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.1"
+        }
+    }
+}
