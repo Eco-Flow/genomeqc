@@ -32,3 +32,4 @@ decontamination/fcs-gx/test_combo.taxonomy.rpt
 decontamination/fcs-gx/test_combo.summary.txt
 decontamination/fcs-adaptor/test_combo.fcs_adaptor.log
 decontamination/fcs-gx/test_combo.fcs_gx_report.txt
+repeatmasker/*/*.tbl
