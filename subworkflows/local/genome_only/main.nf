@@ -19,7 +19,7 @@ workflow GENOME_ONLY {
     val_ortho_version // val: OrthoFinder version - 'v2' or 'v3'
 
     main:
-    ch_fasta.view { "Running ${it[0]} on genome only mode"}
+    ch_fasta.view { meta, _fasta -> "Running ${meta.id} on genome only mode"}
 
 
     // For tree plot

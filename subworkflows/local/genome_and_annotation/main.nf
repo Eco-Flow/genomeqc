@@ -29,7 +29,7 @@ workflow GENOME_AND_ANNOTATION {
     val_busco_clean       // val: boolean - clean up intermediate BUSCO files, or []
 
     main:
-    ch_fasta.view { "Running ${it[0]} on genome and annotation mode"}
+    ch_fasta.view { meta, _fasta -> "Running ${meta.id} on genome and annotation mode" }
 
     ch_versions  = channel.empty()
 
