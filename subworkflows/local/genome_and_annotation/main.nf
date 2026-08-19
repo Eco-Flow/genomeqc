@@ -262,6 +262,6 @@ workflow GENOME_AND_ANNOTATION {
     quast_tsv                  = QUAST.out.tsv                       // channel: [ val(meta), path(tsv) ]
     agat_stats                 = AGAT_SPSTATISTICS.out.stats_txt     // channel: [ val(meta), path(txt) ]
     ortho_seq_count            = ORTHO_SEQ_COUNT.out.species_summary // channel: [ path(tsv) ]
-    buscos_per_seqs            = !val_skip_busco ? GENOMEANNOTATIONBUSCOIDEOGRAM.out.busco_mappings.collect { meta, table -> table}.map { tables -> tables.toSorted { a, b -> a.name <=> b.name } } : channel.empty() // channel: [ val(meta), [csv] ]
+    buscos_per_seqs            = !val_skip_busco ? GENOMEANNOTATIONBUSCOIDEOGRAM.out.busco_mappings.collect { _meta, table -> table}.map { tables -> tables.toSorted { a, b -> a.name <=> b.name } } : channel.empty() // channel: [ val(meta), [csv] ]
     versions                   = ch_versions                   // channel: [ versions.yml ]
 }
