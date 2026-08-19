@@ -28,8 +28,6 @@ workflow FASTA_ANNOTATE_TE {
     def ch_te_gff        = channel.empty()
     def ch_clustered_lib = channel.empty()
 
-    ch_rm_db = channel.empty()
-
     // Run with HITE or Repeatmasker/Repeatmodeler
     if (params.te == 'hite') {
         HITE ( ch_fasta )

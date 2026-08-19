@@ -141,4 +141,47 @@ nextflow_workflow {
             )
         }
     }
+
+    // Regression test for a dead `ch_rm_db = channel.empty()` reassignment that
+    // unconditionally discarded the take: parameter before RM_DOWNLOAD_DB ever ran,
+    // silently disabling --RM_download_db for every user regardless of its setting.
+    // No pre-staged famdb library is given here (input[2] = Channel.empty()), so the
+    // only way this test can produce a repeat library at all is via RM_DOWNLOAD_DB.
+    test("sarscov2_genome-repeatmasker-download-stub") {
+
+        options '-stub'
+
+        when {
+            params {
+                te = 'repeatmasker'
+            }
+            workflow {
+                """
+                input[0] = Channel.of(
+                    [
+                        [ id:'test' ],
+                        file(params.modules_testdata_base_path + 'genomics/sarscov2/genome/genome.fasta', checkIfExists: true)
+                    ]
+                )
+                input[1] = Channel.of(
+                    [
+                        [ id:'dfam39_full.0' ],
+                        'https://www.dfam.org/releases/Dfam_3.9/families/FamDB/dfam39_full.0.h5.gz'
+                    ]
+                )
+                input[2] = Channel.empty()
+                input[3] = '3'
+                input[4] = false
+                input[5] = 'cdhit'
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert workflow.success },
+                { assert snapshot(workflow.out).match() }
+            )
+        }
+    }
 }

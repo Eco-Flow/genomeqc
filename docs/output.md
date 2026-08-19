@@ -318,8 +318,8 @@ TE annotation is optional and is enabled with `--te hite` or `--te repeatmasker`
 
 The RepeatMasker path masks the genome against the [DFAM](https://www.dfam.org) curated repeat library:
 
-1. **famdb.py** – curated repeat library extracted from DFAM h5 partitions (downloaded automatically unless `--RM_download_db false`).
-2. **CAT + CD-HIT-EST** – deduplicates the library.
+1. **famdb.py** – curated repeat library extracted from DFAM h5 partitions (downloaded when `--RM_download_db true`; use a pre-staged library instead with `--famdb_library`).
+2. **Clustering** – deduplicates the library with MMseqs2 `easy-linclust` by default (`--te_clusterer`; also supports MMseqs2 `easy-cluster` or CD-HIT-EST).
 3. **RepeatMasker** – soft-masks the genome.
 
 With `--run_repeatmodeler`, [RepeatModeler](https://github.com/Dfam-consortium/RepeatModeler) is also run to build a de novo library from the genome, which is merged with the famdb library before masking. RepeatModeler employs RECON, RepeatScout and LtrHarvest/Ltr_retriever for complementary repeat boundary identification.
