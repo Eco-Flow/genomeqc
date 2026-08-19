@@ -186,7 +186,13 @@ workflow GENOMEQC {
     GENOME_AND_ANNOTATION (
         ch_input_anno.fasta,
         ch_input_anno.gxf,
-        ch_busco_db.ifEmpty([])
+        ch_busco_db.ifEmpty([]),
+        params.val_tool,
+        params.ortho_version,
+        params.skip_busco,
+        params.busco_lineage,
+        params.busco_config,
+        params.busco_clean
     )
 
     // Define channels for tree summary and shiny app subworkflow

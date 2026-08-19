@@ -18,9 +18,15 @@ include { GAWK as GAWK_PROT                      } from '../../../modules/nf-cor
 workflow GENOME_AND_ANNOTATION {
 
     take:
-    ch_fasta // channel: [ val(meta), [ fasta ] ]
-    ch_gxf   // channel: [ val(meta), [ gxf ] ]
-    ch_busco_db // channel: [ val(lineage) ]
+    ch_fasta              // channel: [ val(meta), [ fasta ] ]
+    ch_gxf                // channel: [ val(meta), [ gxf ] ]
+    ch_busco_db           // channel: [ val(lineage) ]
+    val_validation_tool   // val: GXF validation/standardisation tool - 'agat' or 'gffread'
+    val_ortho_version     // val: OrthoFinder version - 'v2' or 'v3'
+    val_skip_busco        // val: boolean - skip BUSCO (and everything downstream of it: ideogram)
+    val_busco_lineage     // val: BUSCO lineage name (e.g. 'hymenoptera_odb10') or 'auto'
+    val_busco_config      // val: path to a BUSCO config file, or []
+    val_busco_clean       // val: boolean - clean up intermediate BUSCO files, or []
 
     main:
     ch_fasta.view { "Running ${it[0]} on genome and annotation mode"}
@@ -35,12 +41,12 @@ workflow GENOME_AND_ANNOTATION {
     //
 
     // Fix and standarize GXF
-    if ( params.val_tool == "agat" ) {
+    if ( val_validation_tool == "agat" ) {
         AGAT_VALIDATE (
             ch_gxf
         )
         ch_gxf_agat  = AGAT_VALIDATE.out.output_gff
-    } else if ( params.val_tool == "gffread" ) {
+    } else if ( val_validation_tool == "gffread" ) {
         GFFREAD_VALIDATE (
             ch_gxf,
             []
@@ -137,13 +143,13 @@ workflow GENOME_AND_ANNOTATION {
         }
 
     // Run orthofinder
-    if (params.ortho_version == 'v3') {
+    if (val_ortho_version == 'v3') {
         ORTHOFINDER_V3 (
             ortho_ch,
             [[],[]]
         )
         ch_orthofinder = ORTHOFINDER_V3.out.orthofinder
-    } else if (params.ortho_version == 'v2' ) {
+    } else if (val_ortho_version == 'v2' ) {
         ORTHOFINDERV2 (
             ortho_ch
         )
@@ -166,14 +172,14 @@ workflow GENOME_AND_ANNOTATION {
     // MODULE: Run BUSCO for genome annotation
     //
 
-    if(!params.skip_busco) {
+    if(!val_skip_busco) {
         BUSCO_GENOME (
             ch_fasta,
             'genome',
-            params.busco_lineage,
+            val_busco_lineage,
             ch_busco_db,
-            params.busco_config ?: [],
-            params.busco_clean ?: []
+            val_busco_config ?: [],
+            val_busco_clean ?: []
         )
 
         //
@@ -183,10 +189,10 @@ workflow GENOME_AND_ANNOTATION {
         BUSCO_PROTEIN (
             GFFREAD.out.gffread_fasta,
             'proteins',
-            params.busco_lineage,
+            val_busco_lineage,
             ch_busco_db,
-            params.busco_config ?: [],
-            params.busco_clean ?: []
+            val_busco_config ?: [],
+            val_busco_clean ?: []
         )
 
         //
@@ -251,11 +257,11 @@ workflow GENOME_AND_ANNOTATION {
     orthofinder                = ch_orthofinder         // channel: [ val(meta), [folder] ]
     tree_data                  = ch_tree_data.flatten().collect().map { files -> files.toSorted { a, b -> a.name <=> b.name } } // sort for deterministic behaviour
     quast_results              = QUAST.out.results                   // channel: [ val(meta), [tsv] ]
-    busco_short_summaries_geno = !params.skip_busco ? GAWK_GENO.out.output : channel.empty()
-    busco_short_summaries_prot = !params.skip_busco ? GAWK_PROT.out.output : channel.empty()
+    busco_short_summaries_geno = !val_skip_busco ? GAWK_GENO.out.output : channel.empty()
+    busco_short_summaries_prot = !val_skip_busco ? GAWK_PROT.out.output : channel.empty()
     quast_tsv                  = QUAST.out.tsv                       // channel: [ val(meta), path(tsv) ]
     agat_stats                 = AGAT_SPSTATISTICS.out.stats_txt     // channel: [ val(meta), path(txt) ]
     ortho_seq_count            = ORTHO_SEQ_COUNT.out.species_summary // channel: [ path(tsv) ]
-    buscos_per_seqs            = !params.skip_busco ? GENOMEANNOTATIONBUSCOIDEOGRAM.out.busco_mappings.collect { meta, table -> table}.map { tables -> tables.toSorted { a, b -> a.name <=> b.name } } : channel.empty() // channel: [ val(meta), [csv] ]
+    buscos_per_seqs            = !val_skip_busco ? GENOMEANNOTATIONBUSCOIDEOGRAM.out.busco_mappings.collect { meta, table -> table}.map { tables -> tables.toSorted { a, b -> a.name <=> b.name } } : channel.empty() // channel: [ val(meta), [csv] ]
     versions                   = ch_versions                   // channel: [ versions.yml ]
 }
