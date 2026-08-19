@@ -157,7 +157,8 @@ workflow GENOMEQC {
             ch_famdb_lib_input.ifEmpty([[],[]]),
             params.famdb_lineage ?: '',
             params.run_repeatmodeler,
-            params.te_clusterer
+            params.te_clusterer,
+            params.te
         )
         ch_te_table = FASTA_ANNOTATE_TE.out.tbl_tsv
         ch_te_table_collect = FASTA_ANNOTATE_TE.out.tbl_collected

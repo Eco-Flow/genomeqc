@@ -20,6 +20,7 @@ workflow FASTA_ANNOTATE_TE {
     val_famdb_lineage     // val: lineage string for famdb extraction (e.g. 'hymenoptera'), or ''
     val_run_repeatmodeler // val: boolean – run de novo RepeatModeler (slow, adds 24-48 h per genome)
     val_te_clusterer      // val: clustering tool – 'linclust' (default), 'mmseqs', or 'cdhit'
+    val_te                // val: 'hite' or 'repeatmasker'
 
     main:
     def ch_te_masked     = channel.empty()
@@ -29,12 +30,12 @@ workflow FASTA_ANNOTATE_TE {
     def ch_clustered_lib = channel.empty()
 
     // Run with HITE or Repeatmasker/Repeatmodeler
-    if (params.te == 'hite') {
+    if (val_te == 'hite') {
         HITE ( ch_fasta )
         ch_te_tbl = HITE.out.tbl
     }
 
-    if (params.te == 'repeatmasker') {
+    if (val_te == 'repeatmasker') {
         // MODULE: RM_DOWNLOAD_DB
         // Download h5 partition files from DFAM — versions flow via Channel.topic('versions')
         // skip if ch_rm_db is empty

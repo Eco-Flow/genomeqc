@@ -18,9 +18,6 @@ nextflow_workflow {
     test("tiny_genome-hite") {
 
         when {
-            params {
-                te = 'hite'
-            }
             workflow {
                 """
                 input[0] = Channel.of(
@@ -34,6 +31,7 @@ nextflow_workflow {
                 input[3] = ''
                 input[4] = false
                 input[5] = 'linclust'
+                input[6] = 'hite'
                 """
             }
         }
@@ -59,9 +57,6 @@ nextflow_workflow {
     test("sarscov2_genome-repeatmasker-prestaged_famdb") {
 
         when {
-            params {
-                te = 'repeatmasker'
-            }
             workflow {
                 """
                 input[0] = Channel.of(
@@ -83,6 +78,7 @@ nextflow_workflow {
                 // Docker emulation on Apple Silicon; 'cdhit' exercises the same clustering
                 // step with a container that runs natively on arm64.
                 input[5] = 'cdhit'
+                input[6] = 'repeatmasker'
                 """
             }
         }
@@ -106,9 +102,6 @@ nextflow_workflow {
         options '-stub'
 
         when {
-            params {
-                te = 'repeatmasker'
-            }
             workflow {
                 """
                 input[0] = Channel.of(
@@ -130,6 +123,7 @@ nextflow_workflow {
                 // Docker emulation on Apple Silicon; 'cdhit' exercises the same clustering
                 // step with a container that runs natively on arm64.
                 input[5] = 'cdhit'
+                input[6] = 'repeatmasker'
                 """
             }
         }
@@ -152,9 +146,6 @@ nextflow_workflow {
         options '-stub'
 
         when {
-            params {
-                te = 'repeatmasker'
-            }
             workflow {
                 """
                 input[0] = Channel.of(
@@ -173,6 +164,7 @@ nextflow_workflow {
                 input[3] = '3'
                 input[4] = false
                 input[5] = 'cdhit'
+                input[6] = 'repeatmasker'
                 """
             }
         }
