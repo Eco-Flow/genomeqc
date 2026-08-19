@@ -56,6 +56,7 @@ nextflow_workflow {
                 input[8] = Channel.of(
                     [ [ id:'fcs' ], file("\${baseDir}/modules/local/treesummary/tests/fcs_summary.tsv", checkIfExists: true) ]
                 )
+                input[9] = false
                 """
             }
         }

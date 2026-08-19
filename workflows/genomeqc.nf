@@ -243,6 +243,7 @@ workflow GENOMEQC {
         ch_geno_orthofinder,
         ch_te_table.ifEmpty([[],[]]),
         ch_fcs_table.ifEmpty([[],[]]),
+        params.skip_busco,
     )
 
     //

@@ -16,6 +16,7 @@ workflow TREE_SUMMARY_SHINY_APP {
     ch_geno_orthofinder
     ch_te_table
     ch_fcs_table
+    val_skip_busco // val: boolean - skip genome-only tree summary/shiny app (needs BUSCO markers)
 
     main:
 
@@ -74,7 +75,7 @@ workflow TREE_SUMMARY_SHINY_APP {
         ch_app
     )
 
-    if (!params.skip_busco) { // Tree sumary on genome only is only run if BUSCO is not skipped (markers needed for tree summary)
+    if (!val_skip_busco) { // Tree sumary on genome only is only run if BUSCO is not skipped (markers needed for tree summary)
         // Run TREE SUMMARY for genome only
         TREE_SUMMARY_GENO (
             ch_geno_orthofinder,
@@ -96,6 +97,6 @@ workflow TREE_SUMMARY_SHINY_APP {
     emit:
     geno_anno_tables = TREE_SUMMARY_GENO_ANNO.out.tables
     geno_anno_tree   = TREE_SUMMARY_GENO_ANNO.out.tree
-    geno_tables      = !params.skip_busco ? TREE_SUMMARY_GENO.out.tables      : channel.empty()
-    geno_tree        = !params.skip_busco ? TREE_SUMMARY_GENO.out.tree        : channel.empty()
+    geno_tables      = !val_skip_busco ? TREE_SUMMARY_GENO.out.tables      : channel.empty()
+    geno_tree        = !val_skip_busco ? TREE_SUMMARY_GENO.out.tree        : channel.empty()
 }
