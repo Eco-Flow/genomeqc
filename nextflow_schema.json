@@ -61,8 +61,9 @@
                 },
                 "container_engine": {
                     "type": "string",
-                    "description": "Container engine to run shiny app",
-                    "default": "docker"
+                    "description": "Container engine used to launch the interactive Shiny app. Only 'docker' and 'podman' are supported - Singularity/Apptainer does not work.",
+                    "default": "docker",
+                    "enum": ["docker", "podman"]
                 }
             }
         },
