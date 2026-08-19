@@ -17,9 +17,6 @@ nextflow_workflow {
     test("sarscov2-local_fasta_gxf_fastq") {
 
         when {
-            params {
-                busco_lineage = 'bacteria_odb10'
-            }
             workflow {
                 """
                 input[0] = Channel.empty()
@@ -31,6 +28,9 @@ nextflow_workflow {
                         file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/fastq/test_1.fastq.gz', checkIfExists: true)
                     ]
                 )
+                input[2] = 'all'
+                input[3] = null
+                input[4] = 'bacteria_odb10'
                 """
             }
         }
@@ -51,10 +51,6 @@ nextflow_workflow {
     test("bacteria-ncbi_refseq_accession") {
 
         when {
-            params {
-                busco_lineage = 'bacteria_odb10'
-                groups        = 'bacteria'
-            }
             workflow {
                 """
                 input[0] = Channel.of(
@@ -65,6 +61,9 @@ nextflow_workflow {
                     ]
                 )
                 input[1] = Channel.empty()
+                input[2] = 'bacteria'
+                input[3] = null
+                input[4] = 'bacteria_odb10'
                 """
             }
         }
@@ -87,9 +86,6 @@ nextflow_workflow {
         options '-stub'
 
         when {
-            params {
-                busco_lineage = 'bacteria_odb10'
-            }
             workflow {
                 """
                 input[0] = Channel.empty()
@@ -101,6 +97,9 @@ nextflow_workflow {
                         file(params.modules_testdata_base_path + 'genomics/sarscov2/illumina/fastq/test_1.fastq.gz', checkIfExists: true)
                     ]
                 )
+                input[2] = 'all'
+                input[3] = null
+                input[4] = 'bacteria_odb10'
                 """
             }
         }

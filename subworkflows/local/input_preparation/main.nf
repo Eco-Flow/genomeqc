@@ -7,8 +7,11 @@ include { BUSCO_DOWNLOAD                           } from '../../../modules/nf-c
 workflow INPUT_PREPARATION {
 
     take:
-    ch_ncbi              // channel: [ val(meta), val(refseq), val(fastq) ]
-    ch_local             // channel: [ val(meta), val(fasta), val(gxf), val(fastq) ]
+    ch_ncbi                 // channel: [ val(meta), val(refseq), val(fastq) ]
+    ch_local                // channel: [ val(meta), val(fasta), val(gxf), val(fastq) ]
+    val_groups               // val: NCBI genome download assembly groups (e.g. 'all')
+    val_busco_lineages_path // val: path to a pre-staged BUSCO lineages directory, or null
+    val_busco_lineage       // val: BUSCO lineage name (e.g. 'hymenoptera_odb10'), 'auto', or null
 
     main:
     // ch_ncbi is a 3-element tuple, last element is the fastq.
@@ -29,7 +32,7 @@ workflow INPUT_PREPARATION {
         ch_ncbi_input.meta,
         ch_ncbi_input.accession,
         [],
-        params.groups
+        val_groups
     )
 
     //
@@ -91,10 +94,10 @@ workflow INPUT_PREPARATION {
     // MODULE: Download BUSCO database
     //
 
-    if ( params.busco_lineages_path ) {
-        ch_busco_db = params.busco_lineages_path
-    } else if ( params.busco_lineage != 'auto' && params.busco_lineage != null ) {
-        BUSCO_DOWNLOAD ( params.busco_lineage )
+    if ( val_busco_lineages_path ) {
+        ch_busco_db = val_busco_lineages_path
+    } else if ( val_busco_lineage != 'auto' && val_busco_lineage != null ) {
+        BUSCO_DOWNLOAD ( val_busco_lineage )
         ch_busco_db = BUSCO_DOWNLOAD.out.download_dir
     } else {
         ch_busco_db = channel.value([])

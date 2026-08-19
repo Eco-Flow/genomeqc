@@ -60,7 +60,10 @@ workflow GENOMEQC {
 
     INPUT_PREPARATION (
         ch_input.ncbi,
-        ch_input.local
+        ch_input.local,
+        params.groups,
+        params.busco_lineages_path,
+        params.busco_lineage
     )
 
     // ch_fasta contains ALL samples regardless of annotation presence
