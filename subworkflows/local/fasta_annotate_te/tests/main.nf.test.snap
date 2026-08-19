@@ -73,6 +73,123 @@
             "nextflow": "25.10.4"
         }
     },
+    "sarscov2_genome-repeatmasker-download-stub": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.masked:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.out:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "2": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.tbl:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "3": [
+                    [
+                        "test.tbl:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "4": [
+                    [
+                        {
+                            "id": "te_table"
+                        },
+                        "te_table.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "5": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.gff:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "6": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "famdb.fa:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "gff": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.gff:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "masked": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.masked:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "out": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.out:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "repeat_library": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "famdb.fa:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "tbl": [
+                    [
+                        {
+                            "id": "test"
+                        },
+                        "test.tbl:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "tbl_collected": [
+                    [
+                        "test.tbl:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ],
+                "tbl_tsv": [
+                    [
+                        {
+                            "id": "te_table"
+                        },
+                        "te_table.tsv:md5,d41d8cd98f00b204e9800998ecf8427e"
+                    ]
+                ]
+            }
+        ],
+        "timestamp": "2026-08-18T13:40:57.210886",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
     "sarscov2_genome-repeatmasker-stub": {
         "content": [
             {

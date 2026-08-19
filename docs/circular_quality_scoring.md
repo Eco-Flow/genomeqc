@@ -2,6 +2,14 @@
 
 **Status:** Phase 1 implemented. Phase 2 (Merqury + FCS plumbing) still to do.
 
+> **Note:** this is the original design proposal, kept for historical rationale.
+> Numeric cut-offs quoted below (§3.1) predate the per-clade preset system and
+> no longer match what's shipped - they show a single global proposal, not the
+> six `--quality_preset` values (`generic`, `vertebrate`, `insect`, `plant`,
+> `fungi`, `bacteria`) actually implemented. For current thresholds, see
+> `QUALITY_PRESETS` in `bin/plot_tree_summary.R`/`bin/tree_functions.R`, or the
+> "Circular tree quality scoring" section in `docs/usage.md`.
+
 ## 0. Decisions taken (review outcome)
 
 - The static figure **mixes** traffic-lit quality rings with neutral descriptive
