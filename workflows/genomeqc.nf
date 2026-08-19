@@ -173,7 +173,12 @@ workflow GENOMEQC {
 
     GENOME_ONLY (
         ch_input_geno.fasta,
-        ch_busco_db.ifEmpty([])
+        ch_busco_db.ifEmpty([]),
+        params.skip_busco,
+        params.busco_lineage,
+        params.busco_config,
+        params.busco_clean,
+        params.ortho_version
     )
     ch_geno_busco_summary = GENOME_ONLY.out.busco_short_summaries
     ch_geno_orthofinder   = GENOME_ONLY.out.orthofinder
