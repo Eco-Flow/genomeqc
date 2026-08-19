@@ -34,6 +34,9 @@ decontamination/fcs-adaptor/test_combo.fcs_adaptor.log
 decontamination/fcs-gx/test_combo.fcs_gx_report.txt
 # These tables from the te subworkflow are not deterministic
 repeatmasker/*/*.tbl
+# -srand RepeatModeler still doesn't make these fully reproducible
+repeatmasker/*/*.masked
+repeatmasker/*/*.out
 **/te_table_output.tsv
 **/te_table.tsv
 # These are not deterministic if running on the genome branch
