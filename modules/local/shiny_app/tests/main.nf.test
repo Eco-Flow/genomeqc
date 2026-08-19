@@ -11,9 +11,6 @@ nextflow_process {
     test("shiny_app - tables and tree") {
 
         when {
-            params {
-                outdir = "results"
-            }
             process {
                 """
                 input[0] = [
@@ -23,6 +20,7 @@ nextflow_process {
                 ]
                 input[1] = file("\${baseDir}/bin/tree_functions.R", checkIfExists: true)
                 input[2] = file("\${baseDir}/bin/shiny_app.R", checkIfExists: true)
+                input[3] = 'docker'
                 """
             }
         }
@@ -40,9 +38,6 @@ nextflow_process {
         options "-stub"
 
         when {
-            params {
-                outdir = "results"
-            }
             process {
                 """
                 input[0] = [
@@ -52,6 +47,7 @@ nextflow_process {
                 ]
                 input[1] = file("\${baseDir}/bin/tree_functions.R", checkIfExists: true)
                 input[2] = file("\${baseDir}/bin/shiny_app.R", checkIfExists: true)
+                input[3] = 'docker'
                 """
             }
         }

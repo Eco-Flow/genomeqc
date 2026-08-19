@@ -57,6 +57,7 @@ nextflow_workflow {
                     [ [ id:'fcs' ], file("\${baseDir}/modules/local/treesummary/tests/fcs_summary.tsv", checkIfExists: true) ]
                 )
                 input[9] = false
+                input[10] = 'docker'
                 """
             }
         }

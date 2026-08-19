@@ -16,7 +16,8 @@ workflow TREE_SUMMARY_SHINY_APP {
     ch_geno_orthofinder
     ch_te_table
     ch_fcs_table
-    val_skip_busco // val: boolean - skip genome-only tree summary/shiny app (needs BUSCO markers)
+    val_skip_busco       // val: boolean - skip genome-only tree summary/shiny app (needs BUSCO markers)
+    val_container_engine // val: container engine used to launch the interactive Shiny app - 'docker' or 'podman'
 
     main:
 
@@ -72,7 +73,8 @@ workflow TREE_SUMMARY_SHINY_APP {
     SHINY_APP_GENOME_ANNO (
         TREE_SUMMARY_GENO_ANNO.out.tables.join(TREE_SUMMARY_GENO_ANNO.out.tree, by:0),
         ch_functions,
-        ch_app
+        ch_app,
+        val_container_engine
     )
 
     if (!val_skip_busco) { // Tree sumary on genome only is only run if BUSCO is not skipped (markers needed for tree summary)
@@ -89,7 +91,8 @@ workflow TREE_SUMMARY_SHINY_APP {
         SHINY_APP_GENOME (
             TREE_SUMMARY_GENO.out.tables.join(TREE_SUMMARY_GENO.out.tree, by:0),
             ch_functions,
-            ch_app
+            ch_app,
+            val_container_engine
         )
 
     }

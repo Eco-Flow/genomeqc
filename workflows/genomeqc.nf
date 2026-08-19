@@ -258,6 +258,7 @@ workflow GENOMEQC {
         ch_te_table.ifEmpty([[],[]]),
         ch_fcs_table.ifEmpty([[],[]]),
         params.skip_busco,
+        params.container_engine,
     )
 
     //
