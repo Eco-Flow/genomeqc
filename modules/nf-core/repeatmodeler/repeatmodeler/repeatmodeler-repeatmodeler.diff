@@ -1,4 +1,15 @@
 Changes in component 'nf-core/repeatmodeler/repeatmodeler'
+Changes in 'repeatmodeler/repeatmodeler/environment.yml':
+--- modules/nf-core/repeatmodeler/repeatmodeler/environment.yml
++++ modules/nf-core/repeatmodeler/repeatmodeler/environment.yml
+@@ -4,4 +4,4 @@
+   - conda-forge
+   - bioconda
+ dependencies:
+-  - bioconda::repeatmodeler=2.0.5
++  - bioconda::repeatmodeler=2.0.7
+
+'modules/nf-core/repeatmodeler/repeatmodeler/meta.yml' is unchanged
 Changes in 'repeatmodeler/repeatmodeler/main.nf':
 --- modules/nf-core/repeatmodeler/repeatmodeler/main.nf
 +++ modules/nf-core/repeatmodeler/repeatmodeler/main.nf
@@ -43,8 +54,6 @@ Changes in 'repeatmodeler/repeatmodeler/main.nf':
      cat <<-END_VERSIONS > versions.yml
      "${task.process}":
 
-'modules/nf-core/repeatmodeler/repeatmodeler/environment.yml' was removed
-'modules/nf-core/repeatmodeler/repeatmodeler/meta.yml' was removed
-'modules/nf-core/repeatmodeler/repeatmodeler/tests/main.nf.test.snap' was removed
-'modules/nf-core/repeatmodeler/repeatmodeler/tests/main.nf.test' was removed
+'modules/nf-core/repeatmodeler/repeatmodeler/tests/main.nf.test.snap' is unchanged
+'modules/nf-core/repeatmodeler/repeatmodeler/tests/main.nf.test' is unchanged
 ************************************************************
