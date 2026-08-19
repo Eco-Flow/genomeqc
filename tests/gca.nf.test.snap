@@ -40,9 +40,7 @@
                 "QUAST": {
                     "quast": "5.3.0"
                 },
-                "SHINY_APP_GENOME": {
-                    "cat": 8.32
-                },
+                "SHINY_APP_GENOME": {},
                 "SORT_BY_LENGTH": {
                     "seqkit": "2.13.0"
                 },

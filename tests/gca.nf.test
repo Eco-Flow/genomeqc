@@ -20,6 +20,8 @@ nextflow_pipeline {
             def stable_content = getAllFilesFromDir(params.outdir, ignoreFile: 'tests/.nftignore')
             // pipeline versions.yml file for multiqc from which Nextflow version is removed because we test pipelines on multiple Nextflow versions
             def software_versions = removeNextflowVersion("$outputDir/pipeline_info/nf_core_genomeqc_software_mqc_versions.yml")
+            // Don't check as versions differ between conda and docker/singularity profiles
+            software_versions.SHINY_APP_GENOME?.remove('cat')
             assert workflow.success
             assertAll(
                 { assert snapshot(
