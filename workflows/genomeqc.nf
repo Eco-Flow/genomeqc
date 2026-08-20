@@ -39,6 +39,28 @@ workflow GENOMEQC {
     multiqc_logo
     multiqc_methods_description
     outdir
+    val_groups               // val: NCBI genome download assembly groups (e.g. 'all')
+    val_busco_lineages_path  // val: path to a pre-staged BUSCO lineages directory, or null
+    val_busco_lineage        // val: BUSCO lineage name (e.g. 'hymenoptera_odb10'), 'auto', or null
+    val_gxdb                 // val: path to a local FCS-GX database, or []
+    val_gxdb_manifest        // val: path to an FCS-GX database manifest, or []
+    val_ramdisk              // val: path to a ramdisk for FCS-GX, or []
+    val_repeat               // val: telomeric repeat motif for tidk, or null
+    val_skip_tidk            // val: boolean - skip the tidk subworkflow
+    val_kvalue               // val: Merqury k-mer size
+    val_RM_download_db       // val: boolean - download a DFAM RepeatMasker database partition
+    val_RM_db                // val: list of DFAM database partition names to download
+    val_famdb_library        // val: path (or glob) to a pre-staged famdb library, or null
+    val_famdb_lineage        // val: lineage string for famdb extraction (e.g. 'hymenoptera'), or null
+    val_run_repeatmodeler    // val: boolean - run de novo RepeatModeler (slow, adds 24-48 h per genome)
+    val_te_clusterer         // val: clustering tool - 'linclust' (default), 'mmseqs', or 'cdhit'
+    val_te                   // val: 'hite' or 'repeatmasker', or null to skip TE annotation
+    val_skip_busco           // val: boolean - skip BUSCO (and everything downstream of it)
+    val_busco_config         // val: path to a BUSCO config file, or []
+    val_busco_clean          // val: boolean - clean up intermediate BUSCO files, or []
+    val_ortho_version        // val: OrthoFinder version - 'v2' or 'v3'
+    val_validation_tool      // val: GXF validation/standardisation tool - 'agat' or 'gffread'
+    val_container_engine     // val: container engine used to launch the interactive Shiny app - 'docker' or 'podman'
 
     main:
 
@@ -61,9 +83,9 @@ workflow GENOMEQC {
     INPUT_PREPARATION (
         ch_input.ncbi,
         ch_input.local,
-        params.groups,
-        params.busco_lineages_path,
-        params.busco_lineage
+        val_groups,
+        val_busco_lineages_path,
+        val_busco_lineage
     )
 
     // ch_fasta contains ALL samples regardless of annotation presence
@@ -91,12 +113,12 @@ workflow GENOMEQC {
     // This way subworkflow won't try to run (otherwise it'll just fail)
     // Add warning in parameter/input validation plugin
     ch_fcs_table = channel.empty()
-    if ( params.gxdb || params.gxdb_manifest ) {
+    if ( val_gxdb || val_gxdb_manifest ) {
         DECONTAMINATION (
             ch_input_decon,
-            params.ramdisk ?: [],
-            params.gxdb ?: [],
-            params.gxdb_manifest ? file(params.gxdb_manifest) : []
+            val_ramdisk ?: [],
+            val_gxdb ?: [],
+            val_gxdb_manifest ? file(val_gxdb_manifest) : []
         )
 
         // Parse each species' FCS-GX report into a combined contamination-summary
@@ -115,9 +137,9 @@ workflow GENOMEQC {
     // SUBWORKFLOW: Run TIDK
     //
 
-    ch_repeat = params.repeat ? ch_fasta.map { meta, _fasta_repeat -> [ meta, params.repeat ] } : channel.empty()
+    ch_repeat = val_repeat ? ch_fasta.map { meta, _fasta_repeat -> [ meta, val_repeat ] } : channel.empty()
 
-    if (!params.skip_tidk) {
+    if (!val_skip_tidk) {
         FASTA_EXPLORE_SEARCH_PLOT_TIDK (
             ch_fasta,
             ch_repeat
@@ -131,7 +153,7 @@ workflow GENOMEQC {
     FASTA_QV_MERQURY (
         ch_input_merq.fasta,
         ch_input_merq.fq,
-        params.kvalue
+        val_kvalue
     )
 
     //
@@ -142,26 +164,26 @@ workflow GENOMEQC {
     ch_te_table_collect = channel.empty()
 
     // Skip download when a pre-staged famdb library is already provided
-    ch_rm_db_input = (params.RM_download_db && params.RM_db && !params.famdb_library)
-                   ? channel.fromList(params.RM_db)
+    ch_rm_db_input = (val_RM_download_db && val_RM_db && !val_famdb_library)
+                   ? channel.fromList(val_RM_db)
                        .map { db -> tuple([id: file(db).getBaseName()], db) }
                    : channel.empty()
 
     // Accepts a single file path or a glob pattern (e.g. '/path/FamDB*')
-    ch_famdb_lib_input = params.famdb_library
-                       ? channel.fromPath(params.famdb_library)
+    ch_famdb_lib_input = val_famdb_library
+                       ? channel.fromPath(val_famdb_library)
                            .map { path -> tuple([id: path.baseName], path) }
                        : channel.empty()
 
-    if (params.te) {
+    if (val_te) {
         FASTA_ANNOTATE_TE (
             ch_fasta,
             ch_rm_db_input.ifEmpty([[],[]]),
             ch_famdb_lib_input.ifEmpty([[],[]]),
-            params.famdb_lineage ?: '',
-            params.run_repeatmodeler,
-            params.te_clusterer,
-            params.te
+            val_famdb_lineage ?: '',
+            val_run_repeatmodeler,
+            val_te_clusterer,
+            val_te
         )
         ch_te_table = FASTA_ANNOTATE_TE.out.tbl_tsv
         ch_te_table_collect = FASTA_ANNOTATE_TE.out.tbl_collected
@@ -174,11 +196,11 @@ workflow GENOMEQC {
     GENOME_ONLY (
         ch_input_geno.fasta,
         ch_busco_db.ifEmpty([]),
-        params.skip_busco,
-        params.busco_lineage,
-        params.busco_config,
-        params.busco_clean,
-        params.ortho_version
+        val_skip_busco,
+        val_busco_lineage,
+        val_busco_config,
+        val_busco_clean,
+        val_ortho_version
     )
     ch_geno_busco_summary = GENOME_ONLY.out.busco_short_summaries
     ch_geno_orthofinder   = GENOME_ONLY.out.orthofinder
@@ -187,12 +209,12 @@ workflow GENOMEQC {
         ch_input_anno.fasta,
         ch_input_anno.gxf,
         ch_busco_db.ifEmpty([]),
-        params.val_tool,
-        params.ortho_version,
-        params.skip_busco,
-        params.busco_lineage,
-        params.busco_config,
-        params.busco_clean
+        val_validation_tool,
+        val_ortho_version,
+        val_skip_busco,
+        val_busco_lineage,
+        val_busco_config,
+        val_busco_clean
     )
 
     // Define channels for tree summary and shiny app subworkflow
@@ -211,7 +233,7 @@ workflow GENOMEQC {
 
     // Number of sequences with more than x complete single copy buscos
     // this should depend on whether protein mode was used or not
-    if(!params.skip_busco){
+    if(!val_skip_busco){
         BUSCO_SEQS_GENOME_ANNO(
             GENOME_AND_ANNOTATION.out.buscos_per_seqs.map { tables -> [[id:"tables"], tables] }
         )
@@ -257,8 +279,8 @@ workflow GENOMEQC {
         ch_geno_orthofinder,
         ch_te_table.ifEmpty([[],[]]),
         ch_fcs_table.ifEmpty([[],[]]),
-        params.skip_busco,
-        params.container_engine,
+        val_skip_busco,
+        val_container_engine,
     )
 
     //
@@ -276,12 +298,12 @@ workflow GENOMEQC {
                     | collect
                     | ifEmpty( [] )
                     | first
-    ch_tidk                = params.skip_tidk ? channel.value([]) : FASTA_EXPLORE_SEARCH_PLOT_TIDK.out.aposteriori_tsv.map { _meta, f -> f }.collect().first()
-    ch_report_tidk_apriori = (params.skip_tidk || !params.repeat) ? channel.value([]) : FASTA_EXPLORE_SEARCH_PLOT_TIDK.out.apriori_tsv.map { _meta, f -> f }.collect()
+    ch_tidk                = val_skip_tidk ? channel.value([]) : FASTA_EXPLORE_SEARCH_PLOT_TIDK.out.aposteriori_tsv.map { _meta, f -> f }.collect().first()
+    ch_report_tidk_apriori = (val_skip_tidk || !val_repeat) ? channel.value([]) : FASTA_EXPLORE_SEARCH_PLOT_TIDK.out.apriori_tsv.map { _meta, f -> f }.collect()
 
-    ch_fcsgx  = (params.gxdb || params.gxdb_manifest) ? DECONTAMINATION.out.fcs_gx_report.map { _meta, f -> f }.collect().first()  : channel.value([])
-    ch_fcsadp = (params.gxdb || params.gxdb_manifest) ? DECONTAMINATION.out.adaptor_report.map { _meta, f -> f }.collect().first()  : channel.value([])
-    ch_tiara  = (params.gxdb || params.gxdb_manifest) ? DECONTAMINATION.out.tiara_cleaned.map  { _meta, f -> f }.collect().first()  : channel.value([])
+    ch_fcsgx  = (val_gxdb || val_gxdb_manifest) ? DECONTAMINATION.out.fcs_gx_report.map { _meta, f -> f }.collect().first()  : channel.value([])
+    ch_fcsadp = (val_gxdb || val_gxdb_manifest) ? DECONTAMINATION.out.adaptor_report.map { _meta, f -> f }.collect().first()  : channel.value([])
+    ch_tiara  = (val_gxdb || val_gxdb_manifest) ? DECONTAMINATION.out.tiara_cleaned.map  { _meta, f -> f }.collect().first()  : channel.value([])
     ch_excel_agat = GENOME_AND_ANNOTATION.out.agat_stats.map { _meta, f -> f }.collect().ifEmpty([])
     ch_excel_quast  = GENOME_AND_ANNOTATION.out.quast_tsv.map { _meta, f -> f }
                     | mix( GENOME_ONLY.out.quast_tsv.map { _meta, f -> f } )
