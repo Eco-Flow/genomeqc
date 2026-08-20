@@ -20,8 +20,9 @@ input:
         Groovy Map containing sample information
         e.g. [ id:'test', single_end:false ]
   - accessions:
-      type: string
-      description: List of comma-separated NCBI assembly accessions to download
+      type: file
+      description: List of accessions (one per line) to download
+      pattern: "*.txt"
       ontologies: []
   - taxids:
       type: file
