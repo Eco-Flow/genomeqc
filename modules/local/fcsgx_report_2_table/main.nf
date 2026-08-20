@@ -16,7 +16,6 @@ process FCSGX_REPORT_2_TABLE {
 
 
     script:
-    def args   = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
 
     """

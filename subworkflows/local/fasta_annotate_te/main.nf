@@ -20,6 +20,7 @@ workflow FASTA_ANNOTATE_TE {
     val_famdb_lineage     // val: lineage string for famdb extraction (e.g. 'hymenoptera'), or ''
     val_run_repeatmodeler // val: boolean – run de novo RepeatModeler (slow, adds 24-48 h per genome)
     val_te_clusterer      // val: clustering tool – 'linclust' (default), 'mmseqs', or 'cdhit'
+    val_te                // val: 'hite' or 'repeatmasker'
 
     main:
     def ch_te_masked     = channel.empty()
@@ -29,12 +30,12 @@ workflow FASTA_ANNOTATE_TE {
     def ch_clustered_lib = channel.empty()
 
     // Run with HITE or Repeatmasker/Repeatmodeler
-    if (params.te == 'hite') {
+    if (val_te == 'hite') {
         HITE ( ch_fasta )
         ch_te_tbl = HITE.out.tbl
     }
 
-    if (params.te == 'repeatmasker') {
+    if (val_te == 'repeatmasker') {
         // MODULE: RM_DOWNLOAD_DB
         // Download h5 partition files from DFAM — versions flow via Channel.topic('versions')
         // skip if ch_rm_db is empty
@@ -46,7 +47,7 @@ workflow FASTA_ANNOTATE_TE {
         // FAMDB_PY does not run, and the pipeline falls back to RepeatModeler alone.
         ch_h5_files = RM_DOWNLOAD_DB.out.h5
                     | mix(ch_famdb_lib)
-                    | map { meta, h5 -> h5 }
+                    | map { _meta, h5 -> h5 }
                     | collect
                     | map { h5_files -> tuple([id: 'famdb'], h5_files) }
 
@@ -108,18 +109,18 @@ workflow FASTA_ANNOTATE_TE {
 
             if (val_te_clusterer == 'cdhit') {
                 CDHIT_CDHITEST ( FAMDB_PY_EMBL.out.famdb_lib )
-                ch_shared_lib = CDHIT_CDHITEST.out.fasta | map { meta, fasta -> fasta }
+                ch_shared_lib = CDHIT_CDHITEST.out.fasta | map { _meta, fasta -> fasta }
             } else if (val_te_clusterer == 'linclust') {
                 MMSEQS_EASYLINCLUST ( FAMDB_PY_EMBL.out.famdb_lib )
-                ch_shared_lib = MMSEQS_EASYLINCLUST.out.representatives | map { meta, fasta -> fasta }
+                ch_shared_lib = MMSEQS_EASYLINCLUST.out.representatives | map { _meta, fasta -> fasta }
             } else {
                 MMSEQS_EASYCLUSTER ( FAMDB_PY_EMBL.out.famdb_lib )
-                ch_shared_lib = MMSEQS_EASYCLUSTER.out.representatives | map { meta, fasta -> fasta }
+                ch_shared_lib = MMSEQS_EASYCLUSTER.out.representatives | map { _meta, fasta -> fasta }
             }
 
             // Pair each genome's meta with the single shared library
             ch_clustered_lib = ch_fasta
-                             | map { meta, fasta -> meta }
+                             | map { meta, _fasta -> meta }
                              | combine(ch_shared_lib)
                              | map { meta, lib -> tuple(meta, lib) }
         }

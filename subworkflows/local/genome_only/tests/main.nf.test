@@ -21,9 +21,6 @@ nextflow_workflow {
     test("bacteroides_fragilis-single_genome") {
 
         when {
-            params {
-                busco_lineage = 'bacteria_odb10'
-            }
             workflow {
                 """
                 input[0] = Channel.of(
@@ -33,6 +30,11 @@ nextflow_workflow {
                     ]
                 )
                 input[1] = []
+                input[2] = false
+                input[3] = 'bacteria_odb10'
+                input[4] = null
+                input[5] = null
+                input[6] = 'v3'
                 """
             }
         }
@@ -56,9 +58,6 @@ nextflow_workflow {
         options '-stub'
 
         when {
-            params {
-                busco_lineage = 'bacteria_odb10'
-            }
             workflow {
                 """
                 input[0] = Channel.of(
@@ -68,6 +67,11 @@ nextflow_workflow {
                     ]
                 )
                 input[1] = []
+                input[2] = false
+                input[3] = 'bacteria_odb10'
+                input[4] = null
+                input[5] = null
+                input[6] = 'v3'
                 """
             }
         }

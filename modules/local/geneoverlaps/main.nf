@@ -19,6 +19,7 @@ process GENEOVERLAPS {
 
     script:
     def prefix = task.ext.prefix ?: "${meta.id}"
+
     """
     # Find overlapping genes in the GFF and summarise same_strand/opposite_strand overlap counts
     gene_overlaps.R $gff ${prefix}.summary.tsv ${prefix}.counts.tsv
@@ -26,7 +27,6 @@ process GENEOVERLAPS {
     """
 
     stub:
-    def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
 
     """

@@ -11,6 +11,7 @@ process SHINY_APP {
     tuple val(meta), path(tables), path(tree)
     path(functions)
     path(app)
+    val(container_engine)
 
 
     output:
@@ -20,13 +21,12 @@ process SHINY_APP {
 
     script:
     //def args   = task.ext.args ?: ''
-    def prefix           = task.ext.prefix ?: "${meta.id}"
-    def container_engine = params.container_engine ? "${params.container_engine}" : 'docker'
+    def prefix                    = task.ext.prefix ?: "${meta.id}"
+    def resolved_container_engine = container_engine ?: 'docker'
     // Fully qualify the registry: this is a plain `docker run`, so (unlike the
     // Nextflow-managed processes) it does not get the docker.registry='quay.io'
     // prefix and would otherwise resolve to Docker Hub, where the image is not published.
-    def docker_url       = 'community.wave.seqera.io/library/python_pandas_r-base_bioconductor-ggtreeextra_pruned:5327fed29a6ac09f'
-    def results_path     = file(params.outdir).toAbsolutePath()
+    def docker_url                = 'community.wave.seqera.io/library/python_pandas_r-base_bioconductor-ggtreeextra_pruned:5327fed29a6ac09f'
     """
     # Package the QC tables and tree into a launchable Shiny app container script
     mkdir app
@@ -36,14 +36,14 @@ process SHINY_APP {
 
     # Using port 8000 as is the one usually available
 
-    echo 'CONTAINER_ID=\$($container_engine run -d -v \$(pwd):/app -w /app -p 8000:8000 $docker_url Rscript shiny_app.R)' >> shiny_app.sh
+    echo 'CONTAINER_ID=\$($resolved_container_engine run -d -v \$(pwd):/app -w /app -p 8000:8000 $docker_url Rscript shiny_app.R)' >> shiny_app.sh
     echo 'sleep 2' >> shiny_app.sh
 
     # Ensure the container is stopped and port is available again once script exits
     cat <<'EOF' >> shiny_app.sh
     cleanup() {
         echo "Stopping container \$CONTAINER_ID"
-        $container_engine stop "\$CONTAINER_ID" >/dev/null 2>&1
+        $resolved_container_engine stop "\$CONTAINER_ID" >/dev/null 2>&1
     }
     trap cleanup EXIT
     EOF
@@ -65,7 +65,7 @@ process SHINY_APP {
         echo "Please open your browser at http://localhost:8000"
     fi
     # So that container doesn't close unless ctr+c
-    $container_engine logs -f "\$CONTAINER_ID"
+    $resolved_container_engine logs -f "\$CONTAINER_ID"
     EOF
 
     chmod +x shiny_app.sh

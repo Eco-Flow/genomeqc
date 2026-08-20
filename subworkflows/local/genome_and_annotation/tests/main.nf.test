@@ -27,9 +27,6 @@ nextflow_workflow {
     test("sarscov2-single_genome_and_annotation") {
 
         when {
-            params {
-                skip_busco = true
-            }
             workflow {
                 """
                 input[0] = Channel.of(
@@ -45,6 +42,12 @@ nextflow_workflow {
                     ]
                 )
                 input[2] = []
+                input[3] = 'agat'
+                input[4] = 'v3'
+                input[5] = true
+                input[6] = 'hymenoptera_odb10'
+                input[7] = null
+                input[8] = null
                 """
             }
         }
@@ -68,9 +71,6 @@ nextflow_workflow {
         options '-stub'
 
         when {
-            params {
-                busco_lineage = 'bacteria_odb10'
-            }
             workflow {
                 """
                 input[0] = Channel.of(
@@ -86,6 +86,12 @@ nextflow_workflow {
                     ]
                 )
                 input[2] = []
+                input[3] = 'agat'
+                input[4] = 'v3'
+                input[5] = false
+                input[6] = 'bacteria_odb10'
+                input[7] = null
+                input[8] = null
                 """
             }
         }

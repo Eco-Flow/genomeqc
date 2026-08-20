@@ -10,13 +10,17 @@ include { GAWK                                } from '../../../modules/nf-core/g
 workflow GENOME_ONLY {
 
     take:
-    ch_fasta    // channel: [ val(meta), [ fasta ] ]
-    ch_busco_db // channel: path | []
+    ch_fasta          // channel: [ val(meta), [ fasta ] ]
+    ch_busco_db       // channel: path | []
+    val_skip_busco    // val: boolean - skip BUSCO (and everything downstream of it: ideogram, orthofinder, ortho_seq_count)
+    val_busco_lineage // val: BUSCO lineage name (e.g. 'hymenoptera_odb10') or 'auto'
+    val_busco_config  // val: path to a BUSCO config file, or []
+    val_busco_clean   // val: boolean - clean up intermediate BUSCO files, or []
+    val_ortho_version // val: OrthoFinder version - 'v2' or 'v3'
 
     main:
-    ch_fasta.view { "Running ${it[0]} on genome only mode"}
+    ch_fasta.view { meta, _fasta -> "Running ${meta.id} on genome only mode"}
 
-    ch_versions   = channel.empty()
 
     // For tree plot
     ch_tree_data = channel.empty()
@@ -32,14 +36,14 @@ workflow GENOME_ONLY {
     )
     ch_tree_data = ch_tree_data.mix(QUAST.out.tsv.map { tuple -> tuple[1] })
 
-    if (!params.skip_busco) {
+    if (!val_skip_busco) {
         BUSCO_GENOME (
             ch_fasta,
             "genome", // hardcoded, other options ('proteins', 'transcriptome') make no sense
-            params.busco_lineage,
+            val_busco_lineage,
             ch_busco_db,
-            params.busco_config ?: [],
-            params.busco_clean ?: []
+            val_busco_config ?: [],
+            val_busco_clean ?: []
         )
         //ch_tree_data  = ch_tree_data.mix(BUSCO_GENOME.out.batch_summary.collect { meta, file -> file })
 
@@ -91,13 +95,13 @@ workflow GENOME_ONLY {
                           }
 
         //Run orthofinder
-        if (params.ortho_version == 'v3') {
+        if (val_ortho_version == 'v3') {
             ORTHOFINDER_V3 (
                 ch_busco_proteins,
                 [[],[]]
             )
             ch_orthofinder = ORTHOFINDER_V3.out.orthofinder
-        } else if (params.ortho_version == 'v2' ) {
+        } else if (val_ortho_version == 'v2' ) {
             ORTHOFINDERV2 (
                 ch_busco_proteins
             )
@@ -122,12 +126,12 @@ workflow GENOME_ONLY {
     }
 
     emit:
-    orthofinder             = !params.skip_busco ? ch_orthofinder : channel.empty()        // channel: [ val(meta), [folder] ]
-    tree_data               = !params.skip_busco ? ch_tree_data.flatten().collect().map { files -> files.toSorted { a, b -> a.name <=> b.name } } : channel.empty() // sort for deterministic behaviour
+    orthofinder             = !val_skip_busco ? ch_orthofinder : channel.empty()        // channel: [ val(meta), [folder] ]
+    tree_data               = !val_skip_busco ? ch_tree_data.flatten().collect().map { files -> files.toSorted { a, b -> a.name <=> b.name } } : channel.empty() // sort for deterministic behaviour
     quast_results           = QUAST.out.results                   // channel: [ val(meta), [tsv] ]
-    busco_short_summaries   = !params.skip_busco ? BUSCO_GENOME.out.short_summaries_txt : channel.empty() // channel: [ val(meta), [txt] ]
-    buscos_per_seqs         = !params.skip_busco ? GENOMEBUSCOIDEOGRAM.out.busco_mappings.collect { meta, table -> table}.map { tables -> tables.toSorted { a, b -> a.name <=> b.name } } : channel.empty() // channel: [ csv ]
-    busco_batch_summaries   = !params.skip_busco ? GAWK.out.output : channel.empty()                     // channel: [ val(meta), path(tsv) ] — species-named batch summaries
+    busco_short_summaries   = !val_skip_busco ? BUSCO_GENOME.out.short_summaries_txt : channel.empty() // channel: [ val(meta), [txt] ]
+    buscos_per_seqs         = !val_skip_busco ? GENOMEBUSCOIDEOGRAM.out.busco_mappings.collect { _meta, table -> table}.map { tables -> tables.toSorted { a, b -> a.name <=> b.name } } : channel.empty() // channel: [ csv ]
+    busco_batch_summaries   = !val_skip_busco ? GAWK.out.output : channel.empty()                     // channel: [ val(meta), path(tsv) ] — species-named batch summaries
     quast_tsv               = QUAST.out.tsv                       // channel: [ val(meta), path(tsv) ]
 
 }
