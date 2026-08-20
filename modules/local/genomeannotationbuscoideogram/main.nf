@@ -19,7 +19,7 @@ process GENOMEANNOTATIONBUSCOIDEOGRAM {
 
     script:
     def args = task.ext.args ?: ''
-    def prefix = "${meta.id}_${meta.lineage}"
+    def prefix = "${meta.id}"
 
     """
     # Plot a chromosome ideogram of annotated BUSCO gene locations from the GFF
@@ -42,7 +42,7 @@ process GENOMEANNOTATIONBUSCOIDEOGRAM {
 
     stub:
     def args = task.ext.args ?: ''
-    def prefix = "${meta.id}_${meta.lineage}"
+    def prefix = "${meta.id}"
 
     """
     echo $args
