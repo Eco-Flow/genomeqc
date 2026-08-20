@@ -16,6 +16,8 @@ busco/*/*/stats/short_summary.specific.*.txt
 # Ideogram PNGs render byte-different between conda's and docker's graphics stacks even
 # for identical content - the matching .svg (vector, checked separately) proves that.
 busco/*/*/ideogram/*.png
+# pngs for merqury are not deterministic
+merqury/*/*.png
 busco/busco_downloads/lineages/*/refseq_db.faa.gz
 quast/**/quast.log
 quast/**/report.html
