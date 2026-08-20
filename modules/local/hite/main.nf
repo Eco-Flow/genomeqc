@@ -2,12 +2,6 @@ process HITE {
     tag "$meta.id"
     label 'process_medium'
 
-    // NB: environment.yml replicates HiTE's dependencies (matching its own
-    // upstream env spec) but not HiTE itself, which isn't a conda-installable
-    // package. The script below also hardcodes `cd /HiTE`, a path that only
-    // exists inside the docker/singularity image. -profile conda will not
-    // actually run this module until both are addressed.
-    conda "${moduleDir}/environment.yml"
     container "docker.io/kanghu/hite:3.3.3"
 
     input:
@@ -23,6 +17,10 @@ process HITE {
     tuple val("${task.process}"), val('ltrpipeline'), eval('LTRPipeline -version'), emit: versions_ltrpipeline, topic: versions
 
     script:
+    // Exit if running this module with -profile conda / -profile mamba
+    if (workflow.profile.tokenize(',').intersect(['conda', 'mamba']).size() >= 1) {
+        error "DEEPVARIANT module does not support Conda. Please use Docker / Singularity / Podman instead."
+    }
     def args   = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
