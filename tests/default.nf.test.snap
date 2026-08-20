@@ -23,10 +23,10 @@
                 "BUSCO_SEQS_GENOME_ANNO": {
                     "python": "3.13.5"
                 },
-                "EXCEL_REPORT": {
+                "REPORT_EXCEL": {
                     "python": "3.9.5"
                 },
-                "FAMDB_PY_EMBL": {
+                "FAMDBPYEMBL": {
                     "repeatmasker": "4.2.2"
                 },
                 "FILTER_BY_LENGTH": {
@@ -47,14 +47,14 @@
                     "genomicranges": "1.54.1",
                     "r_base": "4.3.3"
                 },
-                "GENOMEANNOTATIONBUSCOIDEOGRAM": {
+                "IDEOGRAM_GENOMEANNOTATION": {
                     "r_base": "4.4.1",
                     "r_rideogram": "0.2.2"
                 },
                 "GFFREAD": {
                     "gffread": "0.12.7"
                 },
-                "HTML_REPORT": {
+                "REPORT_HTML": {
                     "python": "3.9.5"
                 },
                 "MMSEQS_EASYLINCLUST": {
@@ -63,14 +63,14 @@
                 "ORTHOFINDER_V3": {
                     "orthofinder": "3.1.3"
                 },
-                "ORTHO_SEQ_COUNT": {
+                "ORTHOSEQCOUNT": {
                     "pandas": "2.3.1",
                     "python": "3.13.5"
                 },
                 "QUAST": {
                     "quast": "5.3.0"
                 },
-                "RM_DOWNLOAD_DB": {
+                "REPEATMASKER_DOWNLOADDB": {
                     "<curl>": "7.80.0"
                 },
                 "SHINY_APP_GENOME_ANNO": {
@@ -79,7 +79,7 @@
                 "SORT_BY_LENGTH": {
                     "seqkit": "2.13.0"
                 },
-                "TE_TBL_2_TABLE": {
+                "TABLE_TE": {
                     "python": "3.9.5"
                 },
                 "TIDK_EXPLORE": {

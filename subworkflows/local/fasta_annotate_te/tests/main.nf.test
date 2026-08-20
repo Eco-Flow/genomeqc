@@ -10,10 +10,10 @@ nextflow_workflow {
     tag "subworkflows/fasta_annotate_te"
     tag "fasta_annotate_te"
     tag "hite"
-    tag "famdb_py_embl"
+    tag "famdbpyembl"
     tag "cdhit/cdhitest"
     tag "repeatmasker/repeatmasker"
-    tag "te_tbl_2_table"
+    tag "table/te"
 
     test("tiny_genome-hite") {
 
@@ -48,7 +48,7 @@ nextflow_workflow {
         }
     }
 
-    // test.0.h5 is the synthetic famdb fixture from famdb_py_embl's own tests (taxon 3
+    // test.0.h5 is the synthetic famdb fixture from famdbpyembl's own tests (taxon 3
     // carries one minimal repeat family, "TESTFAM1"), reused here instead of duplicating it.
     // The genome is sarscov2 (not the HITE fixture): RepeatMasker always screens for simple
     // repeats/low-complexity regions even without a custom-library hit, but the HITE fixture
@@ -69,7 +69,7 @@ nextflow_workflow {
                 input[2] = Channel.of(
                     [
                         [ id:'famdb' ],
-                        file("\${baseDir}/modules/local/famdb_py_embl/tests/test.0.h5", checkIfExists: true)
+                        file("\${baseDir}/modules/local/famdbpyembl/tests/test.0.h5", checkIfExists: true)
                     ]
                 )
                 input[3] = '3'
@@ -114,7 +114,7 @@ nextflow_workflow {
                 input[2] = Channel.of(
                     [
                         [ id:'famdb' ],
-                        file("\${baseDir}/modules/local/famdb_py_embl/tests/test.0.h5", checkIfExists: true)
+                        file("\${baseDir}/modules/local/famdbpyembl/tests/test.0.h5", checkIfExists: true)
                     ]
                 )
                 input[3] = '3'
@@ -137,10 +137,10 @@ nextflow_workflow {
     }
 
     // Regression test for a dead `ch_rm_db = channel.empty()` reassignment that
-    // unconditionally discarded the take: parameter before RM_DOWNLOAD_DB ever ran,
+    // unconditionally discarded the take: parameter before REPEATMASKER_DOWNLOADDB ever ran,
     // silently disabling --RM_download_db for every user regardless of its setting.
     // No pre-staged famdb library is given here (input[2] = Channel.empty()), so the
-    // only way this test can produce a repeat library at all is via RM_DOWNLOAD_DB.
+    // only way this test can produce a repeat library at all is via REPEATMASKER_DOWNLOADDB.
     test("sarscov2_genome-repeatmasker-download-stub") {
 
         options '-stub'

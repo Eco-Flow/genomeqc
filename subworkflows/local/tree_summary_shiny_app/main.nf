@@ -1,7 +1,7 @@
 include { TREESUMMARY as TREE_SUMMARY_GENO_ANNO    } from '../../../modules/local/treesummary/main'
 include { TREESUMMARY as TREE_SUMMARY_GENO         } from '../../../modules/local/treesummary/main'
-include { SHINY_APP as SHINY_APP_GENOME_ANNO       } from '../../../modules/local/shiny_app/main'
-include { SHINY_APP as SHINY_APP_GENOME            } from '../../../modules/local/shiny_app/main'
+include { SHINYAPP as SHINY_APP_GENOME_ANNO        } from '../../../modules/local/shinyapp/main'
+include { SHINYAPP as SHINY_APP_GENOME             } from '../../../modules/local/shinyapp/main'
 
 
 workflow TREE_SUMMARY_SHINY_APP {

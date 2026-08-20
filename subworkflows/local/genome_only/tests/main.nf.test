@@ -11,8 +11,8 @@ nextflow_workflow {
     tag "genome_only"
     tag "quast"
     tag "busco/busco"
-    tag "genomebuscoideogram"
-    tag "busco_tsv_to_gff"
+    tag "ideogram/genome"
+    tag "busco/tsvtogff"
     tag "gawk"
 
     // A single genome never reaches the >=3-genome threshold for OrthoFinder, so that

@@ -58,7 +58,7 @@ input:
     - te_table:
         type: file
         description: Combined TE-composition summary TSV, as produced by
-          te_tbl_2_table (optional; pass an empty list to omit)
+          table_te (optional; pass an empty list to omit)
         pattern: "*.tsv"
         ontologies:
           - edam: http://edamontology.org/format_3475
@@ -102,7 +102,7 @@ output:
       - "tree.nw":
           type: file
           description: Newick species tree, extracted from the OrthoFinder results
-            and used by SHINY_APP
+            and used by SHINYAPP
           pattern: "tree.nw"
           ontologies: []
   versions_r_base:

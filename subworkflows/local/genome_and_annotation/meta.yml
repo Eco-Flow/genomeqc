@@ -6,7 +6,7 @@ description: |
   per gene with AGAT, then AGAT stats, gene-overlap counts and QUAST are computed. Protein
   and transcript FASTAs are extracted with GFFread and, when at least 3 genomes are
   present, used to infer orthology with OrthoFinder (v2 or v3); OrthoFinder's orthogroups
-  are mapped back onto sequences with ortho_seq_count. Unless BUSCO is skipped,
+  are mapped back onto sequences with orthoseqcount. Unless BUSCO is skipped,
   BUSCO completeness is assessed on both the genome and the proteins, and a combined BUSCO
   ideogram is plotted.
 keywords:
@@ -24,13 +24,12 @@ components:
   - agat/spstatistics
   - busco/busco
   - quast
-  - genomeannotationbuscoideogram
+  - ideogram/genomeannotation
   - gffread
   - orthofinder
   - orthofinderv2
   - geneoverlaps
-  - ortho_seq_count
-  - ortho/seq/count # nf-core lint derives this alias from the ORTHO_SEQ_COUNT process name
+  - orthoseqcount
   - gawk
 input:
   - ch_fasta:

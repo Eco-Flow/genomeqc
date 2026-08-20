@@ -11,11 +11,11 @@ include { GENOME_AND_ANNOTATION                    } from '../subworkflows/local
 include { TREE_SUMMARY_SHINY_APP                   } from '../subworkflows/local/tree_summary_shiny_app/main'
 include { FASTA_EXPLORE_SEARCH_PLOT_TIDK           } from '../subworkflows/nf-core/fasta_explore_search_plot_tidk/main'
 include { DECONTAMINATION                          } from '../subworkflows/local/decontamination/main'
-include { FCSGX_REPORT_2_TABLE                     } from '../modules/local/fcsgx_report_2_table/main'
-include { BUSCO_SEQS as BUSCO_SEQS_GENOME_ANNO     } from '../modules/local/buscos_seqs/main'
-include { BUSCO_SEQS as BUSCO_SEQS_GENOME          } from '../modules/local/buscos_seqs/main'
-include { HTML_REPORT                              } from '../modules/local/html_report/main'
-include { EXCEL_REPORT                             } from '../modules/local/excel_report/main'
+include { TABLE_FCSGX                              } from '../modules/local/table/fcsgx/main'
+include { BUSCO_SEQS as BUSCO_SEQS_GENOME_ANNO     } from '../modules/local/busco/seqs/main'
+include { BUSCO_SEQS as BUSCO_SEQS_GENOME          } from '../modules/local/busco/seqs/main'
+include { REPORT_HTML                              } from '../modules/local/report/html/main'
+include { REPORT_EXCEL                             } from '../modules/local/report/excel/main'
 include { FASTA_ANNOTATE_TE                        } from '../subworkflows/local/fasta_annotate_te/main'
 include { MULTIQC                                  } from '../modules/nf-core/multiqc/main'
 include { validateInputSamplesheet                 } from '../subworkflows/local/utils_nfcore_genomeqc_pipeline'
@@ -102,13 +102,13 @@ workflow GENOMEQC {
         // Parse each species' FCS-GX report into a combined contamination-summary
         // table for the tree plot (this is only needed for the tree plot, which
         // requires a single TSV table, same as the TE-composition table above)
-        FCSGX_REPORT_2_TABLE (
+        TABLE_FCSGX (
             DECONTAMINATION.out.fcs_gx_report
                 .map { _meta, f -> f }
                 .collect()
                 .map { f -> tuple([id:'fcs_table'], f) }
         )
-        ch_fcs_table = FCSGX_REPORT_2_TABLE.out.table
+        ch_fcs_table = TABLE_FCSGX.out.table
     }
 
     //
@@ -287,7 +287,7 @@ workflow GENOMEQC {
                     | mix( GENOME_ONLY.out.quast_tsv.map { _meta, f -> f } )
                     | collect
 
-    HTML_REPORT (
+    REPORT_HTML (
         ch_report_busco,
         ch_report_busco_prot,
         ch_excel_agat,
@@ -304,7 +304,7 @@ workflow GENOMEQC {
     //
     // MODULE: Run EXCEL REPORT (genome + annotation mode)
     //
-    EXCEL_REPORT (
+    REPORT_EXCEL (
         ch_report_busco,
         ch_report_busco_prot,
         ch_excel_quast,

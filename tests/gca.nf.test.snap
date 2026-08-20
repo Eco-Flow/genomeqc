@@ -11,7 +11,7 @@
                 "BUSCO_SEQS_GENOME": {
                     "python": "3.13.5"
                 },
-                "EXCEL_REPORT": {
+                "REPORT_EXCEL": {
                     "python": "3.9.5"
                 },
                 "FILTER_BY_LENGTH": {
@@ -20,11 +20,11 @@
                 "GAWK": {
                     "gawk": "5.3.1"
                 },
-                "GENOMEBUSCOIDEOGRAM": {
+                "IDEOGRAM_GENOME": {
                     "r_base": "4.4.1",
                     "r_rideogram": "0.2.2"
                 },
-                "HTML_REPORT": {
+                "REPORT_HTML": {
                     "python": "3.9.5"
                 },
                 "NCBIGENOMEDOWNLOAD": {
@@ -33,7 +33,7 @@
                 "ORTHOFINDER_V3": {
                     "orthofinder": "3.1.3"
                 },
-                "ORTHO_SEQ_COUNT": {
+                "ORTHOSEQCOUNT": {
                     "pandas": "2.3.1",
                     "python": "3.13.5"
                 },

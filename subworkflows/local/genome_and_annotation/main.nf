@@ -5,13 +5,13 @@ include { BUSCO_BUSCO as BUSCO_GENOME            } from '../../../modules/nf-cor
 include { BUSCO_BUSCO as BUSCO_PROTEIN          } from '../../../modules/nf-core/busco/busco/main'
 include { QUAST                                  } from '../../../modules/nf-core/quast/main'
 include { AGAT_SPSTATISTICS                      } from '../../../modules/nf-core/agat/spstatistics/main'
-include { GENOMEANNOTATIONBUSCOIDEOGRAM          } from '../../../modules/local/genomeannotationbuscoideogram/main'
+include { IDEOGRAM_GENOMEANNOTATION              } from '../../../modules/local/ideogram/genomeannotation/main'
 include { GFFREAD                                } from '../../../modules/nf-core/gffread/main'
 include { GFFREAD as GFFREAD_VALIDATE            } from '../../../modules/nf-core/gffread/main'
 include { ORTHOFINDER as ORTHOFINDER_V3          } from '../../../modules/nf-core/orthofinder/main'
 include { ORTHOFINDERV2                          } from '../../../modules/local/orthofinderv2/main'
 include { GENEOVERLAPS                           } from '../../../modules/local/geneoverlaps/main'
-include { ORTHO_SEQ_COUNT                        } from '../../../modules/local/ortho_seq_count'
+include { ORTHOSEQCOUNT                          } from '../../../modules/local/orthoseqcount'
 include { GAWK as GAWK_GENO                      } from '../../../modules/nf-core/gawk/main'
 include { GAWK as GAWK_PROT                      } from '../../../modules/nf-core/gawk/main'
 
@@ -157,16 +157,16 @@ workflow GENOME_AND_ANNOTATION {
     }
 
     //
-    // MODULE: Run ORTHO_SEQ_COUNT
+    // MODULE: Run ORTHOSEQCOUNT
     //
 
-    ORTHO_SEQ_COUNT (
+    ORTHOSEQCOUNT (
         ch_orthofinder.map { _meta, folder ->
             file("${folder}/Orthogroups/Orthogroups.tsv")
         },
         AGAT_SPKEEPLONGESTISOFORM.out.gff.map { _meta, gff -> gff }.collect()
     )
-    //ch_tree_data = ch_tree_data.mix(ORTHO_SEQ_COUNT.out.species_summary)
+    //ch_tree_data = ch_tree_data.mix(ORTHOSEQCOUNT.out.species_summary)
 
     //
     // MODULE: Run BUSCO for genome annotation
@@ -250,7 +250,7 @@ workflow GENOME_AND_ANNOTATION {
                                 }
                             }
 
-        GENOMEANNOTATIONBUSCOIDEOGRAM ( ch_plot_input )
+        IDEOGRAM_GENOMEANNOTATION ( ch_plot_input )
     }
 
     emit:
@@ -261,7 +261,7 @@ workflow GENOME_AND_ANNOTATION {
     busco_short_summaries_prot = !val_skip_busco ? GAWK_PROT.out.output : channel.empty()
     quast_tsv                  = QUAST.out.tsv                       // channel: [ val(meta), path(tsv) ]
     agat_stats                 = AGAT_SPSTATISTICS.out.stats_txt     // channel: [ val(meta), path(txt) ]
-    ortho_seq_count            = ORTHO_SEQ_COUNT.out.species_summary // channel: [ path(tsv) ]
-    buscos_per_seqs            = !val_skip_busco ? GENOMEANNOTATIONBUSCOIDEOGRAM.out.busco_mappings.collect { _meta, table -> table}.map { tables -> tables.toSorted { a, b -> a.name <=> b.name } } : channel.empty() // channel: [ val(meta), [csv] ]
+    ortho_seq_count            = ORTHOSEQCOUNT.out.species_summary // channel: [ path(tsv) ]
+    buscos_per_seqs            = !val_skip_busco ? IDEOGRAM_GENOMEANNOTATION.out.busco_mappings.collect { _meta, table -> table}.map { tables -> tables.toSorted { a, b -> a.name <=> b.name } } : channel.empty() // channel: [ val(meta), [csv] ]
     versions                   = ch_versions                   // channel: [ versions.yml ]
 }

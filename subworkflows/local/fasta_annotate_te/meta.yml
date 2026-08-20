@@ -17,21 +17,17 @@ keywords:
   - repeatmodeler
   - hite
 components:
-  - repeatmasker_download_db
-  - rm/download/db # nf-core lint derives this alias from the RM_DOWNLOAD_DB process name
-  - famdb_py_embl
-  - famdb/py/embl # nf-core lint derives this alias from the FAMDB_PY_EMBL process name
+  - repeatmasker/downloaddb
+  - famdbpyembl
   - repeatmodeler/builddatabase
   - repeatmodeler/repeatmodeler
   - find/concatenate
   - cdhit/cdhitest
   - mmseqs/easycluster
-  - mmseqs_easylinclust
-  - mmseqs/easylinclust # nf-core lint derives this alias from the MMSEQS_EASYLINCLUST process name
+  - mmseqs/easylinclust
   - repeatmasker/repeatmasker
   - hite
-  - te_tbl_2_table
-  - te/tbl/2/table # nf-core lint derives this alias from the TE_TBL_2_TABLE process name
+  - table/te
 input:
   - ch_fasta:
       type: file
