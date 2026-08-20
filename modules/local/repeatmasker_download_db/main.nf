@@ -12,8 +12,7 @@ process RM_DOWNLOAD_DB {
 
     output:
     tuple val(meta), path("*.h5"), emit: h5
-    tuple val("${task.process}"), val('<curl>'),
-    eval('curl --version | head -1 | cut -d " " -f2'), emit: versions, topic: versions
+    tuple val("${task.process}"), val('<curl>'), eval('curl --version | head -1 | cut -d " " -f2'), emit: versions, topic: versions
 
     script:
     def filename     = db_url.tokenize('/')[-1]
