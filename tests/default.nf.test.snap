@@ -57,6 +57,15 @@
                 "HTML_REPORT": {
                     "python": "3.9.5"
                 },
+                "MERQURY_MERQURY": {
+                    "merqury": 1.3
+                },
+                "MERYL_COUNT": {
+                    "meryl": "1.4.1"
+                },
+                "MERYL_UNIONSUM": {
+                    "meryl": "1.4.1"
+                },
                 "MMSEQS_EASYLINCLUST": {
                     "mmseqs": "18.8cc5c"
                 },
