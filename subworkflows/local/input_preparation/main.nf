@@ -7,21 +7,27 @@ include { BUSCO_DOWNLOAD                           } from '../../../modules/nf-c
 workflow INPUT_PREPARATION {
 
     take:
-    ch_ncbi                 // channel: [ val(meta), val(refseq), val(fastq) ]
+    ch_ncbi                 // channel: [ val(meta), val(accession), val(fastq) ]
     ch_local                // channel: [ val(meta), val(fasta), val(gxf), val(fastq) ]
     val_groups               // val: NCBI genome download assembly groups (e.g. 'all')
     val_busco_lineages_path // val: path to a pre-staged BUSCO lineages directory, or null
     val_busco_lineage       // val: BUSCO lineage name (e.g. 'hymenoptera_odb10'), 'auto', or null
 
     main:
-    // ch_ncbi is a 3-element tuple, last element is the fastq.
-    // We need to remove it before passing accessions to NCBIGENOMEDOWNLOAD
-    ch_ncbi_input = ch_ncbi
-                    | map { meta, refseq, _fq -> tuple( meta, refseq ) }
+
+    ch_ncbi_meta        = ch_ncbi
+                        | map { meta, _accession, _fq -> tuple( meta.id, meta ) }
+    ch_ncbi_accessions  = ch_ncbi
+                        | map { meta, accession, _fq -> tuple( meta.id, accession ) }
+                        | collectFile { id, accession_n -> [ "${id}.txt", "${accession_n}\n" ] }
+                        | map { accessions_file -> tuple( accessions_file.baseName, accessions_file ) }
+
+    ch_ncbi_input = ch_ncbi_meta
+                    | join(ch_ncbi_accessions) // join by id (meta.id and accessions_file.baseName are the same)
                     | multiMap {
-                        meta, accession ->
+                        _id, meta, accessions_file ->
                             meta      : meta
-                            accession : accession
+                            accession : accessions_file
                     }
 
     //
