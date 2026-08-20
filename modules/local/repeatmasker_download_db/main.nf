@@ -16,7 +16,6 @@ process RM_DOWNLOAD_DB {
 
     script:
     def filename     = db_url.tokenize('/')[-1]
-    def out_gunzip   = filename.replaceAll(/\.gz$/, '')
     def md5_url      = db_url + ".md5"
 
     """
