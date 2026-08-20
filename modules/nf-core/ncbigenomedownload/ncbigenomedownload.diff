@@ -3,17 +3,15 @@ Changes in component 'nf-core/ncbigenomedownload'
 Changes in 'ncbigenomedownload/meta.yml':
 --- modules/nf-core/ncbigenomedownload/meta.yml
 +++ modules/nf-core/ncbigenomedownload/meta.yml
-@@ -19,10 +19,9 @@
-       description: |
+@@ -20,9 +20,8 @@
          Groovy Map containing sample information
          e.g. [ id:'test', single_end:false ]
--  - accessions:
+   - accessions:
 -      type: file
 -      description: List of accessions (one per line) to download
 -      pattern: "*.txt"
-+  - accession:
 +      type: string
-+      description: Comma-separated list of accessions to download
++      description: List of comma-separated NCBI assembly accessions to download
        ontologies: []
    - taxids:
        type: file

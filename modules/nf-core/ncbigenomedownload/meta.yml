@@ -19,9 +19,9 @@ input:
       description: |
         Groovy Map containing sample information
         e.g. [ id:'test', single_end:false ]
-  - accession:
+  - accessions:
       type: string
-      description: Comma-separated list of accessions to download
+      description: List of comma-separated NCBI assembly accessions to download
       ontologies: []
   - taxids:
       type: file
