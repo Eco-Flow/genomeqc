@@ -1,4 +1,6 @@
-Changes in module 'nf-core/ncbigenomedownload'
+Changes in component 'nf-core/ncbigenomedownload'
+'modules/nf-core/ncbigenomedownload/environment.yml' is unchanged
+Changes in 'ncbigenomedownload/meta.yml':
 --- modules/nf-core/ncbigenomedownload/meta.yml
 +++ modules/nf-core/ncbigenomedownload/meta.yml
 @@ -19,10 +19,9 @@
@@ -16,6 +18,7 @@ Changes in module 'nf-core/ncbigenomedownload'
    - taxids:
        type: file
 
+Changes in 'ncbigenomedownload/main.nf':
 --- modules/nf-core/ncbigenomedownload/main.nf
 +++ modules/nf-core/ncbigenomedownload/main.nf
 @@ -4,12 +4,17 @@
@@ -48,6 +51,7 @@ Changes in module 'nf-core/ncbigenomedownload'
      """
      ncbi-genome-download \\
 
+Changes in 'ncbigenomedownload/tests/main.nf.test.snap':
 --- modules/nf-core/ncbigenomedownload/tests/main.nf.test.snap
 +++ modules/nf-core/ncbigenomedownload/tests/main.nf.test.snap
 @@ -1,4 +1,47 @@
@@ -120,7 +124,10 @@ Changes in module 'nf-core/ncbigenomedownload'
 +            "nextflow": "26.07.0"
          }
      }
- }
+-}+}
+
+'modules/nf-core/ncbigenomedownload/tests/nextflow.config' is unchanged
+Changes in 'ncbigenomedownload/tests/main.nf.test':
 --- modules/nf-core/ncbigenomedownload/tests/main.nf.test
 +++ modules/nf-core/ncbigenomedownload/tests/main.nf.test
 @@ -17,6 +17,34 @@
