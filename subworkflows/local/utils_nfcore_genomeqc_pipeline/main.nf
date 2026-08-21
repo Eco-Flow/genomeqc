@@ -173,7 +173,7 @@ def validateInputParameters() {
     def hite = params.te == 'hite'
     def profile_conda = workflow.profile.tokenize(',').intersect(['conda', 'mamba']).size() >= 1
     if (hite && profile_conda) {
-        error "The HiTE module does not support Conda. Please use Docker / Singularity / Podman instead or change the TE detection method to RepeatModeler/RepeatMasker"
+        error "The HiTE module does not support Conda. Please use Docker / Singularity / Podman instead or change the TE detection method to 'repeatmasker'"
     }
     // Add ways of validating input parameters, e.g. for groups in ncbigenomedownload
 }
