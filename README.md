@@ -152,7 +152,7 @@ We thank the following people for their extensive assistance in the development 
 
 ### Review
 
-- [Vicbeg](https://github.com/Vicbeg)
+- [Victoria Begley](https://github.com/Vicbeg)
 - [awgymer](https://github.com/awgymer)
 - [Sébastien Guizard](https://github.com/sguizard) (The Roslin Institute)
 - [Matthias Hörtenhuber](https://github.com/mashehu) (SciLifeLab Data Centre)
