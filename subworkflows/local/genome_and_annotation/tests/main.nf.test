@@ -16,12 +16,12 @@ nextflow_workflow {
     tag "quast"
     tag "gffread"
     tag "gawk"
-    tag "genomeannotationbuscoideogram"
+    tag "ideogram/genomeannotation"
 
     // A single genome never reaches the >=3-genome threshold for OrthoFinder, so that
     // branch (and orthologous_chromosomes downstream of it) is exercised by the stub test
     // only. BUSCO is also skipped here: sarscov2 is viral, so no BUSCO lineage has real
-    // markers to match, and a zero-hit BUSCO table crashes GENOMEANNOTATIONBUSCOIDEOGRAM's
+    // markers to match, and a zero-hit BUSCO table crashes IDEOGRAM_GENOMEANNOTATION's
     // plotting script; that path is covered by the stub test instead. This real run covers
     // AGAT, QUAST and GFFread.
     test("sarscov2-single_genome_and_annotation") {

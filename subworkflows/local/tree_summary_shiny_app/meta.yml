@@ -6,7 +6,7 @@ description: |
   when BUSCO was not skipped, once more for genome-only mode. For each mode, per-sample
   BUSCO batch summaries are collected into a single combined table, TREESUMMARY renders
   the tree and summary tables from the OrthoFinder species tree, QUAST/gene-overlap/TE
-  inputs and the combined BUSCO tables, and SHINY_APP wraps the resulting tables and tree
+  inputs and the combined BUSCO tables, and SHINYAPP wraps the resulting tables and tree
   into a launchable Shiny application.
 keywords:
   - genomics
@@ -17,8 +17,7 @@ keywords:
   - quast
 components:
   - treesummary
-  - shiny_app
-  - shiny/app # nf-core lint derives this alias from the SHINY_APP process name
+  - shinyapp
 input:
   - ch_geno_anno_busco_summary:
       type: file

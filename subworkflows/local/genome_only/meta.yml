@@ -5,7 +5,7 @@ description: |
   skipped, BUSCO completeness assessment plus a BUSCO ideogram plot. Single-copy BUSCO
   proteins across samples are used to infer orthology with OrthoFinder (v2 or v3), and the
   BUSCO full table is converted to GFF so that OrthoFinder's orthogroups can be mapped back
-  onto sequences with ortho_seq_count.
+  onto sequences with orthoseqcount.
 keywords:
   - genomics
   - genome
@@ -16,13 +16,11 @@ keywords:
 components:
   - quast
   - busco/busco
-  - genomebuscoideogram
+  - ideogram/genome
   - orthofinder
   - orthofinderv2
-  - busco_tsv_to_gff
-  - busco/tsv/to/gff # nf-core lint derives this alias from the BUSCO_TSV_TO_GFF process name
-  - ortho_seq_count
-  - ortho/seq/count # nf-core lint derives this alias from the ORTHO_SEQ_COUNT process name
+  - busco/tsvtogff
+  - orthoseqcount
   - gawk
 input:
   - ch_fasta:

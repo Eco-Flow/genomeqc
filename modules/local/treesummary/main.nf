@@ -83,7 +83,7 @@ process TREESUMMARY {
 
     # Make sure input TSV files are captured as outputs by copying them
     # This "touches" them so Nextflow sees them as process outputs
-    # This is necessary because tables are inputs to the SHINY_APP process
+    # This is necessary because tables are inputs to the SHINYAPP process
     if [ -f "n_seqs_above_x_buscos.tsv" ]; then
         cp n_seqs_above_x_buscos.tsv n_seqs_above_x_buscos_output.tsv
     fi

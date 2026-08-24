@@ -11,9 +11,6 @@
                 "BUSCO_SEQS_GENOME": {
                     "python": "3.13.5"
                 },
-                "EXCEL_REPORT": {
-                    "python": "3.9.5"
-                },
                 "FCSGX_CLEANADAPTOR": {
                     "fcsgx": "0.5.5"
                 },
@@ -22,9 +19,6 @@
                 },
                 "FCSGX_FETCHDB": {
                     "fcsgx": "0.5.5"
-                },
-                "FCSGX_REPORT_2_TABLE": {
-                    "python": "3.9.5"
                 },
                 "FCSGX_RUNGX": {
                     "fcsgx": "0.5.5"
@@ -35,15 +29,21 @@
                 "GAWK": {
                     "gawk": "5.3.1"
                 },
-                "GENOMEBUSCOIDEOGRAM": {
+                "IDEOGRAM_GENOME": {
                     "r_base": "4.4.1",
                     "r_rideogram": "0.2.2"
                 },
-                "HTML_REPORT": {
-                    "python": "3.9.5"
-                },
                 "QUAST": {
                     "quast": "5.3.0"
+                },
+                "REPORT_EXCEL": {
+                    "python": "3.9.5"
+                },
+                "REPORT_HTML": {
+                    "python": "3.9.5"
+                },
+                "TABLE_FCSGX": {
+                    "python": "3.9.5"
                 },
                 "TIARA_CLEANED": {
                     "tiara": "1.0.3"

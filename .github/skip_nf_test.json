@@ -3,7 +3,7 @@
         "subworkflows/local/decontamination/tests/*",
         "modules/local/hite/tests/*",
         "subworkflows/local/fasta_annotate_te/tests/*",
-        "modules/local/shiny_app/tests/*",
+        "modules/local/shinyapp/tests/*",
         "tests/decon.nf.test"
     ],
     "docker": [],

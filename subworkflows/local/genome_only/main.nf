@@ -1,10 +1,10 @@
 include { QUAST                               } from '../../../modules/nf-core/quast/main'
 include { BUSCO_BUSCO as BUSCO_GENOME         } from '../../../modules/nf-core/busco/busco/main'
-include { GENOMEBUSCOIDEOGRAM                 } from '../../../modules/local/genomebuscoideogram/main'
+include { IDEOGRAM_GENOME                     } from '../../../modules/local/ideogram/genome/main'
 include { ORTHOFINDER as ORTHOFINDER_V3       } from '../../../modules/nf-core/orthofinder/main'
 include { ORTHOFINDERV2                       } from '../../../modules/local/orthofinderv2/main'
-include { BUSCO_TSV_TO_GFF                    } from '../../../modules/local/busco_tsv_to_gff/main'
-include { ORTHO_SEQ_COUNT                     } from '../../../modules/local/ortho_seq_count'
+include { BUSCO_TSVTOGFF                      } from '../../../modules/local/busco/tsvtogff/main'
+include { ORTHOSEQCOUNT                       } from '../../../modules/local/orthoseqcount'
 include { GAWK                                } from '../../../modules/nf-core/gawk/main'
 
 workflow GENOME_ONLY {
@@ -12,7 +12,7 @@ workflow GENOME_ONLY {
     take:
     ch_fasta          // channel: [ val(meta), [ fasta ] ]
     ch_busco_db       // channel: path | []
-    val_skip_busco    // val: boolean - skip BUSCO (and everything downstream of it: ideogram, orthofinder, ortho_seq_count)
+    val_skip_busco    // val: boolean - skip BUSCO (and everything downstream of it: ideogram, orthofinder, orthoseqcount)
     val_busco_lineage // val: BUSCO lineage name (e.g. 'hymenoptera_odb10') or 'auto'
     val_busco_config  // val: path to a BUSCO config file, or []
     val_busco_clean   // val: boolean - clean up intermediate BUSCO files, or []
@@ -70,7 +70,7 @@ workflow GENOME_ONLY {
                       | combine(ch_full_table, by:0)
 
 
-        GENOMEBUSCOIDEOGRAM (
+        IDEOGRAM_GENOME (
             ch_input_ideo
         )
 
@@ -107,22 +107,22 @@ workflow GENOME_ONLY {
             )
             ch_orthofinder = ORTHOFINDERV2.out.orthofinder
         }
-        // Transform tsv to gff for ortho_seq_count module
-        BUSCO_TSV_TO_GFF (
+        // Transform tsv to gff for orthoseqcount module
+        BUSCO_TSVTOGFF (
             BUSCO_GENOME.out.busco_dir
         )
 
         //
-        // MODULE: Run ORTHO_SEQ_COUNT
+        // MODULE: Run ORTHOSEQCOUNT
         //
 
-        ORTHO_SEQ_COUNT (
+        ORTHOSEQCOUNT (
             ch_orthofinder.map { _meta, folder ->
                 file("${folder}/Orthogroups/Orthogroups.tsv")
             },
-            BUSCO_TSV_TO_GFF.out.gff.map { _meta, gff -> gff }.collect()
+            BUSCO_TSVTOGFF.out.gff.map { _meta, gff -> gff }.collect()
         )
-        //ch_tree_data = ch_tree_data.mix(ORTHO_SEQ_COUNT.out.species_summary)
+        //ch_tree_data = ch_tree_data.mix(ORTHOSEQCOUNT.out.species_summary)
     }
 
     emit:
@@ -130,7 +130,7 @@ workflow GENOME_ONLY {
     tree_data               = !val_skip_busco ? ch_tree_data.flatten().collect().map { files -> files.toSorted { a, b -> a.name <=> b.name } } : channel.empty() // sort for deterministic behaviour
     quast_results           = QUAST.out.results                   // channel: [ val(meta), [tsv] ]
     busco_short_summaries   = !val_skip_busco ? BUSCO_GENOME.out.short_summaries_txt : channel.empty() // channel: [ val(meta), [txt] ]
-    buscos_per_seqs         = !val_skip_busco ? GENOMEBUSCOIDEOGRAM.out.busco_mappings.collect { _meta, table -> table}.map { tables -> tables.toSorted { a, b -> a.name <=> b.name } } : channel.empty() // channel: [ csv ]
+    buscos_per_seqs         = !val_skip_busco ? IDEOGRAM_GENOME.out.busco_mappings.collect { _meta, table -> table}.map { tables -> tables.toSorted { a, b -> a.name <=> b.name } } : channel.empty() // channel: [ csv ]
     busco_batch_summaries   = !val_skip_busco ? GAWK.out.output : channel.empty()                     // channel: [ val(meta), path(tsv) ] — species-named batch summaries
     quast_tsv               = QUAST.out.tsv                       // channel: [ val(meta), path(tsv) ]
 
