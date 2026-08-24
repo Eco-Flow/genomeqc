@@ -144,6 +144,11 @@ We thank the following people for their extensive assistance in the development 
 - [Stephen Turner](https://github.com/stephenturner/) ([Colossal Biosciences](https://colossal.com/))
 - [Felipe Perez Cobos](https://github.com/fperezcobos) ([Institute of Agrifood Research and Technology](https://www.irta.cat/en/))
 - [Simon Murray](https://github.com/SimonDMurray) ([Nextflow Ambassador](https://www.nextflow.io/our_ambassadors.html))
+- [Jacques Dainat](https://github.com/Juke34) (IRD)
+- [Famke Bäuerle](https://github.com/famosab) (University of Tuebingen)
+- [Matthias Hörtenhuber](https://github.com/mashehu) (SciLifeLab Data Centre)
+- [Sébastien Guizard](https://github.com/sguizard) (The Roslin Institute)
+- [Vicbeg](https://github.com/Vicbeg)
 
 ## Contributions and Support
 
