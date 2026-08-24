@@ -153,7 +153,7 @@ For further information or help, don't hesitate to get in touch on the [Slack `#
 
 ## Citations
 
-If you use nf-core/genomeqc for your analysis, please cite it using the following doi: https://doi.org/10.48546/WORKFLOWHUB.WORKFLOW.2181.1, until the paper is accepted in a peer reviwed journal.
+If you use nf-core/genomeqc for your analysis, please cite our preprint: https://doi.org/10.64898/2026.08.20.745971, until the paper is accepted in a peer reviewed journal.
 
 An extensive list of references for the tools used by the pipeline can be found in the [`CITATIONS.md`](CITATIONS.md) file.
 
