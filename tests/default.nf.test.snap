@@ -23,9 +23,6 @@
                 "BUSCO_SEQS_GENOME_ANNO": {
                     "python": "3.13.5"
                 },
-                "REPORT_EXCEL": {
-                    "python": "3.9.5"
-                },
                 "FAMDBPYEMBL": {
                     "repeatmasker": "4.2.2"
                 },
@@ -47,15 +44,12 @@
                     "genomicranges": "1.54.1",
                     "r_base": "4.3.3"
                 },
-                "IDEOGRAM_GENOMEANNOTATION": {
-                    "r_base": "4.4.1",
-                    "r_rideogram": "0.2.2"
-                },
                 "GFFREAD": {
                     "gffread": "0.12.7"
                 },
-                "REPORT_HTML": {
-                    "python": "3.9.5"
+                "IDEOGRAM_GENOMEANNOTATION": {
+                    "r_base": "4.4.1",
+                    "r_rideogram": "0.2.2"
                 },
                 "MMSEQS_EASYLINCLUST": {
                     "mmseqs": "18.8cc5c"
@@ -73,9 +67,13 @@
                 "REPEATMASKER_DOWNLOADDB": {
                     "<curl>": "7.80.0"
                 },
-                "SHINY_APP_GENOME_ANNO": {
-                    
+                "REPORT_EXCEL": {
+                    "python": "3.9.5"
                 },
+                "REPORT_HTML": {
+                    "python": "3.9.5"
+                },
+                "SHINY_APP_GENOME_ANNO": {},
                 "SORT_BY_LENGTH": {
                     "seqkit": "2.13.0"
                 },

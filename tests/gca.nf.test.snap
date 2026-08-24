@@ -11,9 +11,6 @@
                 "BUSCO_SEQS_GENOME": {
                     "python": "3.13.5"
                 },
-                "REPORT_EXCEL": {
-                    "python": "3.9.5"
-                },
                 "FILTER_BY_LENGTH": {
                     "seqkit": "2.13.0"
                 },
@@ -23,9 +20,6 @@
                 "IDEOGRAM_GENOME": {
                     "r_base": "4.4.1",
                     "r_rideogram": "0.2.2"
-                },
-                "REPORT_HTML": {
-                    "python": "3.9.5"
                 },
                 "NCBIGENOMEDOWNLOAD": {
                     "ncbigenomedownload": "0.3.3"
@@ -39,6 +33,12 @@
                 },
                 "QUAST": {
                     "quast": "5.3.0"
+                },
+                "REPORT_EXCEL": {
+                    "python": "3.9.5"
+                },
+                "REPORT_HTML": {
+                    "python": "3.9.5"
                 },
                 "SHINY_APP_GENOME": {},
                 "SORT_BY_LENGTH": {
