@@ -20,13 +20,12 @@ process SHINYAPP {
     tuple val("${task.process}"), val("cat"), eval("cat --version 2>&1 | head -n 1 | sed 's/^.*coreutils) //; s/ .*\$//'"), emit: versions_shiny, topic: versions
 
     script:
-    //def args   = task.ext.args ?: ''
-    def prefix                    = task.ext.prefix ?: "${meta.id}"
     def resolved_container_engine = container_engine ?: 'docker'
     // Fully qualify the registry: this is a plain `docker run`, so (unlike the
     // Nextflow-managed processes) it does not get the docker.registry='quay.io'
     // prefix and would otherwise resolve to Docker Hub, where the image is not published.
     def docker_url                = 'community.wave.seqera.io/library/python_pandas_r-base_bioconductor-ggtreeextra_pruned:5327fed29a6ac09f'
+
     """
     # Package the QC tables and tree into a launchable Shiny app container script
     mkdir app

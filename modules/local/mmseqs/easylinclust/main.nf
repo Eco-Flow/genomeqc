@@ -20,6 +20,7 @@ process MMSEQS_EASYLINCLUST {
     script:
     def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
+
     """
     # Cluster sequences with MMseqs2 easy-linclust and keep one representative per cluster
     mmseqs \\
@@ -33,6 +34,7 @@ process MMSEQS_EASYLINCLUST {
 
     stub:
     def prefix = task.ext.prefix ?: "${meta.id}"
+
     """
     touch ${prefix}_rep_seq.fasta
     touch ${prefix}_all_seqs.fasta

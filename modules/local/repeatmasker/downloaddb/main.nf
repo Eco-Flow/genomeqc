@@ -37,6 +37,7 @@ process REPEATMASKER_DOWNLOADDB {
     stub:
     def filename   = db_url.tokenize('/')[-1]
     def out_gunzip = filename.replaceAll(/\.gz$/, '')
+
     """
     touch ${out_gunzip}
     """

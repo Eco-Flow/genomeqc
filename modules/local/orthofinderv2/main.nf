@@ -41,12 +41,9 @@ process ORTHOFINDERV2 {
     """
 
     stub:
-    def args = task.ext.args ?: ''
     prefix = task.ext.prefix ?: "${meta.id}"
 
     """
-    echo $args
-
     mkdir -p    $prefix/Comparative_Genomics_Statistics
     mkdir       $prefix/Gene_Duplication_Events
     mkdir       $prefix/Gene_Trees

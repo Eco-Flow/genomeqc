@@ -39,6 +39,7 @@ process REPORT_HTML {
     def tiara_arg        = tiara_reports     ? "--tiara_reports tiara/*"            : ""
     def busco_seqs_arg   = busco_seqs_table  ? "--busco_seqs_table busco_seqs/*"    : ""
     def repeatmasker_arg = repeatmasker_tbls ? "--repeatmasker_tbls repeatmasker/*" : ""
+
     """
     # Build a self-contained HTML QC report from the available per-tool tables
     generate_report.py \\

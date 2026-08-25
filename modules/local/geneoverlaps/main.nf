@@ -30,8 +30,6 @@ process GENEOVERLAPS {
     def prefix = task.ext.prefix ?: "${meta.id}"
 
     """
-    echo $args
-
     touch ${prefix}.summary.tsv
     touch ${prefix}.counts.tsv
     """
