@@ -225,7 +225,9 @@ The pipeline supports two optional methods for transposable element (TE) annotat
 
 #### `--te hite`
 
-Runs [HiTE](https://github.com/BioinformaticsToolsmith/HiTE), a fast alignment-free TE identification and masking tool. It is the recommended option for quick runs or plant genomes.
+Runs [HiTE](https://github.com/BioinformaticsToolsmith/HiTE), a fast alignment-free TE identification and masking tool.
+
+> HiTE does not support `-profile conda`/`-profile mamba` - use `-profile docker`, `-profile singularity`, or `-profile podman` instead.
 
 ```bash
 nextflow run nf-core/genomeqc \
@@ -280,7 +282,7 @@ By default, the pipeline downloads partition `0` of the DFAM full database. To d
            'https://www.dfam.org/releases/current/families/FamDB/dfam39_full.1.h5.gz']"
 ```
 
-If you already have DFAM h5 partition files on disk, use `--famdb_library` to point at them. The download step is skipped automatically.
+If you already have DFAM h5 partition files on disk (highly recommended), use `--famdb_library` to point at them. The download step is skipped automatically.
 
 `--famdb_library` expects **decompressed `.h5` files** — `.h5.gz` files must be extracted first. Only decompress the partitions relevant to your lineage; decompressing the entire database is unnecessary and expensive (each partition is 10–30 GB uncompressed).
 

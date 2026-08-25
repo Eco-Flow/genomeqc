@@ -290,7 +290,7 @@
             "properties": {
                 "te": {
                     "type": "string",
-                    "description": "TE annotation method to run. Use 'hite' for HiTE or 'repeatmasker' for the full RepeatMasker pipeline. Omit to skip TE annotation.",
+                    "description": "TE annotation method to run. Use 'hite' for HiTE or 'repeatmasker' for the full RepeatMasker pipeline. Omit to skip TE annotation. 'hite' does not support -profile conda/mamba  - use `-profile docker`, `-profile singularity`, or `-profile podman` instead.",
                     "enum": ["hite", "repeatmasker"],
                     "fa_icon": "fas fa-dna"
                 },
