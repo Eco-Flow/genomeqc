@@ -38,6 +38,7 @@ process REPORT_EXCEL {
     def tiara_arg      = tiara_reports       ? "--tiara_reports tiara/*"             : ""
     def busco_seqs_arg = busco_seqs_table    ? "--busco_seqs_table busco_seqs/*"     : ""
     def repeatmasker_arg = repeatmasker_tbls ? "--repeatmasker_tbls repeatmasker/*"  : ""
+
     """
     # Compile all per-tool QC tables into a single multi-sheet Excel workbook
     generate_excel.py \\
@@ -55,6 +56,7 @@ process REPORT_EXCEL {
     """
 
     stub:
+
     """
     touch genomeqc_tables.xlsx
     """

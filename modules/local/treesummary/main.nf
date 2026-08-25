@@ -36,7 +36,6 @@ process TREESUMMARY {
 
     script:
     def args = task.ext.args     ?: ''
-    def prefix = task.ext.prefix ?: "${meta.id}"
     def counts_command = meta.mode == 'genome_anno' ? "gene_overlaps_table.py *.counts.tsv gene_stats.tsv --include-same-strand --include-opposite-strand" : "touch gene_stats.tsv" // Genome only option needs a gene_stats file, even if it's empty. Should check for a more elegant solution
     def ortho_file = file("species_ortho_seq_count.tsv") ? "--ortho_file species_ortho_seq_count.tsv" : ''
     def geno_busco_combined = geno_busco ? '''{ head -qn 1 *-genome-busco.batch_summary_modified.txt | head -n 1; tail -q -n 1 *-genome-busco.batch_summary_modified.txt | sed -E 's/\t+/\t/g' | sed 's/\t$//g'; } > Busco_combined_geno.tsv''' : ''
@@ -103,12 +102,9 @@ process TREESUMMARY {
     """
 
     stub:
-    def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
 
     """
-    echo $args
-
     touch tree_plot.pdf
     touch tree_plot.svg
     touch tree.nw
