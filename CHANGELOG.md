@@ -51,4 +51,3 @@ First release of nf-core/genomeqc, which compares the quality of multiple genome
 ### `Dependencies`
 
 ### `Deprecated`
-
