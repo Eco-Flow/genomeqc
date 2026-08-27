@@ -219,7 +219,7 @@ This directory is only saved if `--save_validated_annotation` is set.
 <details markdown="1">
 <summary>Output files</summary>
 
-- `agat/<species_name>/`
+- `agat/<species_name>/stats/`
   - `<species_name>.stats.txt`: Gene annotation statistics report.
 
 </details>

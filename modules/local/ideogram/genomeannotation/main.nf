@@ -41,9 +41,12 @@ process IDEOGRAM_GENOMEANNOTATION {
     """
 
     stub:
+    def args   = task.ext.args ?: ''
     def prefix = "${meta.id}"
 
     """
+    echo $args
+
     touch ${prefix}.svg
     touch ${prefix}.png
     touch ${prefix}.csv

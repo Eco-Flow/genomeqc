@@ -102,9 +102,12 @@ process TREESUMMARY {
     """
 
     stub:
+    def args   = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
 
     """
+    echo $args
+
     touch tree_plot.pdf
     touch tree_plot.svg
     touch tree.nw
