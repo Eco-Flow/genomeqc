@@ -82,14 +82,14 @@ assembly_10,GCA_000000010.1,,,,1324
 
 As for now, the pipeline doesn't support SRA accession for **Merqury**. We will consider this option the future.
 
-| Column    | Description                                                                                                                         |
-| --------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Column     | Description                                                                                                                         |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | `assembly` | Assembly name or custom sample name. Spaces in sample names are automatically converted to underscores (`_`).                       |
-| `ncbi`    | ncbi acession. Can be GenBank (starts with `GCA`) or RefSeq (starts with `GCF`).                                                    |
-| `fasta`   | Full path to the genome FASTA file. Can be compressed or uncompressed.                                                              |
-| `gff`     | Full path to the genome annotation GFF/GTF file. Can be compressed or uncompressed.                                                 |
-| `fastq`   | Full path to FASTQ file for long reads (e.g. PacBio or ONT). File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz". |
-| `taxid`   | Species taxid for decontamination screening, must be a valid NCBI taxid (numeric string without spaces).                            |
+| `ncbi`     | ncbi acession. Can be GenBank (starts with `GCA`) or RefSeq (starts with `GCF`).                                                    |
+| `fasta`    | Full path to the genome FASTA file. Can be compressed or uncompressed.                                                              |
+| `gff`      | Full path to the genome annotation GFF/GTF file. Can be compressed or uncompressed.                                                 |
+| `fastq`    | Full path to FASTQ file for long reads (e.g. PacBio or ONT). File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz". |
+| `taxid`    | Species taxid for decontamination screening, must be a valid NCBI taxid (numeric string without spaces).                            |
 
 An [example samplesheet](./assets/samplesheet.csv) is provided with the pipeline.
 
