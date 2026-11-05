@@ -19,6 +19,7 @@ process REPORT_HTML {
     path tiara_reports,      stageAs: "tiara/*"         // Tiara classification files (optional)
     path busco_seqs_table,   stageAs: "busco_seqs/*"    // ortho_seqs.py output (optional)
     path repeatmasker_tbls,  stageAs: "repeatmasker/*"  // RepeatMasker *.tbl files (optional)
+    tuple path(ideogram_svgs, stageAs: "ideogram/ideogram*/*"), val(ideogram_labels) // BUSCO ideogram SVGs and a display label for each, in the same order (optional)
 
     output:
     path "genomeqc_report.html", emit: report
@@ -39,6 +40,11 @@ process REPORT_HTML {
     def tiara_arg        = tiara_reports     ? "--tiara_reports tiara/*"            : ""
     def busco_seqs_arg   = busco_seqs_table  ? "--busco_seqs_table busco_seqs/*"    : ""
     def repeatmasker_arg = repeatmasker_tbls ? "--repeatmasker_tbls repeatmasker/*" : ""
+    // Ideogram SVGs are listed explicitly (not globbed) so they stay paired with their labels
+    def ideogram_list    = ideogram_svgs instanceof List ? ideogram_svgs : [ ideogram_svgs ]
+    def ideogram_arg     = ideogram_svgs
+        ? "--ideogram_svgs ${ideogram_list.join(' ')} --ideogram_labels " + ideogram_labels.collect { label -> "'" + label.toString().replace("'", "'\\''") + "'" }.join(' ')
+        : ""
 
     """
     # Build a self-contained HTML QC report from the available per-tool tables
@@ -54,6 +60,7 @@ process REPORT_HTML {
         ${tiara_arg} \\
         ${busco_seqs_arg} \\
         ${repeatmasker_arg} \\
+        ${ideogram_arg} \\
         --output genomeqc_report.html
     """
 

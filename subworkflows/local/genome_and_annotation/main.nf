@@ -264,6 +264,7 @@ workflow GENOME_AND_ANNOTATION {
     quast_tsv                  = QUAST.out.tsv                       // channel: [ val(meta), path(tsv) ]
     agat_stats                 = AGAT_SPSTATISTICS.out.stats_txt     // channel: [ val(meta), path(txt) ]
     ortho_seq_count            = ORTHOSEQCOUNT.out.species_summary // channel: [ path(tsv) ]
+    ideogram_svg               = !val_skip_busco ? IDEOGRAM_GENOMEANNOTATION.out.svg : channel.empty() // channel: [ val(meta), path(svg) ], meta has id and lineage
     buscos_per_seqs            = !val_skip_busco ? IDEOGRAM_GENOMEANNOTATION.out.busco_mappings.collect { _meta, table -> table}.map { tables -> tables.toSorted { a, b -> a.name <=> b.name } } : channel.empty() // channel: [ val(meta), [csv] ]
     versions                   = ch_versions                   // channel: [ versions.yml ]
 }

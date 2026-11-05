@@ -67,6 +67,13 @@ output:
         empty channel if BUSCO was skipped
         Structure: [ path(csv) ]
       pattern: "*.csv"
+  - ideogram_svg:
+      type: file
+      description: |
+        BUSCO ideogram (genome BUSCO gene locations on each sequence) per
+        assembly; empty channel if BUSCO was skipped
+        Structure: [ val(meta), path(svg) ]
+      pattern: "*.svg"
   - busco_batch_summaries:
       type: file
       description: |

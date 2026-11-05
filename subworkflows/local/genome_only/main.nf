@@ -134,6 +134,7 @@ workflow GENOME_ONLY {
     busco_short_summaries   = !val_skip_busco ? BUSCO_GENOME.out.short_summaries_txt : channel.empty() // channel: [ val(meta), [txt] ]
     buscos_per_seqs         = !val_skip_busco ? IDEOGRAM_GENOME.out.busco_mappings.collect { _meta, table -> table}.map { tables -> tables.toSorted { a, b -> a.name <=> b.name } } : channel.empty() // channel: [ csv ]
     busco_batch_summaries   = !val_skip_busco ? GAWK.out.output : channel.empty()                     // channel: [ val(meta), path(tsv) ] — species-named batch summaries
+    ideogram_svg            = !val_skip_busco ? IDEOGRAM_GENOME.out.svg : channel.empty()             // channel: [ val(meta), path(svg) ]
     quast_tsv               = QUAST.out.tsv                       // channel: [ val(meta), path(tsv) ]
 
 }

@@ -5,9 +5,11 @@
 """Generate a self-contained HTML quality report for GenomeQC pipeline results."""
 
 import argparse
+import base64
 import re
 import sys
 from datetime import datetime
+from html import escape
 from pathlib import Path
 
 
@@ -298,6 +300,161 @@ def parse_repeatmasker_tbls(paths):
         species = Path(p).stem
         result[species] = parse_repeatmasker_tbl(p)
     return result
+
+
+# ── BUSCO ideogram (RIdeogram SVG) ────────────────────────────────────────────
+
+_NUM_RE  = r"-?\d+(?:\.\d+)?(?:[eE][-+]?\d+)?"
+_ATTR_RE = re.compile(r'([\w:-]+)="([^"]*)"')
+
+
+def _svg_attrs(tag):
+    return dict(_ATTR_RE.findall(tag))
+
+
+def _path_extent(d):
+    """
+    Return [(x, y), ...] extreme points of an absolute M/L/A/Z SVG path, or
+    None if it uses commands RIdeogram doesn't emit (relative or curves).
+
+    A malformed segment (e.g. RIdeogram's "M70.8, L85.3, Z" placeholders,
+    which have no y values) ends the path there, as browsers stop rendering a
+    path at its first error.
+    """
+    tokens = re.findall(r"[A-Za-z]|" + _NUM_RE, d)
+    points, cmd, nums = [], None, []
+
+    def flush():
+        """Add this segment's points; return False if the path ends here."""
+        if cmd in ("M", "L"):
+            points.extend(zip(nums[0:len(nums) - len(nums) % 2:2], nums[1::2]))
+            return len(nums) % 2 == 0 and len(nums) > 0
+        if cmd == "A":
+            for i in range(0, len(nums) - len(nums) % 7, 7):
+                rx, ry, x, y = nums[i], nums[i + 1], nums[i + 5], nums[i + 6]
+                points.extend([(x - rx, y - ry), (x + rx, y + ry)])  # arc can bulge by its radius
+            return len(nums) % 7 == 0 and len(nums) > 0
+        return True  # start of path, or Z
+
+    for tok in tokens:
+        if tok.isalpha():
+            if tok not in "MLAZ":
+                return None
+            if not flush():
+                return points
+            cmd, nums = tok, []
+        else:
+            nums.append(float(tok))
+    flush()
+    return points
+
+
+def crop_ideogram_svg(svg_text, pad=10):
+    """
+    Crop a RIdeogram SVG to its drawing.
+
+    RIdeogram draws onto a fixed A4 page (width/height, no viewBox), leaving
+    most of the page blank. This computes the bounding box of every circle,
+    line, path and text element, sets a viewBox around it, and rounds
+    coordinates to 2 dp to roughly halve the file size. If the SVG contains
+    anything unexpected, the whole page is kept (with a viewBox so it still
+    scales) rather than risk clipping part of the plot.
+    """
+    m = re.search(r"<svg\b[^>]*>", svg_text)
+    if not m:
+        return None
+    root = _svg_attrs(m.group(0))
+    try:
+        page_w = float(root["width"])
+        page_h = float(root["height"])
+    except (KeyError, ValueError):
+        return None
+
+    xs, ys = [], []
+    try:
+        for tag in re.findall(r"<circle\b[^>]*>", svg_text):
+            a = _svg_attrs(tag)
+            cx, cy, r = float(a["cx"]), float(a["cy"]), float(a.get("r", 0))
+            xs += [cx - r, cx + r]
+            ys += [cy - r, cy + r]
+        for tag in re.findall(r"<line\b[^>]*>", svg_text):
+            a = _svg_attrs(tag)
+            xs += [float(a["x1"]), float(a["x2"])]
+            ys += [float(a["y1"]), float(a["y2"])]
+        for tag, label in re.findall(r"(<text\b[^>]*>)([^<]*)</text>", svg_text):
+            a = _svg_attrs(tag)
+            x, y, fs = float(a["x"]), float(a["y"]), float(a.get("font-size", 12))
+            xs += [x, x + 0.6 * fs * len(label.strip())]  # start-anchored text, ~0.6em per char
+            ys += [y - fs, y + 0.3 * fs]                  # y is the baseline
+        for tag in re.findall(r"<path\b[^>]*>", svg_text):
+            pts = _path_extent(_svg_attrs(tag).get("d", ""))
+            if pts is None:
+                raise ValueError("unsupported path")
+            xs += [p[0] for p in pts]
+            ys += [p[1] for p in pts]
+    except (KeyError, ValueError):
+        xs, ys = [], []
+
+    if xs and ys:
+        x0 = max(min(xs) - pad, 0.0)
+        y0 = max(min(ys) - pad, 0.0)
+        x1 = min(max(xs) + pad, page_w)
+        y1 = min(max(ys) + pad, page_h)
+    else:
+        x0, y0, x1, y1 = 0.0, 0.0, page_w, page_h
+    w, h = x1 - x0, y1 - y0
+
+    new_root = (
+        f'<svg xmlns="http://www.w3.org/2000/svg" '
+        f'viewBox="{x0:.2f} {y0:.2f} {w:.2f} {h:.2f}" width="{w:.2f}" height="{h:.2f}">'
+    )
+    # Trim long decimals inside tags only, so <text> labels (e.g. sequence
+    # names such as "scaffold_1.123") are never altered
+    body = re.sub(
+        r"<[^>]*>",
+        lambda t: re.sub(r"(\d\.\d{2})\d+", r"\1", t.group(0)),
+        svg_text[m.end():],
+    )
+    return new_root + body
+
+
+def parse_ideograms(svg_paths, labels):
+    """Return [(label, cropped_svg_text)] sorted by label; unreadable SVGs are skipped."""
+    items = []
+    for path, label in zip(svg_paths, labels):
+        try:
+            svg = crop_ideogram_svg(Path(path).read_text())
+        except OSError as exc:
+            print(f"WARNING: skipping ideogram {path}: {exc}", file=sys.stderr)
+            continue
+        if svg is None:
+            print(f"WARNING: skipping ideogram {path}: not an SVG", file=sys.stderr)
+            continue
+        items.append((label, svg))
+    return sorted(items, key=lambda item: item[0])
+
+
+def ideogram_panel_html(ideograms):
+    """Render a species/lineage selector and one embedded ideogram per entry."""
+    options = "\n".join(
+        f'<option value="{i}">{escape(label)}</option>' for i, (label, _svg) in enumerate(ideograms)
+    )
+    figures = []
+    for i, (label, svg) in enumerate(ideograms):
+        data = base64.b64encode(svg.encode()).decode()
+        display = "" if i == 0 else ' style="display:none"'
+        figures.append(
+            f'<div id="ideo-panel-{i}" class="ideo-panel"{display}>'
+            f'<img src="data:image/svg+xml;base64,{data}" alt="BUSCO ideogram: {escape(label, quote=True)}" '
+            f'style="width:100%;height:auto;max-height:85vh;object-fit:contain"></div>'
+        )
+    return (
+        f'<div style="margin-bottom:14px">'
+        f'<label for="ideo-select" style="font-size:13px;color:#555;margin-right:6px">Assembly:</label>'
+        f'<select id="ideo-select" onchange="ideoShow(this.value)">{options}</select>'
+        f'</div>'
+        f'{"".join(figures)}'
+    )
 
 
 def parse_quast_tsvs(paths):
@@ -1034,6 +1191,12 @@ function rmShowSpecies(spId) {
   });
 }
 
+function ideoShow(idx) {
+  document.querySelectorAll('.ideo-panel').forEach(function(p) {
+    p.style.display = (p.id === 'ideo-panel-' + idx) ? '' : 'none';
+  });
+}
+
 function agatShowFeature(key) {
   document.querySelectorAll('.agat-feature-panel').forEach(function(p) {
     p.style.display = (p.id === 'agat-feature-' + key) ? '' : 'none';
@@ -1074,7 +1237,7 @@ def build_html(busco_rows, tidk_data, tidk_apriori_data=None,
                fcsgx_data=None, fcsadp_data=None, tiara_data=None,
                busco_seqs_data=None, busco_seqs_col=None,
                busco_prot_rows=None, repeatmasker_data=None, agat_data=None,
-               quast_data=None):
+               quast_data=None, ideograms=None):
     tabs = []
     panels = []
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
@@ -1118,6 +1281,22 @@ def build_html(busco_rows, tidk_data, tidk_apriori_data=None,
     if busco_prot_rows:
         tabs.append(("busco_prot", "BUSCO (Proteins)"))
         panels.append(busco_panel_html("busco_prot", busco_prot_rows, "Proteins"))
+
+    # ── BUSCO ideogram tab ────────────────────────────────────────────────────
+    # Genome-only assemblies are plotted from genome BUSCO; annotated
+    # assemblies from protein BUSCO mapped back onto the genome via the GFF.
+    if ideograms:
+        tabs.append(("ideogram", "BUSCO ideogram"))
+        panels.append(
+            f'<div id="ideogram" class="tab-panel">'
+            f'<div class="card">'
+            f'<h2>BUSCO ideogram</h2>'
+            f'<p style="margin-bottom:14px;font-size:12px;color:#888">'
+            f'Location of complete, duplicated and fragmented BUSCO genes on each sequence '
+            f'that carries at least one BUSCO.</p>'
+            f'{ideogram_panel_html(ideograms)}'
+            f'</div></div>'
+        )
 
     # ── QUAST tab ─────────────────────────────────────────────────────────────
     if quast_data and quast_data[0]:
@@ -1372,6 +1551,16 @@ def main():
         help="QUAST report.tsv files (one per species, omit to hide tab)",
     )
     parser.add_argument(
+        "--ideogram_svgs", nargs="*", default=[],
+        metavar="SVG",
+        help="BUSCO ideogram SVGs from RIdeogram (omit to hide tab)",
+    )
+    parser.add_argument(
+        "--ideogram_labels", nargs="*", default=[],
+        metavar="LABEL",
+        help="Display label for each --ideogram_svgs file, in the same order",
+    )
+    parser.add_argument(
         "--output", default="genomeqc_report.html",
         metavar="HTML",
         help="Output HTML file path (default: genomeqc_report.html)",
@@ -1399,14 +1588,19 @@ def main():
 
     quast_data = parse_quast_tsvs(args.quast_tsvs) if args.quast_tsvs else None
 
-    if not busco_rows and not busco_prot_rows and not tidk_data and not tidk_apriori_data and not agat_data and not quast_data:
+    if len(args.ideogram_labels) != len(args.ideogram_svgs):
+        parser.error(f"got {len(args.ideogram_svgs)} --ideogram_svgs but "
+                     f"{len(args.ideogram_labels)} --ideogram_labels; they must pair up 1:1")
+    ideograms = parse_ideograms(args.ideogram_svgs, args.ideogram_labels) if args.ideogram_svgs else None
+
+    if not busco_rows and not busco_prot_rows and not tidk_data and not tidk_apriori_data and not agat_data and not quast_data and not ideograms:
         print("WARNING: no input data found; generating empty report.", file=sys.stderr)
 
     html = build_html(busco_rows, tidk_data, tidk_apriori_data,
                       fcsgx_data=fcsgx_data, fcsadp_data=fcsadp_data, tiara_data=tiara_data,
                       busco_seqs_data=busco_seqs_data, busco_seqs_col=busco_seqs_col,
                       busco_prot_rows=busco_prot_rows, repeatmasker_data=repeatmasker_data,
-                      agat_data=agat_data, quast_data=quast_data)
+                      agat_data=agat_data, quast_data=quast_data, ideograms=ideograms)
 
     Path(args.output).write_text(html)
     print(f"Report written to {args.output}", file=sys.stderr)

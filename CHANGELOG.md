@@ -3,6 +3,12 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v1.0.2dev - [unreleased]
+
+### `Added`
+
+- Added a BUSCO ideogram tab to the HTML report ([#308](https://github.com/nf-core/genomeqc/issues/308)), with an assembly selector. It shows the genome BUSCO ideogram for genome only assemblies and the protein BUSCO ideogram (one per BUSCO lineage) for assemblies with an annotation, cropped from RIdeogram's A4 page to the plotted area.
+
 ## v1.0.1 - Gray Fox - [16 September 2026]
 
 ### `Fixed`

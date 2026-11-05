@@ -68,6 +68,16 @@ input:
       description: RepeatMasker *.tbl repeat-composition summary files (optional)
       pattern: "*.tbl"
       ontologies: []
+  - - ideogram_svgs:
+        type: file
+        description: BUSCO ideogram SVGs from RIdeogram (optional); shown in a
+          "BUSCO ideogram" tab, cropped to the plotted area
+        pattern: "*.svg"
+        ontologies: []
+    - ideogram_labels:
+        type: list
+        description: Display label for each SVG in ideogram_svgs, in the same
+          order (e.g. "speciesA (genome BUSCO)")
 output:
   report:
     - "genomeqc_report.html":

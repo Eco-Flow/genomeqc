@@ -1,4 +1,20 @@
 {
+    "report_html - busco ideograms": {
+        "content": [
+            [
+                [
+                    "REPORT_HTML",
+                    "python",
+                    "3.9.5"
+                ]
+            ]
+        ],
+        "timestamp": "2026-11-05T12:09:14.084774",
+        "meta": {
+            "nf-test": "0.9.5",
+            "nextflow": "26.04.6"
+        }
+    },
     "report_html - no optional inputs - stub": {
         "content": [
             {
