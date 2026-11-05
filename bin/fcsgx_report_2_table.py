@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
-# Written by Chris Wyatt with AI assistance, released under the MIT license.
+# Written by Chris Wyatt (@chriswyatt1) with AI assistance, released under the MIT license.
+# Source: nf-core/genomeqc (https://github.com/nf-core/genomeqc), first written for issue #265
+# and updated for issue #307 to measure contamination from the report rows rather than agg-cvg.
 # Parses FCS-GX genome reports into a combined TSV for tree-summary pie/ring plotting
 """
 Parse one or more NCBI FCS-GX `*.fcs_gx_report.txt` genome reports and produce
