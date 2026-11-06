@@ -54,6 +54,8 @@ It generates a report with assembly sequence classifications, contamination summ
 - `decontamination/fcs-gx`
   - `<assembly>_<taxid>.fcs_gx_report.txt`: Summary report with sequence classification and cleaning recommendations.
   - `<assembly>_<taxid>.taxonomy.rpt`: Detailed breakdown of sequence classification.
+- `fcsgx`
+  - `fcs_table.tsv`: Per-species contamination summary used in the tree summary plot, with columns `species`, `contaminant_pct`, `non_contaminant_pct`, `contaminant_bp` and `genome_bp`. `contaminant_bp` is the total length of the contaminant ranges in the FCS-GX report with an `EXCLUDE`, `TRIM` or `FIX` action (the ranges removed or masked by **FCS-GX clean genome**), and `contaminant_pct` is that as a percentage of the total genome length (`genome_bp`).
 
 </details>
 

@@ -1,6 +1,7 @@
 name: "table_fcsgx"
 description: Parses NCBI FCS-GX genome reports into a combined per-species
-  contamination-summary TSV
+  contamination-summary TSV, reporting contaminant bases as a percentage of
+  total genome length
 keywords:
   - fcs-gx
   - decontamination
@@ -10,7 +11,10 @@ tools:
   - "fcsgx_report_2_table":
       description: "In-house parser that converts one or more NCBI FCS-GX
         *.fcs_gx_report.txt genome reports into a combined TSV suitable for
-        pie-chart/ring plotting in the tree summary."
+        pie-chart/ring plotting in the tree summary. Contaminant bases are
+        summed from the report rows (EXCLUDE, TRIM and FIX actions by default,
+        configurable with ext.args '--actions') and divided by the total
+        length of the matching genome FASTA."
       homepage: "https://github.com/nf-core/genomeqc"
       documentation: "https://github.com/nf-core/genomeqc"
       licence:
@@ -27,6 +31,14 @@ input:
         description: One or more FCS-GX *.fcs_gx_report.txt genome reports
         pattern: "*.fcs_gx_report.txt"
         ontologies: []
+    - fastas:
+        type: file
+        description: Genome FASTA files (optionally gzipped), one per report
+          and in the same order as reports - fastas[i] is the genome that
+          reports[i] was generated from
+        pattern: "*.{fa,fasta,fna,fa.gz,fasta.gz,fna.gz}"
+        ontologies:
+          - edam: http://edamontology.org/format_1929
 output:
   table:
     - - meta:
@@ -36,7 +48,9 @@ output:
             e.g. [ id:'test' ]
       - "*.tsv":
           type: file
-          description: Combined FCS-GX contamination-summary TSV
+          description: Combined FCS-GX contamination-summary TSV with columns
+            species, contaminant_pct, non_contaminant_pct, contaminant_bp and
+            genome_bp
           pattern: "*.tsv"
           ontologies:
             - edam: http://edamontology.org/format_3475

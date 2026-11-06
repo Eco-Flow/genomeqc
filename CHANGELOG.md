@@ -3,6 +3,12 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v1.0.2dev - [unreleased]
+
+### `Fixed`
+
+- Fixed the FCS-GX contamination percentage in the tree summary ([#307](https://github.com/nf-core/genomeqc/issues/307)). It was taken from `agg-cvg` in the FCS-GX report header, which is the fraction of the genome covered by hits to _any_ taxon in the GX database (including the organism's own division), so it was often very high for clean genomes. `TABLE_FCSGX` now sums the contaminant ranges in the report rows (`EXCLUDE`, `TRIM` and `FIX` actions, i.e. what `FCSGX_CLEANGENOME` removes or masks) and divides by the total length of the genome FASTA. The table also gains `contaminant_bp` and `genome_bp` columns.
+
 ## v1.0.1 - Gray Fox - [16 September 2026]
 
 ### `Fixed`
