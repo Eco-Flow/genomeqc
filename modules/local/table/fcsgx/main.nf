@@ -8,7 +8,7 @@ process TABLE_FCSGX {
         : 'quay.io/biocontainers/python:3.9--1'}"
 
     input:
-    tuple val(meta), path(reports)
+    tuple val(meta), path(reports), path(fastas, stageAs: "genomes/genome*/*") // fastas[i] is the genome for reports[i]
 
     output:
     tuple val(meta), path("*.tsv"), emit: table
@@ -16,12 +16,16 @@ process TABLE_FCSGX {
 
 
     script:
+    def args   = task.ext.args   ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
 
     """
-    # Parse FCS-GX genome reports into a combined contamination-summary TSV
+    # Parse FCS-GX genome reports into a combined contamination-summary TSV:
+    # contaminant bases from the report rows / total genome length from the FASTA
     fcsgx_report_2_table.py \\
-        $reports \\
+        --reports $reports \\
+        --fastas $fastas \\
+        $args \\
         -o ${prefix}.tsv
     """
 

@@ -123,12 +123,16 @@ workflow GENOMEQC {
 
         // Parse each species' FCS-GX report into a combined contamination-summary
         // table for the tree plot (this is only needed for the tree plot, which
-        // requires a single TSV table, same as the TE-composition table above)
+        // requires a single TSV table, same as the TE-composition table above).
+        // Each report is paired with its genome FASTA so contamination can be
+        // reported as contaminant bases / total genome length. Pairs are
+        // collected together so the reports and fastas lists stay in the same order.
         TABLE_FCSGX (
             DECONTAMINATION.out.fcs_gx_report
-                .map { _meta, f -> f }
-                .collect()
-                .map { f -> tuple([id:'fcs_table'], f) }
+                .join(ch_input_decon, by: 0)                    // [ meta, report, fasta ]
+                .map { _meta, report, fasta -> [ report, fasta ] }
+                .collect(flat: false)
+                .map { pairs -> tuple([id:'fcs_table'], pairs.collect { p -> p[0] }, pairs.collect { p -> p[1] }) }
         )
         ch_fcs_table = TABLE_FCSGX.out.table
     }
