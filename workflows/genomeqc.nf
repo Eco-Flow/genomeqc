@@ -313,6 +313,18 @@ workflow GENOMEQC {
                     | mix( GENOME_ONLY.out.quast_tsv.map { _meta, f -> f } )
                     | collect
 
+    // BUSCO ideograms: genome BUSCO for every assembly, plus protein BUSCO
+    // (placed on the genome via the annotation) for annotated ones. Each SVG is
+    // paired with a display label, and the pairs collected together so the
+    // svgs and labels lists stay in the same order.
+    ch_report_ideograms = GENOME_ONLY.out.ideogram_svg
+                        | mix( GENOME_AND_ANNOTATION.out.ideogram_svg_geno )
+                        | map { meta, svg -> [ "${meta.id} (genome BUSCO)", svg ] }
+                        | mix( GENOME_AND_ANNOTATION.out.ideogram_svg_prot.map { meta, svg -> [ "${meta.id} (protein BUSCO, ${meta.lineage})", svg ] } )
+                        | collect(flat: false)
+                        | map { pairs -> [ pairs.collect { p -> p[1] }, pairs.collect { p -> p[0].toString() } ] }
+                        | ifEmpty( [ [], [] ] )
+
     REPORT_HTML (
         ch_report_busco,
         ch_report_busco_prot,
@@ -324,7 +336,8 @@ workflow GENOMEQC {
         ch_fcsadp,
         ch_tiara,
         ch_busco_seqs_ga_file.ifEmpty([]),
-        ch_te_table_collect.ifEmpty([])
+        ch_te_table_collect.ifEmpty([]),
+        ch_report_ideograms
     )
 
     //

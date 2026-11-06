@@ -25,6 +25,7 @@ nextflow_process {
                 input[8] = []
                 input[9] = []
                 input[10] = []
+                input[11] = [ [], [] ]
                 """
             }
         }
@@ -33,6 +34,53 @@ nextflow_process {
             assertAll(
                 { assert process.success },
                 { assert path(process.out.report[0]).exists() },
+                { assert snapshot(process.out.versions_python).match() }
+            )
+        }
+    }
+
+    test("report_html - busco ideograms") {
+
+        when {
+            process {
+                """
+                input[0] = []
+                input[1] = []
+                input[2] = []
+                input[3] = []
+                input[4] = []
+                input[5] = []
+                input[6] = []
+                input[7] = []
+                input[8] = []
+                input[9] = []
+                input[10] = []
+                // The same file twice: also checks that same-named SVGs (one per
+                // BUSCO lineage in genome + annotation mode) don't collide when staged
+                input[11] = [
+                    [
+                        file("\${baseDir}/modules/local/report/html/tests/ideogram/speciesA.svg", checkIfExists: true),
+                        file("\${baseDir}/modules/local/report/html/tests/ideogram/speciesA.svg", checkIfExists: true)
+                    ],
+                    [ "speciesA (genome BUSCO)", "speciesA's (protein BUSCO, eukaryota)" ]
+                ]
+                """
+            }
+        }
+
+        then {
+            def html = path(process.out.report[0]).text
+            def svgs = (html =~ /data:image\/svg\+xml;base64,([^"]+)/).collect { match -> new String(match[1].decodeBase64()) }
+            assertAll(
+                { assert process.success },
+                { assert html.contains('data-tab="ideogram"') },
+                { assert html.contains('<option value="0">speciesA (genome BUSCO)</option>') },
+                { assert html.contains('<option value="1">speciesA&#x27;s (protein BUSCO, eukaryota)</option>') },
+                { assert svgs.size() == 2 },
+                // Cropped from RIdeogram's A4 page (744 x 1052) to the plotted area
+                { assert svgs.every { svg -> svg.startsWith('<svg xmlns="http://www.w3.org/2000/svg" viewBox="') } },
+                { assert svgs.every { svg -> !svg.contains('viewBox="0.00 0.00 744.09 1052.36"') } },
+                { assert svgs.every { svg -> svg.contains('>seq_00001</text>') } },
                 { assert snapshot(process.out.versions_python).match() }
             )
         }
@@ -56,6 +104,7 @@ nextflow_process {
                 input[8] = []
                 input[9] = []
                 input[10] = []
+                input[11] = [ [], [] ]
                 """
             }
         }

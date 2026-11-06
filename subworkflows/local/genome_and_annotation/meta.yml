@@ -99,6 +99,21 @@ output:
         Per-species summary of orthologous sequence mappings
         Structure: [ path(tsv) ]
       pattern: "*.tsv"
+  - ideogram_svg_geno:
+      type: file
+      description: |
+        BUSCO ideogram (genome BUSCO gene locations on each sequence) per
+        assembly; empty channel if BUSCO was skipped
+        Structure: [ val(meta), path(svg) ]
+      pattern: "*.svg"
+  - ideogram_svg_prot:
+      type: file
+      description: |
+        BUSCO ideogram (protein BUSCO gene locations, placed on the genome via
+        the annotation) per assembly and BUSCO lineage; empty channel if BUSCO
+        was skipped
+        Structure: [ val(meta), path(svg) ], where meta contains id and lineage
+      pattern: "*.svg"
   - buscos_per_seqs:
       type: file
       description: |
