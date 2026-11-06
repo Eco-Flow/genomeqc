@@ -278,10 +278,12 @@ It outputs a report with completness stats, a summarized table with these stats,
 - `busco/genome/<assembly_name>/stats/` (genome completeness) or `busco/protein/<assembly_name>/stats/` (annotation completeness, genome and annotation mode only)
   - `short_summary.specific.<busco_db>.<assembly_name>.txt`: Per-run BUSCO completeness report.
   - `<assembly_name>-<busco_db>-busco.batch_summary.txt`: Summarised completeness report.
-- `busco/genome/<assembly_name>/ideogram/` _(genome only mode)_
-  - `<assembly_name>_<lineage>.png`: Ideogram with the location of single-copy markers across sequences.
+- `busco/genome/<assembly_name>/ideogram/` _(both modes)_
+  - `<assembly_name>.png` / `<assembly_name>.svg`: Ideogram with the location of genome BUSCO single-copy markers across sequences.
+  - `<assembly_name>.csv`: Number of BUSCO markers per sequence.
 - `busco/protein/<assembly_name>/ideogram/` _(genome and annotation mode)_
-  - `<assembly_name>.png`: Ideogram with the location of single-copy markers across sequences.
+  - `<assembly_name>.png` / `<assembly_name>.svg`: Ideogram with the location of protein BUSCO single-copy markers, placed on the genome via the annotation.
+  - `<assembly_name>.csv`: Number of BUSCO markers per sequence.
 
 </details>
 
@@ -428,7 +430,7 @@ The app has two tabs, the **Plot Controls** tab to adjust the plot and remove/ad
 
 The pipeline summarises the results from the tools above into two reports: a HTML report and an Excel spreadsheet.
 
-The **HTML report** is a single-file report with one tab per tool. The BUSCO, BUSCO ideogram, Assembly stats (Quast), Telomeres, FCS-GX, FCS-Adaptor, Tiara and Annotation stats (AGAT) tabs are only shown if the corresponding tool was run. The BUSCO ideogram tab has an assembly selector and shows the same ideograms as `busco/*/<assembly_name>/ideogram/`, cropped to the plotted area: from genome BUSCO for genome only assemblies, and from protein BUSCO (one per BUSCO lineage) for assemblies with an annotation. The Telomeres tab includes a chromosome selector for assemblies with multiple sequences, and a toggle to switch between the a priori and a posteriori tidk searches when both were run. The Annotation stats tab has a feature-type selector; each feature's table lists every assembly side by side, with `NA` where an assembly doesn't have that feature type or metric. Since AGAT can reports dozens of metrics per feature type (this depedends on the annotation file), each table shows a compact default selection - use the "Show all columns" checkbox to see every metric, and, for feature types where AGAT recalculates stats with isoforms collapsed to one transcript per gene, the "Collapse isoforms" checkbox to switch views.
+The **HTML report** is a single-file report with one tab per tool. The BUSCO, BUSCO ideogram, Assembly stats (Quast), Telomeres, FCS-GX, FCS-Adaptor, Tiara and Annotation stats (AGAT) tabs are only shown if the corresponding tool was run. The BUSCO ideogram tab has an assembly selector and shows the same ideograms as `busco/*/<assembly_name>/ideogram/`, cropped to the plotted area: from genome BUSCO for every assembly, plus from protein BUSCO (one per BUSCO lineage) for assemblies with an annotation. The Telomeres tab includes a chromosome selector for assemblies with multiple sequences, and a toggle to switch between the a priori and a posteriori tidk searches when both were run. The Annotation stats tab has a feature-type selector; each feature's table lists every assembly side by side, with `NA` where an assembly doesn't have that feature type or metric. Since AGAT can reports dozens of metrics per feature type (this depedends on the annotation file), each table shows a compact default selection - use the "Show all columns" checkbox to see every metric, and, for feature types where AGAT recalculates stats with isoforms collapsed to one transcript per gene, the "Collapse isoforms" checkbox to switch views.
 
 The **Excel report** contains the same summary statistics as separate tables. AGAT statistics are all in one `Annotation_AGAT` sheet, one table per feature type stacked vertically under a title row naming the feature - assemblies as rows and every metric as a column (unlike the HTML report, nothing is hidden by default), `NA` where an assembly doesn't have that feature type or metric.
 

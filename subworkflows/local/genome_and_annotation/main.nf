@@ -5,6 +5,7 @@ include { BUSCO_BUSCO as BUSCO_GENOME            } from '../../../modules/nf-cor
 include { BUSCO_BUSCO as BUSCO_PROTEIN          } from '../../../modules/nf-core/busco/busco/main'
 include { QUAST                                  } from '../../../modules/nf-core/quast/main'
 include { AGAT_SPSTATISTICS                      } from '../../../modules/nf-core/agat/spstatistics/main'
+include { IDEOGRAM_GENOME                        } from '../../../modules/local/ideogram/genome/main'
 include { IDEOGRAM_GENOMEANNOTATION              } from '../../../modules/local/ideogram/genomeannotation/main'
 include { GFFREAD                                } from '../../../modules/nf-core/gffread/main'
 include { GFFREAD as GFFREAD_VALIDATE            } from '../../../modules/nf-core/gffread/main'
@@ -216,7 +217,17 @@ workflow GENOME_AND_ANNOTATION {
         )
 
         //
-        // Plot BUSCO ideogram
+        // Plot BUSCO ideogram from genome BUSCO, as in genome only mode, so every
+        // assembly gets a genome ideogram whether or not it has an annotation
+        //
+
+        IDEOGRAM_GENOME (
+            ch_fasta
+            | combine(BUSCO_GENOME.out.full_table, by:0)
+        )
+
+        //
+        // Plot BUSCO ideogram from protein BUSCO, placed on the genome via the annotation
         //
 
         // Prepare BUSCO output
@@ -264,7 +275,8 @@ workflow GENOME_AND_ANNOTATION {
     quast_tsv                  = QUAST.out.tsv                       // channel: [ val(meta), path(tsv) ]
     agat_stats                 = AGAT_SPSTATISTICS.out.stats_txt     // channel: [ val(meta), path(txt) ]
     ortho_seq_count            = ORTHOSEQCOUNT.out.species_summary // channel: [ path(tsv) ]
-    ideogram_svg               = !val_skip_busco ? IDEOGRAM_GENOMEANNOTATION.out.svg : channel.empty() // channel: [ val(meta), path(svg) ], meta has id and lineage
+    ideogram_svg_geno          = !val_skip_busco ? IDEOGRAM_GENOME.out.svg : channel.empty()           // channel: [ val(meta), path(svg) ]
+    ideogram_svg_prot          = !val_skip_busco ? IDEOGRAM_GENOMEANNOTATION.out.svg : channel.empty() // channel: [ val(meta), path(svg) ], meta has id and lineage
     buscos_per_seqs            = !val_skip_busco ? IDEOGRAM_GENOMEANNOTATION.out.busco_mappings.collect { _meta, table -> table}.map { tables -> tables.toSorted { a, b -> a.name <=> b.name } } : channel.empty() // channel: [ val(meta), [csv] ]
     versions                   = ch_versions                   // channel: [ versions.yml ]
 }
