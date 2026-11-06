@@ -47,6 +47,10 @@
                 "GFFREAD": {
                     "gffread": "0.12.7"
                 },
+                "IDEOGRAM_GENOME": {
+                    "r_base": "4.4.1",
+                    "r_rideogram": "0.2.2"
+                },
                 "IDEOGRAM_GENOMEANNOTATION": {
                     "r_base": "4.4.1",
                     "r_rideogram": "0.2.2"
@@ -137,14 +141,26 @@
                 "busco",
                 "busco/genome",
                 "busco/genome/Mycoplasmoides_fastidiosum",
+                "busco/genome/Mycoplasmoides_fastidiosum/ideogram",
+                "busco/genome/Mycoplasmoides_fastidiosum/ideogram/Mycoplasmoides_fastidiosum.csv",
+                "busco/genome/Mycoplasmoides_fastidiosum/ideogram/Mycoplasmoides_fastidiosum.png",
+                "busco/genome/Mycoplasmoides_fastidiosum/ideogram/Mycoplasmoides_fastidiosum.svg",
                 "busco/genome/Mycoplasmoides_fastidiosum/stats",
                 "busco/genome/Mycoplasmoides_fastidiosum/stats/Mycoplasmoides_fastidiosum-mycoplasmatales_odb10-genome-busco.batch_summary.txt",
                 "busco/genome/Mycoplasmoides_fastidiosum/stats/short_summary.specific.mycoplasmatales_odb10.GCF_000027325.1_ASM2732v1_genomic.tiny.fna.txt",
                 "busco/genome/Mycoplasmoides_gallisepticum",
+                "busco/genome/Mycoplasmoides_gallisepticum/ideogram",
+                "busco/genome/Mycoplasmoides_gallisepticum/ideogram/Mycoplasmoides_gallisepticum.csv",
+                "busco/genome/Mycoplasmoides_gallisepticum/ideogram/Mycoplasmoides_gallisepticum.png",
+                "busco/genome/Mycoplasmoides_gallisepticum/ideogram/Mycoplasmoides_gallisepticum.svg",
                 "busco/genome/Mycoplasmoides_gallisepticum/stats",
                 "busco/genome/Mycoplasmoides_gallisepticum/stats/Mycoplasmoides_gallisepticum-mycoplasmatales_odb10-genome-busco.batch_summary.txt",
                 "busco/genome/Mycoplasmoides_gallisepticum/stats/short_summary.specific.mycoplasmatales_odb10.GCF_900476085.1_50569_G01_genomic.tiny.fna.txt",
                 "busco/genome/Mycoplasmoides_genitalium",
+                "busco/genome/Mycoplasmoides_genitalium/ideogram",
+                "busco/genome/Mycoplasmoides_genitalium/ideogram/Mycoplasmoides_genitalium.csv",
+                "busco/genome/Mycoplasmoides_genitalium/ideogram/Mycoplasmoides_genitalium.png",
+                "busco/genome/Mycoplasmoides_genitalium/ideogram/Mycoplasmoides_genitalium.svg",
                 "busco/genome/Mycoplasmoides_genitalium/stats",
                 "busco/genome/Mycoplasmoides_genitalium/stats/Mycoplasmoides_genitalium-mycoplasmatales_odb10-genome-busco.batch_summary.txt",
                 "busco/genome/Mycoplasmoides_genitalium/stats/short_summary.specific.mycoplasmatales_odb10.GCF_024498275.1_ASM2449827v1_genomic.tiny.fna.txt",
@@ -1237,8 +1253,14 @@
             [
                 "Mycoplasmoides_fastidiosum.stats.txt:md5,ad2144d589b81a1e82c5b5d4cca6dcaa",
                 "Mycoplasmoides_genitalium.stats.txt:md5,19009d10939373aec6f20f2bc16266a0",
+                "Mycoplasmoides_fastidiosum.csv:md5,d9a3c991074fe09e1fbf448b153e2510",
+                "Mycoplasmoides_fastidiosum.svg:md5,e0ce05e30e2333acc8811a42c73c0eb2",
                 "Mycoplasmoides_fastidiosum-mycoplasmatales_odb10-genome-busco.batch_summary.txt:md5,751aca5cdf00cbcfe4ec1962d22af4bf",
+                "Mycoplasmoides_gallisepticum.csv:md5,4c026a3c4b36bbdd1e91108b236693e0",
+                "Mycoplasmoides_gallisepticum.svg:md5,df354f2b92dc88373a3113f5f9bc5cbf",
                 "Mycoplasmoides_gallisepticum-mycoplasmatales_odb10-genome-busco.batch_summary.txt:md5,a91554aefaebed48a976355fabf104c2",
+                "Mycoplasmoides_genitalium.csv:md5,42250d600ee1e994474e23cc4004cb97",
+                "Mycoplasmoides_genitalium.svg:md5,c4cd0398a9d47b36032af8641998e570",
                 "Mycoplasmoides_genitalium-mycoplasmatales_odb10-genome-busco.batch_summary.txt:md5,f6425899adaad97352f08dd3b02f1a4f",
                 "Mycoplasmoides_fastidiosum.csv:md5,1cd4a9574f8cd004c8f8df484dd9967a",
                 "Mycoplasmoides_fastidiosum.svg:md5,05ca5c3e498f91b14efd0a75504c6eaf",
